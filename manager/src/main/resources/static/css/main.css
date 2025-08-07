@@ -1,0 +1,59 @@
+.console-output {
+    font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+}
+
+.folder-tree {
+    font-size: 14px;
+}
+
+.rounded-button {
+    border-radius: 6px;
+}
+
+.bg-primary {
+    background-color: #3b82f6;
+}
+
+.text-primary {
+    color: #3b82f6;
+}
+
+.hover\:text-primary:hover {
+    color: #3b82f6;
+}
+
+.hover\:bg-primary:hover {
+    background-color: #3b82f6;
+}
+
+.tree-node {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tree-node:hover {
+    background-color: #f3f4f6;
+}
+
+.tree-node.selected {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+/* CodeMirror 样式调整 */
+.CodeMirror {
+    height: 384px !important;
+    max-height: 384px !important;
+    font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.CodeMirror-scroll {
+    max-height: 384px !important;
+    overflow-y: auto !important;
+}
+
+.CodeMirror-sizer {
+    min-height: auto !important;
+}

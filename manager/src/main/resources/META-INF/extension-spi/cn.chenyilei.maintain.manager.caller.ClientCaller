@@ -1,0 +1,2 @@
+wrapper=cn.chenyilei.maintain.manager.caller.wrapper.ClientCallerWrapper
+http=cn.chenyilei.maintain.manager.caller.http.HttpClientCaller

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <property name="CONSOLE_LOG_PATTERN_TRACE"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%boldYellow(%thread)] %highlight(%-5level) %boldGreen(%logger{26}) - %msg %n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN_TRACE}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <!--    <logger name ="com.zbycorp.fenghuo.repository.dal.mapper" level = "DEBUG">-->
+    <!--        <appender-ref ref="mapper-slsAppender"/>-->
+    <!--    </logger>-->
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

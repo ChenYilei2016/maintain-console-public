@@ -1,0 +1,2 @@
+springCloud=cn.chenyilei.maintain.manager.discovery.SpringCloudRegistryClientDiscovery
+local=cn.chenyilei.maintain.manager.discovery.LocalRegistryClientDiscovery

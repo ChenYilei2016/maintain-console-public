@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/favicon.ico">
+    <title>Script Management Console</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/theme/default.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/addon/hint/show-hint.min.css">
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Axios -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body class="bg-gray-50">
+<div id="app" class="h-screen">
+    <!-- 主布局 -->
+    <div class="flex h-screen">
+        <!-- 左侧边栏 -->
+        <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
+            <!-- Logo -->
+            <div class="p-4 border-b border-gray-200">
+                <div @click="showHelpModal = true"
+                     class="font-['Pacifico'] text-xl text-primary cursor-pointer hover:text-blue-600 transition-colors duration-200 flex items-center">
+                    <span>Maintain Console</span>
+                    <i class="fas fa-question-circle ml-2 text-sm opacity-60"></i>
+                </div>
+            </div>
+
+            <!-- 环境选择器 -->
+            <div class="p-4 border-b border-gray-200">
+                <!-- 生产环境警告 -->
+                <div v-if="selectedEnvironment === 'prod'" class="mb-3 text-center">
+                    <div class="bg-red-600 text-white text-lg font-bold px-3 py-2 rounded shadow-lg border-2 border-red-700">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>生产环境
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <button @click="toggleEnvironmentDropdown"
+                            class="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-button flex items-center justify-between">
+                        <span class="flex items-center">
+                            <i :class="environmentStatusIcon" class="text-xs mr-2"></i>
+                            <span>{{ selectedEnvironmentName || '选择环境...' }}</span>
+                        </span>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+
+                    <!-- 环境列表下拉菜单 -->
+                    <div v-show="showEnvironmentDropdown"
+                         class="absolute top-full left-0 w-full mt-1 bg-white border border-gray-300 rounded-button shadow-lg z-10">
+                        <div class="py-1">
+                            <div v-for="env in availableEnvironments"
+                                 :key="env.value"
+                                 @click="selectEnvironment(env.value)"
+                                 :class="[
+                                     'px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between',
+                                     env.value === 'prod' ? 'bg-red-50 hover:bg-red-100' : ''
+                                 ]">
+                                <div class="flex items-center">
+                                    <i :class="env.icon" class="text-xs mr-2"></i>
+                                    <span class="text-sm"
+                                          :class="env.value === 'prod' ? 'text-red-700 font-semibold' : ''">
+                                        {{ env.name }}
+                                    </span>
+                                    <span v-if="env.value === 'prod'"
+                                          class="ml-2 text-xs text-red-600 font-bold">[生产]</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 服务选择器 -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="relative">
+                    <button @click="toggleServiceDropdown"
+                            class="w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-button flex items-center justify-between">
+                            <span class="flex items-center">
+                                <i :class="serviceStatusIcon" class="text-xs mr-2"></i>
+                                <span>{{ selectedServiceName || '选择应用服务...' }}</span>
+                            </span>
+                        <i class="fas fa-chevron-down text-gray-400"></i>
+                    </button>
+
+                    <!-- 服务列表下拉菜单 -->
+                    <div v-show="showServiceDropdown"
+                         class="absolute top-full left-0 w-full mt-1 bg-white border border-gray-300 rounded-button shadow-lg z-10 max-h-60 overflow-auto">
+                        <div class="py-1">
+                            <div v-if="loadingServices" class="px-4 py-2 text-sm text-gray-500 text-center">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>加载中...
+                            </div>
+                            <div v-else-if="availableServices.length === 0"
+                                 class="px-4 py-2 text-sm text-gray-500 text-center">
+                                暂无可用服务
+                            </div>
+                            <div v-else>
+                                <div v-for="service in availableServices"
+                                     :key="service"
+                                     @click="selectService(service)"
+                                     class="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                        <span class="text-sm">{{ service }}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-400">在线</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 目录树 -->
+            <div class="flex-1 overflow-auto folder-tree p-4">
+                <div v-if="directoryTree.length === 0" class="text-sm text-gray-500 text-center py-8">
+                    <i class="fas fa-folder-open text-3xl text-gray-300 mb-2"></i>
+                    <div>暂无文件夹和脚本</div>
+                    <button @click="showCreateDialog(null)"
+                            class="mt-2 px-3 py-1 text-xs bg-primary text-white rounded hover:bg-blue-600">
+                        <i class="fas fa-plus mr-1"></i>创建文件夹或脚本
+                    </button>
+                </div>
+                <div v-else>
+                    <!-- 工具栏 -->
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-medium text-gray-700">{{ selectedServiceName || '应用文件' }}</span>
+                        <div class="flex items-center space-x-2">
+                            <!-- 定位按钮 -->
+                            <button @click="locateCurrentScript"
+                                    :disabled="!currentScript.id"
+                                    :title="currentScript.id ? '定位到当前脚本' : '请先选择一个脚本'"
+                                    class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-blue-600 rounded-button disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-crosshairs text-sm"></i>
+                            </button>
+                            <!-- 创建按钮 -->
+                            <button @click="showCreateDialog(null)"
+                                    class="w-6 h-6 flex items-center justify-center text-gray-500 hover:text-primary rounded-button">
+                                <i class="fas fa-plus text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 搜索框 -->
+                    <div class="mb-3">
+                        <div class="relative">
+                            <input v-model="searchQuery"
+                                   type="text"
+                                   placeholder="搜索文件夹和脚本..."
+                                   class="w-full px-3 py-2 pl-8 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-400 text-xs"></i>
+                            <button v-if="searchQuery"
+                                    @click="clearSearch"
+                                    class="absolute right-2 top-2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-times text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- 搜索结果计数 -->
+                        <div v-if="searchQuery && filteredTree.length === 0" class="text-xs text-gray-500 mt-1">
+                            未找到匹配的文件夹或脚本
+                        </div>
+                        <div v-else-if="searchQuery && filteredTree.length > 0" class="text-xs text-gray-500 mt-1">
+                            找到 {{ getTotalMatchCount() }} 个匹配项
+                        </div>
+                    </div>
+
+                    <!-- 目录树列表 -->
+                    <div class="space-y-1">
+                        <directory-node
+                                v-for="node in filteredTree"
+                                :key="node.id"
+                                :node="node"
+                                :search-query="searchQuery"
+                                @select="selectNode"
+                                @create="showCreateDialog"
+                                @delete="handleDeleteNode"
+                                @rename="handleRenameNode">
+                        </directory-node>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 用户信息 -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
+                        {{ currentUser?.employeeName?.charAt(0) || 'U' }}
+                    </div>
+                    <div class="ml-3">
+                        <div class="text-sm font-medium">{{ currentUser?.employeeName || 'User' }}</div>
+                        <div class="text-xs text-gray-500">{{ currentUser?.employeeNo || 'N/A' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="flex-1 flex flex-col">
+            <!-- 顶部工具栏 -->
+            <div class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-end">
+
+                </div>
+            </div>
+
+            <!-- 编辑区域 -->
+            <div class="flex-1 p-6">
+                <!-- 脚本信息 -->
+                <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <input v-model="currentScript.name"
+                               type="text"
+                               placeholder=">>>>>  这是一个DEMO脚本  <<<<<"
+                               class="text-lg font-medium border-none focus:outline-none flex-1 mr-4"
+                               :readonly="!canEdit"/>
+                        <span class="text-sm text-gray-500">
+                                Last modified: {{ currentScript.updateTime || 'Never' }}
+                            </span>
+                    </div>
+
+                    <!-- 权限管控 -->
+                    <div class="border-t border-gray-200 pt-4 mb-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt text-blue-500 mr-2"></i>
+                                <span class="text-sm font-medium text-gray-700">权限配置 / 脚本输入</span>
+                            </div>
+                            <button v-if="canEdit"
+                                    @click="togglePermissionEdit"
+                                    class="text-sm text-gray-500 hover:text-primary">
+                                <i :class="isEditingPermission ? 'fas fa-save mr-1' : 'fas fa-edit mr-1'"></i>
+                                {{ isEditingPermission ? '保存配置' : '编辑配置' }}
+                            </button>
+                        </div>
+                        <div class="space-y-2">
+                                <textarea v-model="permissionJson"
+                                          :readonly="!currentScript.canEdit"
+                                          placeholder="请输入JSON格式的权限配置"
+                                          rows="3"
+                                          :class="[
+                                             'w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono',
+                                             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                                             !currentScript.canEdit ? 'bg-gray-100' : ''
+                                         ]"></textarea>
+                            <div v-if="permissionError" class="text-red-500 text-xs">{{ permissionError }}</div>
+                        </div>
+                    </div>
+
+                    <!-- 代码编辑器 -->
+                    <div class="bg-gray-50 rounded overflow-hidden">
+                        <div ref="codeEditorContainer" class="h-96" style="max-height: 384px; overflow: hidden;"></div>
+                    </div>
+                </div>
+
+                <!-- 参数区域 -->
+                <div v-if="scriptParameters.length > 0" class="bg-white rounded-lg shadow-sm p-4 mb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
+                            <span class="text-sm font-medium">脚本参数 (根据代码变量动态生成)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button @click="showPreviewModal = true"
+                                    class="text-sm text-gray-500 hover:text-primary">
+                                <i class="fas fa-eye mr-1"></i> 预览代码
+                            </button>
+                            <button @click="parseParameters"
+                                    class="text-sm text-gray-500 hover:text-primary">
+                                <i class="fas fa-sync-alt mr-1"></i> 刷新参数
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div v-for="param in scriptParameters" :key="param" class="flex items-center space-x-3">
+                            <label class="w-24 text-sm font-medium text-gray-700 flex-shrink-0">{{ param }}:</label>
+                            <input v-model="parameterValues[param]"
+                                   type="text"
+                                   :placeholder="`请输入 ${param} 的值`"
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <button @click="clearParameter(param)"
+                                    class="px-2 py-1 text-xs text-gray-500 hover:text-red-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 执行结果 -->
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                            <span class="text-sm font-medium">执行结果</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button @click="executeScript"
+                                    :disabled="!currentScript.content || isExecuting || !currentScript.canInvoke"
+                                    class="px-4 py-2 bg-primary text-white rounded-button whitespace-nowrap flex items-center disabled:opacity-50">
+                                <i :class="isExecuting ? 'fas fa-spinner fa-spin mr-2' : 'fas fa-play mr-2'"></i>
+                                {{ isExecuting ? '执行中...' : '执行脚本' }}
+                            </button>
+                            <button @click="saveScript"
+                                    :disabled="!currentScript.content || !currentScript.canEdit"
+                                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-button whitespace-nowrap flex items-center disabled:opacity-50">
+                                <i class="fas fa-save mr-2"></i>
+                                保存脚本
+                            </button>
+                            <button @click="openHistoryListModal"
+                                    :disabled="!currentScript.id"
+                                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-button whitespace-nowrap flex items-center disabled:opacity-50">
+                                <i class="fas fa-history mr-2"></i>
+                                查看历史执行记录
+                            </button>
+                            <button class="text-sm text-gray-500 hover:text-primary">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="console-output bg-gray-50 rounded p-4 h-48 overflow-auto font-mono text-sm"
+                         v-html="executionResult"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 预览模态框 -->
+    <div v-if="showPreviewModal"
+         @click="closePreviewModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">代码预览 - 参数替换后</h3>
+                <button @click="showPreviewModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 p-4 overflow-hidden">
+                <pre class="bg-gray-50 p-4 rounded text-sm font-mono h-full overflow-auto">{{ previewCode }}</pre>
+            </div>
+            <div class="flex items-center justify-between p-4 border-t border-gray-200 bg-gray-50">
+                <div class="text-sm text-gray-600">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    这里显示参数替换后的最终代码，可以复制使用
+                </div>
+                <div class="flex space-x-2">
+                    <button @click="copyPreviewCode"
+                            class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        <i class="fas fa-copy mr-1"></i> 复制代码
+                    </button>
+                    <button @click="showPreviewModal = false"
+                            class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600">
+                        关闭
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助指南模态框 -->
+    <div v-if="showHelpModal"
+         @click="closeHelpModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-question-circle text-blue-500 mr-2"></i>
+                    帮助指南
+                </h3>
+                <button @click="showHelpModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 p-4 overflow-auto">
+                <div class="prose max-w-none">
+                    <div v-html="formattedHelpContent" class="text-gray-700"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示框 -->
+    <div v-if="showToast"
+         :class="['fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg max-w-sm transform transition-all duration-300 ease-in-out',
+                  toastType === 'success' ? 'bg-green-500 text-white' : 
+                  toastType === 'warning' ? 'bg-yellow-500 text-white' : 
+                  'bg-red-500 text-white',
+                  showToast ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0']">
+        <div class="flex items-center">
+            <i :class="['mr-2', 
+                       toastType === 'success' ? 'fas fa-check-circle' : 
+                       toastType === 'warning' ? 'fas fa-exclamation-triangle' : 
+                       'fas fa-exclamation-circle']"></i>
+            <span class="text-sm">{{ toastMessage }}</span>
+        </div>
+    </div>
+
+    <!-- 创建对话框模态框 -->
+    <div v-if="showCreateModal"
+         @click="closeCreateModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">{{ createModalTitle }}</h3>
+                <button @click="showCreateModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="mb-4" v-if="!isCreatingInSecondLevel">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">类型</label>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" v-model="createType" value="folder" class="mr-2">
+                            <i class="fas fa-folder text-yellow-500 mr-1"></i>
+                            文件夹
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" v-model="createType" value="script" class="mr-2">
+                            <i class="fas fa-file-code text-blue-500 mr-1"></i>
+                            脚本
+                        </label>
+                    </div>
+                </div>
+                <div class="mb-4" v-else>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">类型</label>
+                    <div class="flex items-center p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        <span class="text-sm text-blue-700">在子文件夹中只能创建脚本</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">名称</label>
+                    <input v-model="createName"
+                           type="text"
+                           :placeholder="createType === 'folder' ? '请输入文件夹名称' : '请输入脚本名称'"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           @keyup.enter="confirmCreate">
+                </div>
+            </div>
+            <div class="flex items-center justify-end p-4 border-t border-gray-200 space-x-2">
+                <button @click="showCreateModal = false"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                    取消
+                </button>
+                <button @click="confirmCreate"
+                        :disabled="!createName.trim()"
+                        class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ isCreating ? '创建中...' : '创建' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认对话框模态框 -->
+    <div v-if="showDeleteModal"
+         @click="closeDeleteModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                    确认删除
+                </h3>
+                <button @click="showDeleteModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700">
+                        确定要删除 <strong class="text-red-600">{{ deleteTargetNode?.name }}</strong>
+                        {{ deleteTargetNode?.type === 'folder' ? '文件夹' : '脚本' }}吗？
+                    </p>
+                    <div v-if="deleteTargetNode?.type === 'folder'"
+                         class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                            <span class="text-sm text-yellow-700">删除文件夹将同时删除其中的所有脚本和子文件夹</span>
+                        </div>
+                        <div class="mt-2">
+                            <label class="flex items-center">
+                                <input type="checkbox" v-model="deleteForceDelete" class="mr-2">
+                                <span class="text-sm text-yellow-700">我确认要强制删除此文件夹及其所有内容</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end p-4 border-t border-gray-200 space-x-2">
+                <button @click="showDeleteModal = false"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                    取消
+                </button>
+                <button @click="confirmDelete"
+                        :disabled="(deleteTargetNode?.type === 'folder' && !deleteForceDelete) || isDeleting"
+                        class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i :class="isDeleting ? 'fas fa-spinner fa-spin mr-2' : 'fas fa-trash mr-2'"></i>
+                    {{ isDeleting ? '删除中...' : '确认删除' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重命名对话框模态框 -->
+    <div v-if="showRenameModal"
+         @click="closeRenameModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <i class="fas fa-edit text-blue-500 mr-2"></i>
+                    重命名{{ renameTargetNode?.type === 'folder' ? '文件夹' : '脚本' }}
+                </h3>
+                <button @click="showRenameModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">新名称</label>
+                    <input v-model="renameNewName"
+                           type="text"
+                           :placeholder="'请输入新的' + (renameTargetNode?.type === 'folder' ? '文件夹' : '脚本') + '名称'"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           @keyup.enter="confirmRename">
+                </div>
+            </div>
+            <div class="flex items-center justify-end p-4 border-t border-gray-200 space-x-2">
+                <button @click="showRenameModal = false"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                    取消
+                </button>
+                <button @click="confirmRename"
+                        :disabled="!renameNewName.trim() || isRenaming"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i :class="isRenaming ? 'fas fa-spinner fa-spin mr-2' : 'fas fa-save mr-2'"></i>
+                    {{ isRenaming ? '重命名中...' : '确认重命名' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史详情模态框 -->
+    <div v-if="showHistoryDetailModal"
+         @click="closeHistoryDetailModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">执行历史详情</h3>
+                <button @click="showHistoryDetailModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 p-4 overflow-auto">
+                <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                    <div><strong>执行人:</strong> {{ selectedHistory.executorName }}</div>
+                    <div><strong>执行时间:</strong> {{ selectedHistory.startTime }}</div>
+                    <div><strong>状态:</strong> <span
+                            :class="selectedHistory.status === 'success' ? 'text-green-600' : 'text-red-600'">{{ selectedHistory.status
+                        }}</span></div>
+                    <div><strong>耗时:</strong> {{ selectedHistory.duration }} ms</div>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold mb-2">执行脚本:</h4>
+                        <pre class="bg-gray-50 p-2 rounded text-sm font-mono max-h-48 overflow-auto">{{ selectedHistory.scriptContent
+                            }}</pre>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">执行参数:</h4>
+                        <pre class="bg-gray-50 p-2 rounded text-sm font-mono max-h-48 overflow-auto">{{ selectedHistory.parameters
+                            }}</pre>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">最终脚本:</h4>
+                        <pre class="bg-gray-50 p-2 rounded text-sm font-mono max-h-48 overflow-auto">{{ selectedHistory.finalScriptContent
+                            }}</pre>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-2">执行结果:</h4>
+                        <pre class="bg-gray-50 p-2 rounded text-sm font-mono max-h-48 overflow-auto">{{ selectedHistory.result
+                            }}</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-end p-4 border-t border-gray-200 space-x-2">
+                <button @click="backToHistoryList"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    返回列表
+                </button>
+                <button @click="restoreParameters(selectedHistory.parameters)"
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                    恢复参数
+                </button>
+                <button @click="showHistoryDetailModal = false"
+                        class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 历史列表模态框 -->
+    <div v-if="showHistoryListModal"
+         @click="closeHistoryListModal"
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div @click.stop
+             class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">执行历史</h3>
+                <button @click="showHistoryListModal = false"
+                        class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex-1 p-4 overflow-auto">
+                <div v-if="executionHistory.length === 0" class="text-sm text-gray-500 text-center py-8">
+                    <i class="fas fa-history text-3xl text-gray-300 mb-2"></i>
+                    <div>暂无执行历史</div>
+                </div>
+                <div v-else>
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">ID</th>
+                            <th scope="col" class="px-6 py-3">执行人</th>
+                            <th scope="col" class="px-6 py-3">执行时间</th>
+                            <th scope="col" class="px-6 py-3">状态</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="item in executionHistory" :key="item.id" @click="showHistoryDetail(item)"
+                            class="bg-white border-b hover:bg-gray-50 cursor-pointer">
+                            <td class="px-6 py-4">{{ item.id }}</td>
+                            <td class="px-6 py-4">{{ item.executorName }}</td>
+                            <td class="px-6 py-4">{{ item.startTime }}</td>
+                            <td class="px-6 py-4"
+                                :class="item.status === 'success' ? 'text-green-600' : 'text-red-600'">
+                                <i :class="item.status === 'success' ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                                {{ item.status }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="flex items-center justify-between p-4 border-t border-gray-200">
+                 <span class="text-sm text-gray-700">
+                    共 {{ historyTotalRecords }} 条记录，第 {{ historyCurrentPage }} / {{ historyTotalPages }} 页
+                </span>
+                <div class="flex space-x-2">
+                    <button @click="changeHistoryPage(historyCurrentPage - 1)" :disabled="historyCurrentPage <= 1"
+                            class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
+                        上一页
+                    </button>
+                    <button @click="changeHistoryPage(historyCurrentPage + 1)"
+                            :disabled="historyCurrentPage >= historyTotalPages"
+                            class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50">
+                        下一页
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CodeMirror JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/mode/groovy/groovy.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.0/addon/hint/anyword-hint.min.js"></script>
+
+<!-- 主应用脚本 -->
+<script src="/static/js/main.js"></script>
+
+<!-- CodeMirror 容器标记 -->
+<div data-code-mirror style="display: none;"></div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <property name="APP_NAME" value="application"/>
+    <property name="LOG_PATH" value="${user.home}/logs/${APP_NAME}"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/application.log"/>
+    <property name="ERROR_LOG_PARENT"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [ %-5level ] [%thread] [ %logger{10} ] [at %F.%M.%L] - %msg%n"/>
+
+    <property name="CONSOLE_LOG_PATTERN_TRACE"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%boldYellow(%thread)] %highlight(%-5level) %boldGreen(%logger{26}) - %msg %n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN_TRACE}</pattern>
+            <charset>utf8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="APPLICATION"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <encoder>
+            <pattern>${LOG_PARENT}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <maxFileSize>50MB</maxFileSize>
+            <totalSizeCap>10GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!--    <logger name ="com.zbycorp.fenghuo.repository.dal.mapper" level = "DEBUG">-->
+    <!--        <appender-ref ref="mapper-slsAppender"/>-->
+    <!--    </logger>-->
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="APPLICATION"/>
+    </root>
+
+
+</configuration>
