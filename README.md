@@ -110,9 +110,6 @@ maintain.console.enabled=true
 spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
 ```
 
-## 🏗️ 技术架构
-
-```
 
 ## 🏗️ 项目结构
 
@@ -145,57 +142,6 @@ maintain-console/
 ├── groovy-sample/ # Groovy示例
 ├── sample-projects/ # 示例项目
 └── pom.xml
-
-```
-
-## 📊 数据库设计
-
-### 核心数据表
-
-#### 脚本表 (script)
-```sql
-CREATE TABLE script (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR(100) NOT NULL,           -- 脚本名称
-    content TEXT NOT NULL,                -- 脚本内容
-    type VARCHAR(20) NOT NULL,            -- 脚本类型(groovy/command)
-    directory_id INTEGER,                 -- 所属目录ID
-    description TEXT,                     -- 脚本描述
-    created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    deleted TINYINT DEFAULT 0
-);
-```
-
-#### 执行历史表 (execution_history)
-
-```sql
-CREATE TABLE execution_history
-(
-   id               INTEGER PRIMARY KEY AUTOINCREMENT,
-   script_id        INTEGER      NOT NULL, -- 脚本ID
-   client_name      VARCHAR(100) NOT NULL, -- 客户端名称
-   execution_result TEXT,                  -- 执行结果
-   execution_status VARCHAR(20)  NOT NULL,-- 执行状态
-   execution_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
-   error_message    TEXT,                  -- 错误信息
-   deleted          TINYINT  DEFAULT 0
-);
-```
-
-#### 目录表 (directory)
-
-```sql
-CREATE TABLE directory
-(
-   id           INTEGER PRIMARY KEY AUTOINCREMENT,
-   name         VARCHAR(100) NOT NULL, -- 目录名称
-   parent_id    INTEGER,               -- 父目录ID
-   description  TEXT,                  -- 目录描述
-   created_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-   updated_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-   deleted      TINYINT  DEFAULT 0
-);
 ```
 
 ## 🔐 安全机制
@@ -259,10 +205,7 @@ public ResponseEntity<String> invokeScript(@RequestBody ScriptRequest request) {
 
 ```properties
 # HTTP连接池配置
-maintain.console.http.pool.max-total=200
-maintain.console.http.pool.default-max-per-route=50
-maintain.console.http.pool.connection-timeout=5000
-maintain.console.http.pool.socket-timeout=30000
+io.github.chenyilei2016.maintain.manager.caller.http.RetrofitHttpProxyFactory.commonDefaultClient
 ```
 
 ### 脚本执行优化
@@ -482,86 +425,7 @@ logging.level.io.github.chenyilei2016=DEBUG
 logging.level.org.springframework.cloud=DEBUG
 logging.level.com.alibaba.nacos=DEBUG
 # 日志文件配置
-logging.file.name=logs/maintain-console.log
-logging.file.max-size=100MB
-logging.file.max-history=30
-```
-
-## 📋 API 文档
-
-### Manager API
-
-#### 1. 脚本管理接口
-
-```http
-# 获取所有脚本
-GET /api/scripts
-
-# 创建脚本
-POST /api/scripts
-Content-Type: application/json
-
-{
-  "name": "系统信息查询",
-  "content": "return System.getProperties()",
-  "type": "groovy",
-  "directoryId": 1,
-  "description": "获取系统基本信息"
-}
-
-# 执行脚本
-POST /api/scripts/{scriptId}/execute
-Content-Type: application/json
-
-{
-  "clientName": "demo-application"
-}
-```
-
-#### 2. 客户端管理接口
-
-```http
-# 获取已注册的客户端
-GET /api/clients
-
-# 获取客户端详情
-GET /api/clients/{clientName}
-```
-
-#### 3. 执行历史接口
-
-```http
-# 获取执行历史
-GET /api/executions?page=1&size=20
-
-# 获取特定脚本的执行历史
-GET /api/executions/script/{scriptId}
-```
-
-### Client API
-
-#### 1. 脚本执行接口
-
-```http
-# 执行Groovy脚本
-POST /maintain-console/invoke-script
-Content-Type: application/json
-
-{
-  "script": "return 'Hello World'",
-  "timestamp": 1642583443000,
-  "signature": "..."
-}
-
-# 执行命令
-POST /maintain-console/invoke-command
-Content-Type: application/json
-
-{
-  "command": "ps aux | grep java",
-  "timestamp": 1642583443000,
-  "signature": "..."
-}
+# 请去logback修改
 ```
 
 ## 🤝 贡献指南
