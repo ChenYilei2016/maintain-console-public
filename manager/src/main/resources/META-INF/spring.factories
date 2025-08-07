@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-cn.chenyilei.maintain.manager.context.ApplicationContextHolder
+io.github.chenyilei2016.maintain.manager.context.ApplicationContextHolder

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>cn.chenyilei</groupId>
+        <groupId>io.github.chenyilei2016</groupId>
         <artifactId>maintain-console</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
@@ -21,13 +21,13 @@
         <!--        用于本地测试调用-->
         <!--    http协议调用    -->
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-http-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!--    上报客户端信息    -->
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-registry-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -63,12 +63,12 @@
             <version>2.11.0</version>
         </dependency>
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-groovy-support-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -196,7 +196,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>cn.chenyilei.maintain.manager.MaintainManagerBootstrap</mainClass>
+                    <mainClass>io.github.chenyilei2016.maintain.manager.MaintainManagerBootstrap</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>sample-projects</artifactId>
-        <groupId>cn.chenyilei</groupId>
+        <groupId>io.github.chenyilei2016</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -20,25 +20,25 @@
     <dependencies>
         <!--    http协议调用    -->
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-http-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!--    使用groovy执行器    -->
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-groovy-support-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <!--    上报客户端信息    -->
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-registry-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>sample-common</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

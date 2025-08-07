@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-cn.chenyilei.maintain.client.groovy.configuration.MaintainConsoleClientGroovyAutoConfiguration
+io.github.chenyilei2016.maintain.client.groovy.configuration.MaintainConsoleClientGroovyAutoConfiguration

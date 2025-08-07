@@ -8,7 +8,7 @@
         <version>2.3.12.RELEASE</version>
     </parent>
 
-    <groupId>cn.chenyilei</groupId>
+    <groupId>io.github.chenyilei2016</groupId>
     <artifactId>maintain-console</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>

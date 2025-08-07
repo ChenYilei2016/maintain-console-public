@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-cn.chenyilei.maintain.client.registry.configuration.MaintainConsoleClientRegistryAutoConfiguration
+io.github.chenyilei2016.maintain.client.registry.configuration.MaintainConsoleClientRegistryAutoConfiguration

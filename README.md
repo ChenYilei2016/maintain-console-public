@@ -20,8 +20,8 @@ application-prod.properties : 生产配置
 
 ## 登录态接入
 
-cn.chenyilei.maintain.manager.controller.LoginController.getLoginInfo
-cn.chenyilei.maintain.manager.context.LoginUserContext
+controller.manager.maintain.io.github.chenyilei2016.LoginController.getLoginInfo
+context.manager.maintain.io.github.chenyilei2016.LoginUserContext
 
 # 客户端接入修改点
 
@@ -29,14 +29,14 @@ cn.chenyilei.maintain.manager.context.LoginUserContext
 
 ```
 <dependency>
-    <groupId>cn.chenyilei</groupId>
+    <groupId>io.github.chenyilei2016</groupId>
     <artifactId>maintain-console-client-http-starter</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 
    <!--    上报客户端信息    -->
         <dependency>
-            <groupId>cn.chenyilei</groupId>
+            <groupId>io.github.chenyilei2016</groupId>
             <artifactId>maintain-console-client-registry-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

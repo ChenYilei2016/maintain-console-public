@@ -1,0 +1,2 @@
+wrapper=io.github.chenyilei2016.maintain.manager.caller.wrapper.ClientCallerWrapper
+http=io.github.chenyilei2016.maintain.manager.caller.http.HttpClientCaller
