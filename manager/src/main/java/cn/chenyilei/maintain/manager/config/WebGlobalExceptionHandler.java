@@ -2,7 +2,7 @@ package cn.chenyilei.maintain.manager.config;
 
 import cn.chenyilei.maintain.manager.exceptions.CommonException;
 import cn.chenyilei.maintain.manager.pojo.common.AjaxResult;
-import cn.chenyilei.maintain.manager.utils.ZbyProfileUtils;
+import cn.chenyilei.maintain.manager.utils.MyProfileUtils;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
@@ -106,7 +106,7 @@ public class WebGlobalExceptionHandler implements EnvironmentAware {
     })
     @ResponseBody
     public AjaxResult daoSqlThrowable(Throwable ex, HttpServletRequest request) {
-        if (ZbyProfileUtils.isProd(environment)) {
+        if (MyProfileUtils.isProd(environment)) {
             log.error("daoSqlThrowable", ex);
             //当为生产环境, 不适合把具体的异常信息展示给用户
             return AjaxResult.error("网络错误,如一直有问题,请联系管理员");
@@ -142,7 +142,7 @@ public class WebGlobalExceptionHandler implements EnvironmentAware {
             return;
         }
         AjaxResult AjaxResult = null;
-        if (ZbyProfileUtils.isProd(environment)) {
+        if (MyProfileUtils.isProd(environment)) {
             //当为生产环境, 不适合把具体的异常信息展示给用户, 比如404.
             AjaxResult = AjaxResult.error("网络错误, 请注意链接是否正确, 如稍后重试还有问题请联系管理员");
         } else {

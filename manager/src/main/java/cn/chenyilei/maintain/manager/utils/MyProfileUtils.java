@@ -11,7 +11,7 @@ import java.util.Arrays;
  * @since 2025/07/31 22:03
  */
 @UtilityClass
-public class ZbyProfileUtils {
+public class MyProfileUtils {
 
 
     public static boolean isProd(Environment environment) {

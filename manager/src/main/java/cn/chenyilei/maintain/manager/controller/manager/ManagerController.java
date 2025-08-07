@@ -25,7 +25,7 @@ import cn.chenyilei.maintain.manager.pojo.vo.ScriptVO;
 import cn.chenyilei.maintain.manager.service.DirectoryService;
 import cn.chenyilei.maintain.manager.service.ScriptContentService;
 import cn.chenyilei.maintain.manager.utils.IdUtil;
-import cn.chenyilei.maintain.manager.utils.ZbyProfileUtils;
+import cn.chenyilei.maintain.manager.utils.MyProfileUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -102,7 +102,7 @@ public class ManagerController implements ApplicationContextAware {
         ApiResult<InvokeScriptResultDTO> apiResult = null;
         Throwable tx;
         try {
-            if (ZbyProfileUtils.isLocal(applicationContext.getEnvironment())) {
+            if (MyProfileUtils.isLocal(applicationContext.getEnvironment())) {
                 ctx.addParameter(SPIConstants.REGISTRY_CLIENT_DISCOVERY_TYPE, "local");
             }
             apiResult = clientCaller.$invokeScript(ctx, invokeScriptParamDTO);
@@ -173,7 +173,7 @@ public class ManagerController implements ApplicationContextAware {
     @PostMapping("/manager/service/list")
     public AjaxResult<List<String>> serviceList() {
         URL url = new URL();
-        if (ZbyProfileUtils.isLocal(applicationContext.getEnvironment())) {
+        if (MyProfileUtils.isLocal(applicationContext.getEnvironment())) {
             url.addParameter(SPIConstants.REGISTRY_CLIENT_DISCOVERY_TYPE, "local");
         }
         return AjaxResult.success(registryClientDiscovery.listServiceNames(url));
