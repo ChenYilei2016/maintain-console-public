@@ -32,6 +32,11 @@ Boot和Spring Cloud构建，提供了安全、高效、易用的运维自动化�
 - **数据操作**: 安全执行数据库维护和数据处理任务
 - **应急响应**: 快速响应系统问题，执行修复脚本
 
+### 页面功能案例
+
+![main1.png](docs/images/main1.png)
+![main2.png](docs/images/main2.png)
+
 ## 🚀 快速开始
 
 ### 环境要求
