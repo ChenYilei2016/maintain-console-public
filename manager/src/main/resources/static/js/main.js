@@ -682,24 +682,6 @@ createApp({
             return processedScript;
         };
 
-        const togglePermissionEdit = () => {
-            if (isEditingPermission.value) {
-                // 保存权限配置
-                try {
-                    JSON.parse(permissionJson.value);
-                    currentScript.permissions = permissionJson.value;
-                    permissionError.value = '';
-                    isEditingPermission.value = false;
-                    executionResult.value = '<span class="text-green-600">[SUCCESS] 权限配置已保存</span>';
-                } catch (error) {
-                    permissionError.value = 'JSON格式错误，请检查语法';
-                }
-            } else {
-                isEditingPermission.value = true;
-                permissionError.value = '';
-            }
-        };
-
         const saveScript = async () => {
             if (!currentScript.canEdit) {
                 showToastMessage('您没有编辑此脚本的权限', 'error');
@@ -1364,7 +1346,6 @@ Maintain Console 是一个脚本管理和执行平台，支持 Groovy 脚本的�
             selectNode,
             parseParameters,
             clearParameter,
-            togglePermissionEdit,
             saveScript,
             executeScript,
             closePreviewModal,
