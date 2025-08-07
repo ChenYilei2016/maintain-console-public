@@ -71,7 +71,8 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
 ### 4. 访问管理界面
 
-打开浏览器访问: http://localhost:8080
+manager默认tomcat端口9999
+打开浏览器访问: http://localhost:9999
 
 ### 5. 客户端接入
 
