@@ -52,7 +52,7 @@ public class ScriptPermissionEntity {
 
     public static boolean checkPermission(DirectoryNode node, Script existingScript, String operatorId, ScriptPermissionEnum p) {
         ManagerProperties mp = ApplicationContextHolder.getApplicationContext().getBean(ManagerProperties.class);
-        if (mp.getGlobalWhiteList().contains(operatorId)) {
+        if (mp.getGlobalWhiteEmployeeNoList().contains(operatorId)) {
             return true;
         }
         if (Objects.equals(node.getCreatorId(), operatorId)) {

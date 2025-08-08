@@ -17,7 +17,7 @@ public class ManagerProperties {
     /**
      * 全局白名单
      */
-    public HashSet<String> globalWhiteList = new HashSet<String>() {{
+    public HashSet<String> globalWhiteEmployeeNoList = new HashSet<String>() {{
         //默认工号 0,1有全局权限
         add("0");
         add("1");
