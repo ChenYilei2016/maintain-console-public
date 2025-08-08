@@ -26,7 +26,7 @@ public class MaintainManagerBootstrap {
         /**
          * 使用PROD配置文件, 默认需要补充nacos 和 数据的配置
          */
-        System.setProperty("spring.profiles.active", "pre");
+        System.setProperty("spring.profiles.active", "prod");
         ConfigurableApplicationContext run = SpringApplication.run(MaintainManagerBootstrap.class, args);
         log.info(">>>>>>>>>>>>> cyl spring boot start success !!!!  <<<<<<<<<<<<<<<");
     }
