@@ -67,16 +67,16 @@ public class DirectoryServiceImpl implements DirectoryService {
     }
 
     @Override
-    public ScriptNodeDTO getScriptDetail(String scriptId, String creatorId) {
+    public ScriptNodeDTO getScriptDetail(String scriptId, String employeeNo) {
         log.info("获取脚本详情，脚本ID：{}", scriptId);
 
         ScriptVO scriptVO = scriptContentService.findById(scriptId);
 
         ScriptNodeDTO dto = convertToScriptNodeDTO(scriptVO);
         //填充权限
-        dto.setCanRead(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), creatorId, ScriptPermissionEnum.READ));
-        dto.setCanInvoke(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), creatorId, ScriptPermissionEnum.INVOKE));
-        dto.setCanEdit(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), creatorId, ScriptPermissionEnum.EDIT));
+        dto.setCanRead(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.READ));
+        dto.setCanInvoke(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.INVOKE));
+        dto.setCanEdit(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.EDIT));
         return dto;
     }
 

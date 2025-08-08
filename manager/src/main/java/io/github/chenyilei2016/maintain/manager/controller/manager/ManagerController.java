@@ -71,7 +71,7 @@ public class ManagerController implements ApplicationContextAware {
      */
     @PostMapping("/manager/script/eval")
     public AjaxResult<String> scriptEval(@RequestBody @Valid ScriptEvalWebRequest scriptDTO) {
-        final String employeeId = LoginUserContext.getUser().getEmployeeId();
+        final String employeeNo = LoginUserContext.getUser().getEmployeeNo();
         ScriptVO scriptVO = scriptContentService.findById(scriptDTO.getScriptId());
         //这里还用前端的脚本, 因为可能用户并没有保存
         final String frontInputScript = scriptDTO.getScript();
@@ -82,8 +82,8 @@ public class ManagerController implements ApplicationContextAware {
         if (!Objects.equals(scriptDTO.getService(), scriptVO.getServiceName())) {
             throw CommonException.createReminderException("脚本不属于此服务");
         }
-        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeId, ScriptPermissionEnum.INVOKE)) {
-            throw CommonException.createReminderException("没有权限进行此操作:{},{}", employeeId, "INVOKE");
+        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.INVOKE)) {
+            throw CommonException.createReminderException("没有权限进行此操作:{},{}", employeeNo, "INVOKE");
         }
         String finalScriptContent = ScriptVO.mergeParamScript(frontInputScript, scriptDTO.getParams());
         log.info("接受scriptEval: {}, user:{} finalContent:{}", scriptDTO, LoginUserContext.getUser(), finalScriptContent);
@@ -128,7 +128,7 @@ public class ManagerController implements ApplicationContextAware {
             historyEntity.setId(IdUtil.generateSnowFlakeId());
             historyEntity.setScriptName(node.getName()); // Or from scriptDTO if available
             historyEntity.setServiceName(node.getServiceName());
-            historyEntity.setExecutorId(LoginUserContext.getUser().getEmployeeId());
+            historyEntity.setExecutorId(LoginUserContext.getUser().getEmployeeNo());
             historyEntity.setExecutorName(LoginUserContext.getUser().getEmployeeName());
             historyEntity.setScriptId(script.getId());
             historyEntity.setScriptContent(frontInputScript);

@@ -46,7 +46,7 @@ public class ManagerDirectoryController {
      */
     @PostMapping("/script/detail")
     public AjaxResult<ScriptNodeDTO> getScriptDetail(@RequestBody GetScriptDetailWebRequest request) {
-        ScriptNodeDTO script = directoryService.getScriptDetail(request.getScriptId(), LoginUserContext.getUser().getEmployeeId());
+        ScriptNodeDTO script = directoryService.getScriptDetail(request.getScriptId(), LoginUserContext.getUser().getEmployeeNo());
         return AjaxResult.success(script);
     }
 
@@ -63,10 +63,10 @@ public class ManagerDirectoryController {
         LocalLoginUser loginUser = LoginUserContext.getUser();
 
         // 将操作人信息设置到请求中
-        request.setOperatorId(loginUser.getEmployeeId());
+        request.setOperatorId(loginUser.getEmployeeNo());
         request.setOperatorName(loginUser.getEmployeeName());
 
-        log.info("保存树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeId());
+        log.info("保存树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeNo());
 
         String result = directoryService.treeNodeSave(request);
 
@@ -87,10 +87,10 @@ public class ManagerDirectoryController {
         LocalLoginUser loginUser = LoginUserContext.getUser();
 
         // 将操作人信息设置到请求中
-        request.setOperatorId(loginUser.getEmployeeId());
+        request.setOperatorId(loginUser.getEmployeeNo());
         request.setOperatorName(loginUser.getEmployeeName());
 
-        log.info("删除树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeId());
+        log.info("删除树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeNo());
 
         boolean success = directoryService.treeNodeDelete(request);
 

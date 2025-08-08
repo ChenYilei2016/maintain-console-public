@@ -1,6 +1,8 @@
 package io.github.chenyilei2016.maintain.manager.controller;
 
 import io.github.chenyilei2016.maintain.manager.context.ApplicationContextHolder;
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
+import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
 import io.github.chenyilei2016.maintain.manager.controller.dto.res.LoginInfoWebResponse;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,9 +23,9 @@ public class LoginController {
 //        UserDO r = loginService.login(loginVO);
         //tmp 临时
         LoginInfoWebResponse r = new LoginInfoWebResponse();
-        r.setEmployeeId("1");
-        r.setEmployeeName("cyl");
-        r.setEmployeeNo("1");
+        LocalLoginUser user = LoginUserContext.getUser();
+        r.setEmployeeName(user.getEmployeeName());
+        r.setEmployeeNo(user.getEmployeeNo());
 
         String currentEnv =
 //                "pre"

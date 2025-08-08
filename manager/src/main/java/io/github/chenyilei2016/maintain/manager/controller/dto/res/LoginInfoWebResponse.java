@@ -11,10 +11,6 @@ import java.util.List;
 @Data
 public class LoginInfoWebResponse {
     /**
-     * 员工ID
-     */
-    private String employeeId;
-    /**
      * 员工姓名
      */
     private String employeeName;
@@ -23,7 +19,6 @@ public class LoginInfoWebResponse {
      */
     private String employeeNo;
 
-    private String tenantId;
 
     private String env;
 

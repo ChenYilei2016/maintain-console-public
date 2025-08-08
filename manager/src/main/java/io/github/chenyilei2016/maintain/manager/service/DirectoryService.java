@@ -30,7 +30,7 @@ public interface DirectoryService {
      * @param scriptId 脚本ID
      * @return 脚本详情
      */
-    ScriptNodeDTO getScriptDetail(String scriptId, String employeeId);
+    ScriptNodeDTO getScriptDetail(String scriptId, String employeeNo);
 
     /**
      * 统一保存树节点（文件夹/脚本的创建和更新）

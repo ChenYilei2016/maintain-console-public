@@ -69,6 +69,26 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local
 
 #### 生产模式 (Nacos + MySQL)
 
+##### 配置文件修改
+
+> bootstrap-prod.properties
+> * 如果使用Nacos作为配置中心，需要修改为Nacos的地址: spring.cloud.nacos.config.server-addr,
+    不需要则将bootstrap-prod.properties删除即可
+
+> application-prod.properties
+> 补全以下生产数据库配置
+> * spring.datasource.url
+> * spring.datasource.username
+> * spring.datasource.password
+
+##### 登录态修改
+
+```
+ 目前默认登录获取用户信息的方式为从上下文中获取, 可根据企业需求自行调整接入以下
+ io.github.chenyilei2016.maintain.manager.context.LoginUserContext 
+```
+
+##### 启动命令
 ```bash
 cd manager
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
