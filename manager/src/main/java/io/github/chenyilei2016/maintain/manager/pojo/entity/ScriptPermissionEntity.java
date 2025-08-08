@@ -1,7 +1,9 @@
 package io.github.chenyilei2016.maintain.manager.pojo.entity;
 
 import com.alibaba.fastjson.JSON;
+import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
+import io.github.chenyilei2016.maintain.manager.context.ApplicationContextHolder;
 import io.github.chenyilei2016.maintain.manager.utils.StrUtils;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +51,10 @@ public class ScriptPermissionEntity {
     }
 
     public static boolean checkPermission(DirectoryNode node, Script existingScript, String operatorId, ScriptPermissionEnum p) {
+        ManagerProperties mp = ApplicationContextHolder.getApplicationContext().getBean(ManagerProperties.class);
+        if (mp.getGlobalWhiteList().contains(operatorId)) {
+            return true;
+        }
         if (Objects.equals(node.getCreatorId(), operatorId)) {
             return true;
         }

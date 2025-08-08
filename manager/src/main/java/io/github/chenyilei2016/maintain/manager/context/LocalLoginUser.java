@@ -20,7 +20,7 @@ public class LocalLoginUser {
     public static LocalLoginUser mock() {
         LocalLoginUser localLoginUser = new LocalLoginUser();
         localLoginUser.setEmployeeName("cyl");
-        localLoginUser.setEmployeeNo("12600");
+        localLoginUser.setEmployeeNo("1");
         return localLoginUser;
     }
 }
