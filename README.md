@@ -560,3 +560,14 @@ limitations under the License.
   <p>如果这个项目对你有帮助，请给个 ⭐️ 支持一下！</p>
   <p>Made with ❤️ by <a href="https://github.com/chenyilei2016">chenyilei2016</a></p>
 </div>
+
+
+---
+
+## 📝 后续规划
+
+```
+1. 执行历史记录增加最终执行到的机器信息 例如ip XXX
+2. 执行记录增加traceId的返回, 能适应应用的分布式链路追踪,快速查询日志
+
+```
