@@ -21,12 +21,12 @@ public class MaintainManagerBootstrap {
         /**
          * 本地数据库 + 本地注册中心
          */
-        System.setProperty("spring.profiles.active", "local");
+//        System.setProperty("spring.profiles.active", "local");
 
         /**
          * 使用PROD配置文件, 默认需要补充nacos 和 数据的配置
          */
-//        System.setProperty("spring.profiles.active", "prod");
+        System.setProperty("spring.profiles.active", "prod");
         ConfigurableApplicationContext run = SpringApplication.run(MaintainManagerBootstrap.class, args);
         log.info(">>>>>>>>>>>>> cyl spring boot start success !!!!  <<<<<<<<<<<<<<<");
     }
