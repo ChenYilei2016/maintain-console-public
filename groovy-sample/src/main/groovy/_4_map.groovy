@@ -45,4 +45,29 @@ class _4_map {
 
     }
 
+    static class User {
+        String name
+        int id
+    }
+
+    @Test
+    void map_业务收集_对象转换() {
+
+
+        def a = [
+                new User(name: '张三', id: 18),
+                new User(name: '李四', id: 22),
+        ]
+
+        System.err.println(a)
+
+        //获取所有id [18, 22]
+        def collect = a.collect { it -> it.id }
+        System.err.println(collect)
+
+        //c1: [[it:18], [it:22]]
+        def collect1 = collect.stream().map { it -> [it: it] }.collect()
+        System.err.println("c1: " + collect1)
+    }
+
 }
