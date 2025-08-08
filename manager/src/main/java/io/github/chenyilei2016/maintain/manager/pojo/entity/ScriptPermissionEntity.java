@@ -84,6 +84,9 @@ public class ScriptPermissionEntity {
 
     private boolean checkAuth(ScriptPermissionEntity entity, Function<ScriptPermissionEntity, String> getInvokerNo, String operatorId) {
         String apply = getInvokerNo.apply(entity);
+        if (apply == null) {
+            apply = "";
+        }
         return StrUtils.commaSplitter.splitToList(apply).contains(operatorId);
     }
 

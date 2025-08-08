@@ -60,14 +60,22 @@ mvn clean install -DskipTests
 
 ### 3. 启动Manager应用
 
-#### 本地开发模式 (SQLite)
+#### 3.1 本地开发模式 (mock注册中心 + SQLite)
+
+##### 数据库配置
+
+> 创建SQLite 数据库表: docs/directory_management_sqlite.sql
 
 ```bash
 cd manager
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-#### 生产模式 (Nacos + MySQL)
+#### 3.2 生产模式 (Nacos + MySQL)
+
+##### 数据库配置
+
+> 创建Mysql数据库表 : docs/directory_management.sql
 
 ##### 配置文件修改
 
