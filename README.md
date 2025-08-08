@@ -1,6 +1,6 @@
 <div align="center">
   <h1>🔧 Maintain Console</h1>
-  <p><strong>企业级分布式运维管理平台</strong></p>
+  <p><strong>Groovy代码远程执行管理平台</strong></p>
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.3.12-brightgreen.svg)
