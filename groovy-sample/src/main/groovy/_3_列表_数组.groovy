@@ -134,5 +134,11 @@ class _3_列表_数组 {
 
     }
 
+    @Test
+    public void filter() {
+        def strings = ["1", "2", "3"]
+        def all = strings.findAll { it -> it == "2" }
+        System.err.println(all)
+    }
 
 }
