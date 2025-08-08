@@ -48,8 +48,8 @@ Boot和Spring Cloud构建，提供了安全、高效、易用的运维自动化�
 ### 1. 克隆项目
 
 ```bash
-git clone https://github.com/chenyilei2016/maintain-console.git
-cd maintain-console
+git clone https://github.com/chenyilei2016/maintain-console-public.git
+cd maintain-console-public
 ```
 
 ### 2. 编译项目
@@ -469,8 +469,8 @@ logging.level.com.alibaba.nacos=DEBUG
    ```bash
    # Fork 项目到你的GitHub账户
    # 然后克隆你的fork
-   git clone https://github.com/your-username/maintain-console.git
-   cd maintain-console
+   git clone https://github.com/your-username/maintain-console-public.git
+   cd maintain-console-public
    ```
 
 2. **创建开发分支**
@@ -521,14 +521,14 @@ chore: 构建过程或辅助工具的变动
 
 ### 获取帮助
 
-- **GitHub Issues**: [提交问题和建议](https://github.com/chenyilei2016/maintain-console/issues)
-- **讨论区**: [GitHub Discussions](https://github.com/chenyilei2016/maintain-console/discussions)
-- **Wiki文档**: [项目Wiki](https://github.com/chenyilei2016/maintain-console/wiki)
+- **GitHub Issues**: [提交问题和建议](https://github.com/chenyilei2016/maintain-console-public/issues)
+- **讨论区**: [GitHub Discussions](https://github.com/chenyilei2016/maintain-console-public/discussions)
+- **Wiki文档**: [项目Wiki](https://github.com/chenyilei2016/maintain-console-public/wiki)
 
 ### 联系方式
 
 - **作者**: chenyilei2016
-- **项目主页**: https://github.com/chenyilei2016/maintain-console
+- **项目主页**: https://github.com/chenyilei2016/maintain-console-public
 
 ## 📄 许可证
 
@@ -552,7 +552,7 @@ limitations under the License.
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=chenyilei2016/maintain-console&type=Date)](https://star-history.com/#chenyilei2016/maintain-console&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=chenyilei2016/maintain-console-public&type=Date)](https://star-history.com/#chenyilei2016/maintain-console-public&Date)
 
 ---
 
