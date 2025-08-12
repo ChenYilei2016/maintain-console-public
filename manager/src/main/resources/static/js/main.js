@@ -241,6 +241,12 @@ createApp({
         const showPreviewModal = ref(false);
         const previewCode = ref('');
 
+        // 展开模态框相关
+        const showExpandedCodeModal = ref(false);
+        const expandedCodeTitle = ref('');
+        const expandedCodeContent = ref('');
+        const expandedCodeMode = ref('input'); // 'input' 或 'output'
+
         // 帮助指南相关
         const showHelpModal = ref(false);
         const helpContent = ref('');
@@ -850,6 +856,46 @@ createApp({
             }
         };
 
+        // 展开代码模态框相关方法
+        const showExpandedCode = (type) => {
+            if (type === 'input') {
+                expandedCodeTitle.value = '脚本代码 - 展开视图';
+                expandedCodeContent.value = codeEditor ? codeEditor.getValue() : currentScript.content;
+            } else if (type === 'output') {
+                expandedCodeTitle.value = '执行结果 - 展开视图';
+                // 从HTML中提取纯文本内容
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = executionResult.value;
+                expandedCodeContent.value = tempDiv.textContent || tempDiv.innerText || '';
+            }
+            expandedCodeMode.value = type;
+            showExpandedCodeModal.value = true;
+        };
+
+        const closeExpandedCodeModal = (event) => {
+            if (event && event.target === event.currentTarget) {
+                showExpandedCodeModal.value = false;
+            } else if (!event) {
+                showExpandedCodeModal.value = false;
+            }
+        };
+
+        const copyExpandedCode = async () => {
+            try {
+                await navigator.clipboard.writeText(expandedCodeContent.value);
+                showToastMessage('代码已复制到剪贴板', 'success');
+            } catch {
+                // 降级方案
+                const textArea = document.createElement('textarea');
+                textArea.value = expandedCodeContent.value;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToastMessage('代码已复制到剪贴板', 'success');
+            }
+        };
+
         const showCreateDialog = (parentId) => {
             createParentId.value = parentId;
             createDirectoryType.value = 'my'; // 默认为个人目录
@@ -1296,6 +1342,12 @@ Maintain Console 是一个脚本管理和执行平台，支持 Groovy 脚本的�
             showPreviewModal,
             previewCode,
 
+            // 展开模态框相关
+            showExpandedCodeModal,
+            expandedCodeTitle,
+            expandedCodeContent,
+            expandedCodeMode,
+
             // 帮助指南相关
             showHelpModal,
             helpContent,
@@ -1359,6 +1411,9 @@ Maintain Console 是一个脚本管理和执行平台，支持 Groovy 脚本的�
             closePreviewModal,
             handlePreviewClick,
             copyPreviewCode,
+            showExpandedCode,
+            closeExpandedCodeModal,
+            copyExpandedCode,
             showCreateDialog,
             closeCreateModal,
             confirmCreate,
