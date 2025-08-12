@@ -4,6 +4,14 @@ import com.alibaba.fastjson.JSON
 
 abstract class BaseConsoleExtService extends Script {
 
+    protected static boolean isNull(final Object cs) {
+        return cs == null || "null".equalsIgnoreCase(cs.toString())
+    }
+
+    protected static boolean isNotNull(final Object cs) {
+        return !isNull(cs)
+    }
+
     protected static boolean isEmpty(final Object cs) {
         if (cs instanceof CharSequence)
             return cs == null || cs.length() == 0;
@@ -36,6 +44,10 @@ abstract class BaseConsoleExtService extends Script {
             }
         }
         return true;
+    }
+
+    protected static boolean isNotBlank(final CharSequence cs) {
+        return !isBlank(cs);
     }
 
     protected static String str(Object object) {
