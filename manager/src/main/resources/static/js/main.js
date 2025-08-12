@@ -673,16 +673,6 @@ createApp({
             parameterValues[param] = '';
         };
 
-        const replaceParameters = (script) => {
-            let processedScript = script;
-            for (const [param, value] of Object.entries(parameterValues)) {
-                const regex = new RegExp(`\\$\\$\\{\\s*${param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\}`, 'g');
-                // 如果值为空字符串或只包含空格，替换为"null"
-                const replacementValue = (value || '').trim() === '' ? 'null' : value;
-                processedScript = processedScript.replace(regex, replacementValue);
-            }
-            return processedScript;
-        };
 
         const saveScript = async () => {
             if (!currentScript.canEdit) {
@@ -750,9 +740,6 @@ createApp({
                 // 忽略权限解析错误
             }
 
-            // 替换参数
-            const processedScript = replaceParameters(currentScript.content);
-
             // 严格过滤出当前脚本实际使用的参数，只传递在脚本中存在的参数
             const currentScriptParams = {};
             scriptParameters.value.forEach(param => {
@@ -763,18 +750,16 @@ createApp({
                 }
             });
 
-            // 检查未替换的参数
-            const remainingParams = [];
-            const paramRegex = /\$\$\{([^}]+)\}/g;
-            let match;
-            while ((match = paramRegex.exec(processedScript)) !== null) {
-                remainingParams.push(match[1].trim());
-            }
-
-            if (remainingParams.length > 0) {
-                executionResult.value = `<span class="text-red-500">[ERROR] 以下参数未提供值: ${remainingParams.join(', ')}</span>`;
-                return;
-            }
+            // // 检查是否所有参数都已提供
+            // const missingParams = scriptParameters.value.filter(param => {
+            //     const value = parameterValues[param];
+            //     return !value || value.trim() === '';
+            // });
+            //
+            // if (missingParams.length > 0) {
+            //     executionResult.value = `<span class="text-red-500">[ERROR] 以下参数未提供值: ${missingParams.join(', ')}</span>`;
+            //     return;
+            // }
 
             isExecuting.value = true;
             executionResult.value = '<span class="text-blue-500">[INFO] 正在执行脚本...</span>';
@@ -822,6 +807,31 @@ createApp({
             if (event.target === event.currentTarget) {
                 showPreviewModal.value = false;
             }
+        };
+
+        const handlePreviewClick = async () => {
+            console.log('Current showPreviewModal value:', showPreviewModal.value);
+
+            // 直接调用API而不是通过watch监听器
+            try {
+                const requestData = {
+                    script: currentScript.content,
+                    params: JSON.stringify(parameterValues)
+                };
+                const response = await axios.post('/manager/script/preview', requestData);
+                if (response.data.success) {
+                    previewCode.value = response.data.data;
+                } else {
+                    showToastMessage(response.data.msg || '获取预览代码失败', 'error');
+                    previewCode.value = currentScript.content; // 降级显示原始内容
+                }
+            } catch (error) {
+                showToastMessage('获取预览代码失败: ' + (error.response?.data?.message || error.message), 'error');
+                previewCode.value = currentScript.content; // 降级显示原始内容
+            }
+
+            // 最后设置模态框显示
+            showPreviewModal.value = true;
         };
 
         const copyPreviewCode = async () => {
@@ -1106,12 +1116,6 @@ Maintain Console 是一个脚本管理和执行平台，支持 Groovy 脚本的�
             }, 2000);
         };
 
-        // 监听器
-        watch(showPreviewModal, (show) => {
-            if (show) {
-                previewCode.value = replaceParameters(currentScript.content);
-            }
-        });
 
         // 监听 isCreatingInSecondLevel 变化，自动设置 createType
         watch(isCreatingInSecondLevel, (isSecondLevel) => {
@@ -1353,6 +1357,7 @@ Maintain Console 是一个脚本管理和执行平台，支持 Groovy 脚本的�
             saveScript,
             executeScript,
             closePreviewModal,
+            handlePreviewClick,
             copyPreviewCode,
             showCreateDialog,
             closeCreateModal,
