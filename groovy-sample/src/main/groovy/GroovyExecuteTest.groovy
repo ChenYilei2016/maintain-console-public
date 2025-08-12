@@ -55,11 +55,21 @@ class GroovyExecuteTest {
         groovyShell.evaluate("setProperty('vars', new ConsoleBase())");
 
         Object result = groovyShell.evaluate("""
-            def a = 1
-            String b  
-            return [
-                    "名称" :  a
-            ]
+        
+        vars.id =  
+        vars.tn = '子不语'
+        
+        if(vars.id != null &&  vars.id != '') {
+            info("租户ID: " + vars.id, null)
+       
+        } 
+        
+        if( vars.tn != null) {
+            info("name" + vars.tn as String ,null)
+            
+        }
+        
+        return "无"
 """);
 
         System.err.println(result.getClass())

@@ -15,4 +15,8 @@ public abstract class ExtScript extends Script {
     public Object get(Class paramClass) {
         return get(paramClass, Integer.valueOf(10));
     }
+
+    public void info(String a, Object... b) {
+
+    }
 }
