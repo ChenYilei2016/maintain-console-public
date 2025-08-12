@@ -4,13 +4,50 @@ import com.alibaba.fastjson.JSON
 
 abstract class BaseConsoleExtService extends Script {
 
-    public def a = "";
+    protected static boolean isEmpty(final Object cs) {
+        if (cs instanceof CharSequence)
+            return cs == null || cs.length() == 0;
+        else if (cs instanceof Collection)
+            return cs == null || cs.isEmpty();
+        else if (cs instanceof Map)
+            return cs == null || cs.isEmpty();
+        else if (cs == null)
+            return true
+        else if (cs.getClass().isArray())
+            return cs == null || java.lang.reflect.Array.getLength(cs) == 0;
+        else {
+            throw new IllegalArgumentException("Unsupported type: " + cs.getClass().getName());
 
-    public def b = 'ddd'
+        }
+    }
 
-    public def c = """  
-666
-6  """
+    protected static int length(final CharSequence cs) {
+        return cs == null ? 0 : cs.length();
+    }
+
+    protected static boolean isBlank(final CharSequence cs) {
+        final int strLen = length(cs);
+        if (strLen == 0) {
+            return true;
+        }
+        for (int i = 0; i < strLen; i++) {
+            if (!Character.isWhitespace(cs.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected static String str(Object object) {
+        if (String.class.isInstance(object)) {
+            return object;
+        }
+        return "'" + object + "'"
+    }
+
+    protected static String toStr(Object object) {
+        return str(object)
+    }
 
     protected static String toJson(Object object, Boolean pretty = false) {
         return JSON.toJSONString(object, pretty)

@@ -43,4 +43,27 @@ class GroovyExecuteTest {
         System.err.println(result)
     }
 
+
+    @Test
+    public void executeTest_complier() {
+        Binding binding = new Binding();
+        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
+        compilerConfiguration.setScriptBaseClass(ExtScript.class.getName());
+        GroovyShell groovyShell = new GroovyShell(new CClassLoader(this.getClass().getClassLoader()), binding, compilerConfiguration);
+        groovyShell.parse(consoleBase);
+
+        groovyShell.evaluate("setProperty('vars', new ConsoleBase())");
+
+        Object result = groovyShell.evaluate("""
+            def a = 1
+            String b  
+            return [
+                    "名称" :  a
+            ]
+""");
+
+        System.err.println(result.getClass())
+        System.err.println(result)
+    }
+
 }
