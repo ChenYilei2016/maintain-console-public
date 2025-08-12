@@ -677,7 +677,9 @@ createApp({
             let processedScript = script;
             for (const [param, value] of Object.entries(parameterValues)) {
                 const regex = new RegExp(`\\$\\$\\{\\s*${param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\}`, 'g');
-                processedScript = processedScript.replace(regex, value);
+                // 如果值为空字符串或只包含空格，替换为"null"
+                const replacementValue = (value || '').trim() === '' ? 'null' : value;
+                processedScript = processedScript.replace(regex, replacementValue);
             }
             return processedScript;
         };
@@ -751,11 +753,13 @@ createApp({
             // 替换参数
             const processedScript = replaceParameters(currentScript.content);
 
-            // 过滤出当前脚本实际使用的参数
+            // 严格过滤出当前脚本实际使用的参数，只传递在脚本中存在的参数
             const currentScriptParams = {};
             scriptParameters.value.forEach(param => {
                 if (param in parameterValues) {
-                    currentScriptParams[param] = parameterValues[param];
+                    // 如果值为空字符串或只包含空格，替换为"null"
+                    const value = parameterValues[param];
+                    currentScriptParams[param] = (value || '').trim() === '' ? 'null' : value;
                 }
             });
 
@@ -781,7 +785,7 @@ createApp({
                     script: currentScript.content,
                     env: selectedEnvironment.value,
                     scriptId: currentScript.id,
-                    params: JSON.stringify(parameterValues)
+                    params: JSON.stringify(currentScriptParams)
                 });
 
                 const now = new Date().toLocaleString();
