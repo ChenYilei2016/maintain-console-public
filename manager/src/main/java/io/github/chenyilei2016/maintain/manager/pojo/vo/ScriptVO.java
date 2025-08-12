@@ -58,7 +58,7 @@ public class ScriptVO {
         while (matcher.find()) {
             String variable_trim = matcher.group(1).trim();
             Object param = jsonObject.get(variable_trim);
-            if (null == param) {
+            if (null == param || "".equals(param)) {
                 param = "null";  //脚本中替换空字符串
             }
             matcher.appendReplacement(append, param.toString());
