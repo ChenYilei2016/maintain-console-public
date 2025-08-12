@@ -8,6 +8,9 @@ import io.github.chenyilei2016.maintain.manager.pojo.entity.Script;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * 脚本内容业务实体类
  *
@@ -23,6 +26,7 @@ public class ScriptVO {
 
     private DirectoryNode directoryNode;
 
+    public static final Pattern pattern = Pattern.compile("\\$\\$\\{(.*)}");
 
     public String getScriptContent() {
         return this.script.getContent();
@@ -48,14 +52,18 @@ public class ScriptVO {
         }
 
         //替换脚本中的$${}字符
-        String scriptContent = script;
-        for (String key : jsonObject.keySet()) {
-            String value = jsonObject.getString(key);
-            if (value == null) {
-                value = "";
+        StringBuffer append = new StringBuffer();
+        Matcher matcher = pattern.matcher(script);
+
+        while (matcher.find()) {
+            String variable_trim = matcher.group(1).trim();
+            Object param = jsonObject.get(variable_trim);
+            if (null == param) {
+                param = "null";  //脚本中替换空字符串
             }
-            scriptContent = scriptContent.replaceAll("\\$\\$\\{\\s*" + key + "\\s*}", value);
+            matcher.appendReplacement(append, param.toString());
         }
-        return scriptContent;
+        matcher.appendTail(append);
+        return append.toString();
     }
 }
