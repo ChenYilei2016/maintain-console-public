@@ -15,6 +15,7 @@ import io.github.chenyilei2016.maintain.manager.caller.ClientCallerContext;
 import io.github.chenyilei2016.maintain.manager.constant.SPIConstants;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
+import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptEvalPreviewWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptEvalWebRequest;
 import io.github.chenyilei2016.maintain.manager.discovery.MaintainConsoleRegistryClientDiscovery;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
@@ -64,6 +65,13 @@ public class ManagerController implements ApplicationContextAware {
 
     @Resource
     private DirectoryService directoryService;
+
+    @PostMapping("/manager/script/preview")
+    public AjaxResult<String> preview(@RequestBody @Valid ScriptEvalPreviewWebRequest scriptDTO) {
+        final String frontInputScript = scriptDTO.getScript();
+        String finalScriptContent = ScriptVO.mergeParamScript(frontInputScript, scriptDTO.getParams());
+        return AjaxResult.success(finalScriptContent);
+    }
 
     /**
      * 管理页
