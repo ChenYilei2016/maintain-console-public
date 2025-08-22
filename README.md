@@ -64,7 +64,8 @@ mvn clean install -DskipTests
 
 ##### 数据库配置
 
-> 创建SQLite 数据库表: docs/directory_management_sqlite.sql
+> Local 环境会自动创建SQLite数据库文件: manager/src/main/resources/sqlite/maintain-manager.sqlite ,可以直接启动应用,
+> 无任何依赖
 
 ```bash
 cd manager
