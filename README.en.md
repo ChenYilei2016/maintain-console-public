@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align:center">
   <h1>🔧 Maintain Console</h1>
   <p><strong>Remote Groovy Script Execution & Operations Console</strong></p>
 
@@ -519,7 +519,7 @@ limitations under the License.
 
 ---
 
-<div align="center">
+<div style="text-align:center">
   <p>If you find this project useful, please give it a ⭐</p>
   <p>Made with ❤️ by <a href="https://github.com/chenyilei2016">chenyilei2016</a></p>
 </div>
@@ -534,4 +534,3 @@ limitations under the License.
 3. Configurable report formats (e.g., map/Excel-like views)
 4. Authoring improvements for easier script writing
 ```
-

@@ -1,4 +1,4 @@
-<div align="center">
+<div style="text-align:center">
   <h1>🔧 Maintain Console</h1>
   <p><strong>Groovy代码远程执行管理平台</strong></p>
 
@@ -119,26 +119,29 @@ manager默认tomcat端口9999
 在需要接入的应用中添加以下依赖：
 
 ```xml
-<!-- HTTP通信支持 -->
-<dependency>
-    <groupId>io.github.chenyilei2016</groupId>
-    <artifactId>maintain-console-client-http-starter</artifactId>
-    <version>1.0-SNAPSHOT</version>
-</dependency>
 
-        <!-- 服务注册支持 -->
-<dependency>
-<groupId>io.github.chenyilei2016</groupId>
-<artifactId>maintain-console-client-registry-starter</artifactId>
-<version>1.0-SNAPSHOT</version>
-</dependency>
+<dependencies>
+    <!-- HTTP通信支持 -->
+    <dependency>
+        <groupId>io.github.chenyilei2016</groupId>
+        <artifactId>maintain-console-client-http-starter</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
 
-        <!-- Groovy脚本执行支持 -->
-<dependency>
-<groupId>io.github.chenyilei2016</groupId>
-<artifactId>maintain-console-client-groovy-support-starter</artifactId>
-<version>1.0-SNAPSHOT</version>
-</dependency>
+    <!-- 服务注册支持 -->
+    <dependency>
+        <groupId>io.github.chenyilei2016</groupId>
+        <artifactId>maintain-console-client-registry-starter</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- Groovy脚本执行支持 -->
+    <dependency>
+        <groupId>io.github.chenyilei2016</groupId>
+        <artifactId>maintain-console-client-groovy-support-starter</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
+</dependencies>
 ```
 
 在应用配置文件中启用客户端：
@@ -563,10 +566,10 @@ limitations under the License.
 
 ---
 
-<div align="center">
-  <p>如果这个项目对你有帮助，请给个 ⭐️ 支持一下！</p>
-  <p>Made with ❤️ by <a href="https://github.com/chenyilei2016">chenyilei2016</a></p>
-</div>
+<div style="text-align:center">
+   <p>如果这个项目对你有帮助，请给个 ⭐️ 支持一下！</p>
+   <p>Made with ❤️ by <a href="https://github.com/chenyilei2016">chenyilei2016</a></p>
+ </div>
 
 
 ---
