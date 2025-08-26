@@ -6,6 +6,11 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.3.12-brightgreen.svg)
 ![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-Hoxton.SR12-brightgreen.svg)
 ![Java](https://img.shields.io/badge/Java-8+-orange.svg)
+
+<p>
+  语言：
+  <strong>简体中文</strong> | <a href="./README.en.md">English</a>
+</p>
 </div>
 
 ## 📖 项目简介
@@ -310,7 +315,7 @@ graph TB
 ### 技术栈
 
 - **后端框架**：Spring Boot 2.3.12, Spring Cloud Hoxton.SR12
-- **数据库**：SQLite (嵌入式数据库), MYSQL
+- **数据库**：SQLite (嵌入式数据库), MySQL
 - **ORM框架**：MyBatis-Plus
 - **服务发现**：Nacos Discovery
 - **前端技术**：HTML, Thymeleaf
@@ -346,7 +351,7 @@ graph TB
 ### 环境要求
 
 - **JDK版本**：1.8
-- **数据库**：SQLite（内置）, MYSQL
+- **数据库**：SQLite（内置）, MySQL
 - **注册中心**：Nacos 1.4.0+
 - **内存要求**：Manager应用 512MB+，Client应用 256MB+
 
