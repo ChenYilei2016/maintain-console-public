@@ -1,4 +1,4 @@
-<div style="text-align:center">
+<div align="center">
   <h1>🔧 Maintain Console</h1>
   <p><strong>Groovy代码远程执行管理平台</strong></p>
 

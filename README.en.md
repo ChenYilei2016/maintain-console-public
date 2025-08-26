@@ -1,4 +1,4 @@
-<div style="text-align:center">
+<div align="center">
   <h1>🔧 Maintain Console</h1>
   <p><strong>Remote Groovy Script Execution & Operations Console</strong></p>
 
