@@ -560,9 +560,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
-## ⭐ Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=chenyilei2016/maintain-console-public&type=Date)](https://star-history.com/#chenyilei2016/maintain-console-public&Date)
 
 ---
 
