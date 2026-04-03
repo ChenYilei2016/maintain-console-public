@@ -15,6 +15,7 @@ import io.github.chenyilei2016.maintain.manager.caller.ClientCallerContext;
 import io.github.chenyilei2016.maintain.manager.constant.SPIConstants;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
+import io.github.chenyilei2016.maintain.manager.controller.dto.DevopsScriptEvalWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptEvalPreviewWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptEvalWebRequest;
 import io.github.chenyilei2016.maintain.manager.discovery.MaintainConsoleRegistryClientDiscovery;
@@ -65,6 +66,50 @@ public class ManagerController implements ApplicationContextAware {
 
     @Resource
     private DirectoryService directoryService;
+
+
+    /**
+     * 外部接口调用, 直接使用ID
+     */
+    @PostMapping("/devops/manager/script/eval")
+    public AjaxResult<String> scriptEvalRpc(@RequestBody @Valid DevopsScriptEvalWebRequest scriptDTO) {
+        final String employeeId = LoginUserContext.getUser().getEmployeeNo();
+        ScriptVO scriptVO = scriptContentService.findById(scriptDTO.getScriptId());
+
+        if (null == scriptVO) {
+            throw CommonException.createReminderException("脚本不存在或节点异常");
+        }
+        if (!Objects.equals(scriptDTO.getService(), scriptVO.getServiceName())) {
+            throw CommonException.createReminderException("脚本不属于此服务");
+        }
+        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeId, ScriptPermissionEnum.INVOKE)) {
+            throw CommonException.createReminderException("没有权限进行此操作:{},{}", employeeId, "INVOKE");
+        }
+
+        String finalScriptContent = ScriptVO.mergeParamScript(scriptVO.getScriptContent(), scriptDTO.getParams());
+        log.info("接受scriptEval: {}, user:{} finalContent:{}", scriptDTO, LoginUserContext.getUser(), finalScriptContent);
+
+        InvokeScriptParamSignDTO invokeScriptParamDTO = new InvokeScriptParamSignDTO(finalScriptContent);
+        ClientCallerContext ctx = new ClientCallerContext(scriptDTO.getService());
+        ctx.setEnv(scriptDTO.getEnv());
+
+        long startTime = System.currentTimeMillis();
+
+        ApiResult<InvokeScriptResultDTO> apiResult = null;
+        Throwable tx;
+        try {
+            apiResult = clientCaller.$invokeScript(ctx, invokeScriptParamDTO);
+        } catch (Throwable e) {
+            tx = e;
+        } finally {
+            saveExecutionHistory(scriptVO.getScriptContent(), scriptDTO.getParams(), finalScriptContent, scriptVO, apiResult, startTime, System.currentTimeMillis());
+        }
+        if (apiResult.isSuccess()) {
+            return AjaxResult.success(apiResult.getData().getScriptResult(), apiResult.getMsg());
+        } else {
+            return AjaxResult.success(apiResult.getMsg(), apiResult.getMsg());
+        }
+    }
 
     @PostMapping("/manager/script/preview")
     public AjaxResult<String> preview(@RequestBody @Valid ScriptEvalPreviewWebRequest scriptDTO) {
