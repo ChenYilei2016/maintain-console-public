@@ -78,6 +78,22 @@
                 <version>1.13.1</version>
                 <configuration>
                     <targetBytecode>1.8</targetBytecode>
+                    <!-- 联合编译：同时扫描 groovy 和 java 源码目录，解决 Java 引用 Groovy 类的编译顺序问题 -->
+                    <sources>
+                        <source>
+                            <directory>${project.basedir}/src/main/groovy</directory>
+                            <includes>
+                                <include>**/*.groovy</include>
+                                <include>**/*.java</include>
+                            </includes>
+                        </source>
+                        <source>
+                            <directory>${project.basedir}/src/main/java</directory>
+                            <includes>
+                                <include>**/*.java</include>
+                            </includes>
+                        </source>
+                    </sources>
                 </configuration>
                 <executions>
                     <execution>
