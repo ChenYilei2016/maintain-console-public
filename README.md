@@ -1,3 +1,5 @@
+
+
 <div align="center">
   <h1>🔧 Maintain Console</h1>
   <p><strong>Groovy代码远程执行管理平台</strong></p>
@@ -158,7 +160,7 @@ spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
 
 ```
 
-maintain-console/
+maintain-console-public/
 ├── manager/ # 管理端应用
 │ ├── src/main/java/
 │ │ └── io/github/chenyilei2016/maintain/manager/
