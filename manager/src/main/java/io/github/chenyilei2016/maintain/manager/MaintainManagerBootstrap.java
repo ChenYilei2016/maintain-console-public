@@ -29,10 +29,10 @@ public class MaintainManagerBootstrap {
 
     public static void main(String[] args) {
         // 本地数据库 + 本地注册中心
-        useLocalEnv();
+//        useLocalEnv();
 
         // 使用PROD配置文件, 默认需要补充nacos 和 数据的配置
-//        useProdEnv();
+        useProdEnv();
         SpringApplication.run(MaintainManagerBootstrap.class, args);
         log.info(">>>>>>>>>>>>> cyl spring boot start success !!!!  <<<<<<<<<<<<<<<");
     }

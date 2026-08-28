@@ -2,6 +2,8 @@ manager/src/main/resources/sqlite/maintain-manager.sqlite
 
 .idea/*
 target/
+manager-web/node_modules/
+/.pnpm-store/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/

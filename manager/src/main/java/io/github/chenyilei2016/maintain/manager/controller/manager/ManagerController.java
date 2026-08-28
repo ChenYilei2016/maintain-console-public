@@ -165,7 +165,7 @@ public class ManagerController implements ApplicationContextAware {
         } finally {
             saveExecutionHistory(frontInputScript, scriptDTO.getParams(), finalScriptContent, scriptVO, apiResult, startTime, System.currentTimeMillis());
         }
-        if (apiResult.isSuccess()) {
+        if (apiResult != null && apiResult.isSuccess()) {
             return AjaxResult.success(apiResult.getData().getScriptResult(), apiResult.getMsg());
         } else {
             return AjaxResult.success(apiResult.getMsg(), apiResult.getMsg());

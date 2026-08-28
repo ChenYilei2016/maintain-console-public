@@ -48,6 +48,8 @@ Boot和Spring Cloud构建，提供了安全、高效、易用的运维自动化�
 
 - **JDK**: 1.8+
 - **Maven**: 3.6+
+- **Node.js**: 20.19+（仅修改或重新构建前端时需要）
+- **pnpm**: 11.12+
 - **Nacos**: 1.4.0+ (可选，用于生产环境)
 
 ### 1. 克隆项目
@@ -59,9 +61,22 @@ cd maintain-console-public
 
 ### 2. 编译项目
 
+前端源码位于 `manager-web`，Vite 会将产物直接写入
+`manager/src/main/resources/static/console`，最终由 Manager 的 Spring Boot JAR 一并提供，无需单独部署前端应用。
+
+```bash
+pnpm --dir manager-web install
+pnpm --dir manager-web run build
+```
+
+随后编译 Java 项目：
+
 ```bash
 mvn clean install -DskipTests
 ```
+
+前端本地开发可执行 `pnpm --dir manager-web run dev`。开发服务器会将 `/manager` 请求代理到
+`http://localhost:9999`，因此需同时启动 Manager。
 
 ### 3. 启动Manager应用
 
@@ -159,6 +174,7 @@ spring.cloud.nacos.discovery.server-addr=127.0.0.1:8848
 ```
 
 maintain-console/
+├── manager-web/ # React + TypeScript + Vite 管理端源码
 ├── manager/ # 管理端应用
 │ ├── src/main/java/
 │ │ └── io/github/chenyilei2016/maintain/manager/
@@ -172,7 +188,7 @@ maintain-console/
 │ │ ├── context/ # 上下文
 │ │ └── enums/ # 枚举类
 │ ├── src/main/resources/
-│ │ ├── static/ # 静态资源
+│ │ ├── static/console/ # manager-web 编译产物
 │ │ ├── templates/ # Thymeleaf模板
 │ │ ├── sqlite/ # SQLite数据库
 │ │ └── mapper/ # MyBatis XML
