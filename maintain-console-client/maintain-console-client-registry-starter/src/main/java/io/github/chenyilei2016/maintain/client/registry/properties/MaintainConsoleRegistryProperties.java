@@ -28,12 +28,17 @@ public class MaintainConsoleRegistryProperties implements EnvironmentAware {
 
     private Boolean enabled = false;
 
-    private Integer version = 1;
+    private Integer version = 2;
 
     /**
      * 决定用户选择的环境 能否调用到自己, 目前会优先读取 server.port 用端口来判断路由
      */
     private String namespace = KEY_DEFAULT_NAMESPACE;
+
+    /**
+     * 兼容旧项目按端口路由的行为；新项目建议关闭并显式配置 namespace。
+     */
+    private boolean useServerPortAsNamespace = true;
 
     public Map<String, String> getUploadMetadata() {
         Map<String, String> metadata = new HashMap<>();
@@ -43,7 +48,7 @@ public class MaintainConsoleRegistryProperties implements EnvironmentAware {
 
         String serverPort = environment.getProperty("server.port");
         String inputNameSpace = namespace;
-        if (serverPort != null) {
+        if (useServerPortAsNamespace && serverPort != null) {
             inputNameSpace = serverPort;
         }
         metadata.put(KEY_NAMESPACE, inputNameSpace);

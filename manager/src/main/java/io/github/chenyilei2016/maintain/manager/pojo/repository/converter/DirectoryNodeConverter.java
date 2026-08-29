@@ -3,6 +3,7 @@ package io.github.chenyilei2016.maintain.manager.pojo.repository.converter;
 import io.github.chenyilei2016.maintain.manager.pojo.dataobject.DirectoryNodeDO;
 import io.github.chenyilei2016.maintain.manager.pojo.entity.DirectoryNode;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -21,6 +22,8 @@ public interface DirectoryNodeConverter {
     /**
      * DataObject 转 Entity
      */
+    @Mapping(target = "description", ignore = true)
+    @Mapping(target = "version", ignore = true)
     DirectoryNode toEntity(DirectoryNodeDO dataObject);
 
     /**

@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.pojo.entity.DirectoryNode;
 import io.github.chenyilei2016.maintain.manager.pojo.entity.Script;
+import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptParameterSchema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -65,5 +66,14 @@ public class ScriptVO {
         }
         matcher.appendTail(append);
         return append.toString();
+    }
+
+    public static ScriptParameterSchema.ResolvedScript resolveParamScript(String script, String params, String parameterSchema) {
+        ScriptParameterSchema schema = ScriptParameterSchema.parse(parameterSchema);
+        if (schema == null) {
+            String merged = mergeParamScript(script, params);
+            return new ScriptParameterSchema.ResolvedScript(merged, merged, params == null ? "{}" : params, java.util.List.of());
+        }
+        return schema.resolve(script, params);
     }
 }

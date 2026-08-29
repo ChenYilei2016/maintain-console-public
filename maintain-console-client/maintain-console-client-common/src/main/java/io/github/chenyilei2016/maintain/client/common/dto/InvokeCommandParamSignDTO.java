@@ -1,6 +1,7 @@
 package io.github.chenyilei2016.maintain.client.common.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.io.Serializable;
  * @since 2024/05/17 11:44
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class InvokeCommandParamSignDTO extends BaseSignDTO implements Serializable {
 

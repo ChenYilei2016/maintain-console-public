@@ -2,6 +2,7 @@ package io.github.chenyilei2016.maintain.client.common.dto;
 
 import io.github.chenyilei2016.maintain.client.common.utils.RSAUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
  * @since 2024/05/17 11:43
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @NoArgsConstructor
 public class InvokeScriptParamSignDTO extends BaseSignDTO implements Serializable {
@@ -31,5 +33,10 @@ public class InvokeScriptParamSignDTO extends BaseSignDTO implements Serializabl
             return "";
         }
         return RSAUtil.MD5(script.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public String signDataV2() {
+        return script == null ? "" : RSAUtil.SHA256(script.getBytes(StandardCharsets.UTF_8));
     }
 }

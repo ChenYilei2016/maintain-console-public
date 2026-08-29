@@ -40,6 +40,11 @@ public class ScriptNodeDTO {
     private String content;
 
     /**
+     * 类型化参数 Schema；为空表示旧版参数协议。
+     */
+    private String parameterSchema;
+
+    /**
      * 权限配置JSON
      */
     private String permissions;

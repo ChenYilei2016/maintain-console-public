@@ -1,12 +1,11 @@
 package io.github.chenyilei2016.maintain.manager.discovery;
 
-import com.google.common.collect.Lists;
-import io.github.chenyilei2016.extension.spi.context.Lifecycle;
-import io.github.chenyilei2016.extension.spi.kernel.URL;
-import io.github.chenyilei2016.maintain.manager.context.ApplicationContextHolder;
-import lombok.SneakyThrows;
+import io.github.chenyilei2016.maintain.manager.service.EnvironmentCatalogService;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -16,38 +15,34 @@ import static io.github.chenyilei2016.maintain.manager.CONST.APP_NAME;
  * @author chenyilei
  * @since 2024/05/20 16:42
  */
-public class LocalRegistryClientDiscovery implements MaintainConsoleRegistryClientDiscovery, Lifecycle {
+@Component
+@Profile("local")
+public class LocalRegistryClientDiscovery implements MaintainConsoleRegistryClientDiscovery {
+    private final EnvironmentCatalogService environmentCatalogService;
+    private final Environment environment;
 
-
-    @Override
-    public ServiceInstance findServiceInstance(URL url, String serviceName, String env) {
-        DefaultServiceInstance local = new DefaultServiceInstance();
-        local.setInstanceId(APP_NAME);
-        local.setServiceId(APP_NAME);
-        local.setHost("127.0.0.1");
-        local.setPort(Integer.valueOf(ApplicationContextHolder.getEnvironment().getProperty("server.port")));
-        return local;
+    public LocalRegistryClientDiscovery(
+            EnvironmentCatalogService environmentCatalogService,
+            Environment environment
+    ) {
+        this.environmentCatalogService = environmentCatalogService;
+        this.environment = environment;
     }
 
     @Override
-    @SneakyThrows
-    public List<String> listServiceNames(URL url) {
-        return Lists.newArrayList(APP_NAME, "MOCK SERVICE");
-    }
-
-
-    @Override
-    public void initialize() throws IllegalStateException {
-
+    public ServiceInstance findServiceInstance(String serviceName, String env) {
+        return listServiceInstances(serviceName, env).getFirst();
     }
 
     @Override
-    public void start() throws IllegalStateException {
-
+    public List<ServiceInstance> listServiceInstances(String serviceName, String env) {
+        environmentCatalogService.require(env);
+        int port = Integer.parseInt(environment.getRequiredProperty("server.port"));
+        return List.of(new DefaultServiceInstance(APP_NAME, APP_NAME, "127.0.0.1", port, false));
     }
 
     @Override
-    public void destroy() throws IllegalStateException {
-
+    public List<String> listServiceNames() {
+        return List.of(APP_NAME, "MOCK SERVICE");
     }
 }

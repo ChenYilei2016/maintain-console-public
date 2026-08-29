@@ -13,9 +13,11 @@ public class LoginUserContext {
      * @return
      */
     public static LocalLoginUser getUser() {
-
-        return LocalLoginUser.mock();
-//        return THREAD_LOCAL.get();
+        LocalLoginUser user = THREAD_LOCAL.get();
+        if (user == null) {
+            throw new IllegalStateException("当前请求未完成身份认证");
+        }
+        return user;
     }
 
     public static void setUser(LocalLoginUser shop) {

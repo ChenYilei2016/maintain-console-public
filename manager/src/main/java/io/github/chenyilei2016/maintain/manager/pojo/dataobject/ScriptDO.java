@@ -32,6 +32,9 @@ public class ScriptDO {
     @TableField("content")
     private String content;
 
+    @TableField("parameter_schema")
+    private String parameterSchema;
+
     /**
      * 权限配置JSON
      */

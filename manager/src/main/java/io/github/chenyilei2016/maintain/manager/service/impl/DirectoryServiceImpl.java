@@ -1,6 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.service.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson2.JSON;
+import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.constant.TreeNodeTypeEnum;
 import io.github.chenyilei2016.maintain.manager.controller.assembler.DirectoryNodeAssembler;
@@ -9,21 +10,19 @@ import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRe
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptNodeDTO;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.DirectoryNode;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.Script;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptPermissionEntity;
+import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptRevisionDTO;
+import io.github.chenyilei2016.maintain.manager.pojo.entity.*;
 import io.github.chenyilei2016.maintain.manager.pojo.repository.DirectoryNodeRepository;
 import io.github.chenyilei2016.maintain.manager.pojo.repository.ScriptRepository;
+import io.github.chenyilei2016.maintain.manager.pojo.repository.ScriptRevisionRepository;
 import io.github.chenyilei2016.maintain.manager.pojo.vo.ScriptVO;
 import io.github.chenyilei2016.maintain.manager.service.DirectoryService;
 import io.github.chenyilei2016.maintain.manager.service.ScriptContentService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,17 +40,25 @@ import java.util.stream.Collectors;
 @Service
 public class DirectoryServiceImpl implements DirectoryService {
 
-    @Autowired
-    private DirectoryNodeRepository directoryNodeRepository;
+    private final DirectoryNodeRepository directoryNodeRepository;
+    private final ScriptRepository scriptRepository;
+    private final ScriptRevisionRepository scriptRevisionRepository;
+    private final ScriptContentService scriptContentService;
+    private final ManagerProperties managerProperties;
 
-    @Autowired
-    private ScriptRepository scriptRepository;
-
-    @Resource
-    private ScriptContentService scriptContentService;
-
-    @Resource
-    private DirectoryServiceImpl self;
+    public DirectoryServiceImpl(
+            DirectoryNodeRepository directoryNodeRepository,
+            ScriptRepository scriptRepository,
+            ScriptRevisionRepository scriptRevisionRepository,
+            ScriptContentService scriptContentService,
+            ManagerProperties managerProperties
+    ) {
+        this.directoryNodeRepository = directoryNodeRepository;
+        this.scriptRepository = scriptRepository;
+        this.scriptRevisionRepository = scriptRevisionRepository;
+        this.scriptContentService = scriptContentService;
+        this.managerProperties = managerProperties;
+    }
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -74,16 +81,17 @@ public class DirectoryServiceImpl implements DirectoryService {
 
         ScriptNodeDTO dto = convertToScriptNodeDTO(scriptVO);
         //填充权限
-        dto.setCanRead(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.READ));
-        dto.setCanInvoke(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.INVOKE));
-        dto.setCanEdit(ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.EDIT));
+        dto.setCanRead(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ));
+        dto.setCanInvoke(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.INVOKE));
+        dto.setCanEdit(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.EDIT));
         return dto;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String treeNodeSave(TreeNodeSaveWebRequest request) {
-        log.info("保存树节点，请求：{}", request);
+        log.info("保存树节点, type:{}, id:{}, name:{}, service:{}",
+                request.getNodeType(), request.getNodeId(), request.getNodeName(), request.getServiceName());
 
         // 验证节点类型
         TreeNodeTypeEnum nodeTypeEnum = TreeNodeTypeEnum.getEnumThrow(request.getNodeType());
@@ -184,16 +192,15 @@ public class DirectoryServiceImpl implements DirectoryService {
      */
     private String handleScriptSave(TreeNodeSaveWebRequest request, String nodeId) {
         if (nodeId == null) {
-            return self.doScriptCreate(request);
+            return doScriptCreate(request);
 
         } else {
-            self.doScriptUpdate(request, nodeId);
+            doScriptUpdate(request, nodeId);
         }
 
         return nodeId;
     }
 
-    @Transactional(rollbackFor = Throwable.class)
     public String doScriptCreate(TreeNodeSaveWebRequest request) {
         // 检查名称重复
         checkNameDuplicate(request.getNodeName(), request.getParentId(), request.getServiceName());
@@ -218,7 +225,9 @@ public class DirectoryServiceImpl implements DirectoryService {
         // 创建脚本内容，使用保存后的节点ID
         Script script = new Script();
         script.setId(savedScriptNode.getId());
-        script.setContent(StringUtils.hasText(request.getContent()) ? request.getContent() : "// 新建脚本\nreturn \"Hello World\";");
+        String content = StringUtils.hasText(request.getContent()) ? request.getContent() : "// 新建脚本\nreturn \"Hello World\";";
+        script.setContent(content);
+        script.setParameterSchema(normalizeParameterSchema(request.getParameterSchema(), content));
         try {
             ScriptPermissionEntity scriptPermissionEntity = JSON.parseObject(StringUtils.hasText(request.getPermissions()) ? request.getPermissions() : ScriptPermissionEntity.init(request.getOperatorId())
                     , ScriptPermissionEntity.class);
@@ -230,7 +239,8 @@ public class DirectoryServiceImpl implements DirectoryService {
         script.setVersion(1);
         script.setCreateTime(LocalDateTime.now());
         script.setUpdateTime(LocalDateTime.now());
-        scriptRepository.insert(script);
+        Script savedScript = scriptRepository.insert(script);
+        scriptRevisionRepository.saveRevision(savedScript, request.getOperatorId(), request.getOperatorName());
 
         log.info("创建脚本成功，ID：{}，名称：{}，创建人：{}", savedScriptNode.getId(), request.getNodeName(), request.getOperatorName());
 
@@ -238,7 +248,6 @@ public class DirectoryServiceImpl implements DirectoryService {
         return savedScriptNode.getId();
     }
 
-    @Transactional(rollbackFor = Throwable.class)
     public void doScriptUpdate(TreeNodeSaveWebRequest request, String nodeId) {
         // 更新脚本
         DirectoryNode existingNode = directoryNodeRepository.findById(nodeId);
@@ -262,7 +271,8 @@ public class DirectoryServiceImpl implements DirectoryService {
             throw CommonException.createReminderException("脚本异常, 请删除此节点");
         } else {
 
-            if (!ScriptPermissionEntity.checkPermission(existingNode, existingScript, request.getOperatorId(), ScriptPermissionEnum.EDIT)) {
+            if (!ScriptPermissionEntity.checkPermission(existingNode, existingScript, request.getOperatorId(),
+                    ScriptPermissionEnum.EDIT, managerProperties.getGlobalWhiteEmployeeNoList())) {
                 throw CommonException.createReminderException("没有权限进行此操作:{},{}", request.getOperatorId(), "EDIT");
             }
             // 更新现有脚本内容
@@ -273,8 +283,9 @@ public class DirectoryServiceImpl implements DirectoryService {
                 if (u == null) {
                     throw CommonException.createReminderException("更新脚本冲突, 存在抢占行为");
                 }
+                scriptRevisionRepository.saveRevision(u, request.getOperatorId(), request.getOperatorName());
                 log.info("脚本内容更新成功，版本号：{} -> {}，操作人：{}",
-                        existingScript.getVersion(), existingScript.getVersion(), request.getOperatorName());
+                        existingScript.getVersion(), u.getVersion(), request.getOperatorName());
             }
         }
 
@@ -283,9 +294,20 @@ public class DirectoryServiceImpl implements DirectoryService {
 
     private static boolean isScriptContentChanged(TreeNodeSaveWebRequest request, Script existingScript) {
         boolean contentChanged = false;
+        String updatedContent = existingScript.getContent();
         if (StringUtils.hasText(request.getContent()) && !request.getContent().equals(existingScript.getContent())) {
             existingScript.setContent(request.getContent());
+            updatedContent = request.getContent();
             contentChanged = true;
+        }
+        if (request.getParameterSchema() != null) {
+            String parameterSchema = normalizeParameterSchema(request.getParameterSchema(), updatedContent);
+            if (!java.util.Objects.equals(parameterSchema, existingScript.getParameterSchema())) {
+                existingScript.setParameterSchema(parameterSchema);
+                contentChanged = true;
+            }
+        } else if (existingScript.getParameterSchema() != null) {
+            normalizeParameterSchema(existingScript.getParameterSchema(), updatedContent);
         }
         if (StringUtils.hasText(request.getPermissions()) && !request.getPermissions().equals(existingScript.getPermissions())) {
             try {
@@ -302,6 +324,51 @@ public class DirectoryServiceImpl implements DirectoryService {
             contentChanged = true;
         }
         return contentChanged;
+    }
+
+    private static String normalizeParameterSchema(String parameterSchema, String scriptContent) {
+        ScriptParameterSchema schema = ScriptParameterSchema.parse(parameterSchema);
+        return schema == null ? null : schema.validateForScript(scriptContent);
+    }
+
+    @Override
+    public List<ScriptRevisionDTO> listScriptRevisions(String scriptId, String employeeNo) {
+        ScriptVO scriptVO = scriptContentService.findById(scriptId);
+        if (scriptVO == null || !hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ)) {
+            throw CommonException.createReminderException("脚本不存在或没有读取权限");
+        }
+        return scriptRevisionRepository.listRecent(scriptId, 50).stream().map(ScriptRevisionDTO::from).toList();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Integer restoreScriptRevision(String scriptId, int version, String operatorId, String operatorName) {
+        ScriptVO scriptVO = scriptContentService.findById(scriptId);
+        if (scriptVO == null || !hasPermission(scriptVO, operatorId, ScriptPermissionEnum.EDIT)) {
+            throw CommonException.createReminderException("脚本不存在或没有编辑权限");
+        }
+        ScriptRevision revision = scriptRevisionRepository.findRevision(scriptId, version);
+        if (revision == null) {
+            throw CommonException.createReminderException("脚本版本不存在: {}", version);
+        }
+        Script script = scriptVO.getScript();
+        script.setContent(revision.getContent());
+        script.setParameterSchema(revision.getParameterSchema());
+        script.setPermissions(revision.getPermissions());
+        script.setDescription(revision.getDescription());
+        script.setUpdateTime(LocalDateTime.now());
+        Script restored = scriptRepository.save(script, true);
+        if (restored == null) {
+            throw CommonException.createReminderException("恢复脚本版本冲突，请刷新后重试");
+        }
+        scriptRevisionRepository.saveRevision(restored, operatorId, operatorName);
+        return restored.getVersion();
+    }
+
+    private boolean hasPermission(ScriptVO scriptVO, String employeeNo, ScriptPermissionEnum permission) {
+        return ScriptPermissionEntity.checkPermission(
+                scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, permission,
+                managerProperties.getGlobalWhiteEmployeeNoList());
     }
 
     /**

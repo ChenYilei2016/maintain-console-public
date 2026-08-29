@@ -5,12 +5,14 @@ import io.github.chenyilei2016.maintain.client.common.dto.ApiResult;
 import io.github.chenyilei2016.maintain.client.common.dto.InvokeScriptParamSignDTO;
 import io.github.chenyilei2016.maintain.client.common.dto.InvokeScriptResultDTO;
 import io.github.chenyilei2016.maintain.manager.caller.http.RetrofitHttpProxyFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 import retrofit2.Call;
 import retrofit2.http.*;
 
 import java.io.IOException;
 
+@Ignore("依赖外部 HTTP 服务，仅保留为手工联调入口")
 public class ClientCallerTest {
 
     static interface SampleClientApi {

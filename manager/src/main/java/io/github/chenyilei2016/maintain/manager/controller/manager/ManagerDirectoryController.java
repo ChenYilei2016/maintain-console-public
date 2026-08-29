@@ -3,17 +3,20 @@ package io.github.chenyilei2016.maintain.manager.controller.manager;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
 import io.github.chenyilei2016.maintain.manager.controller.dto.GetScriptDetailWebRequest;
+import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptRevisionRestoreWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptNodeDTO;
+import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptRevisionDTO;
+import io.github.chenyilei2016.maintain.manager.service.AuditLogService;
 import io.github.chenyilei2016.maintain.manager.service.DirectoryService;
+import io.github.chenyilei2016.maintain.manager.service.ScriptUserPreferenceService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -24,12 +27,22 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@CrossOrigin("*")
 @RequestMapping("/manager/directory")
 public class ManagerDirectoryController {
 
-    @Autowired
-    private DirectoryService directoryService;
+    private final DirectoryService directoryService;
+    private final AuditLogService auditLogService;
+    private final ScriptUserPreferenceService preferenceService;
+
+    public ManagerDirectoryController(
+            DirectoryService directoryService,
+            AuditLogService auditLogService,
+            ScriptUserPreferenceService preferenceService
+    ) {
+        this.directoryService = directoryService;
+        this.auditLogService = auditLogService;
+        this.preferenceService = preferenceService;
+    }
 
     /**
      * 获取目录树结构
@@ -46,8 +59,26 @@ public class ManagerDirectoryController {
      */
     @PostMapping("/script/detail")
     public AjaxResult<ScriptNodeDTO> getScriptDetail(@RequestBody GetScriptDetailWebRequest request) {
-        ScriptNodeDTO script = directoryService.getScriptDetail(request.getScriptId(), LoginUserContext.getUser().getEmployeeNo());
+        String userId = LoginUserContext.getUser().getEmployeeNo();
+        ScriptNodeDTO script = directoryService.getScriptDetail(request.getScriptId(), userId);
+        preferenceService.touch(userId, request.getScriptId());
         return AjaxResult.success(script);
+    }
+
+    @GetMapping("/script/revisions")
+    public AjaxResult<List<ScriptRevisionDTO>> getScriptRevisions(@RequestParam String scriptId) {
+        return AjaxResult.success(directoryService.listScriptRevisions(
+                scriptId, LoginUserContext.getUser().getEmployeeNo()));
+    }
+
+    @PostMapping("/script/revision/restore")
+    public AjaxResult<Integer> restoreScriptRevision(@RequestBody @Valid ScriptRevisionRestoreWebRequest request) {
+        LocalLoginUser user = LoginUserContext.getUser();
+        Integer version = directoryService.restoreScriptRevision(
+                request.getScriptId(), request.getVersion(), user.getEmployeeNo(), user.getEmployeeName());
+        auditLogService.record(user, "SCRIPT_REVISION_RESTORE", "SCRIPT", request.getScriptId(), "SUCCESS",
+                java.util.Map.of("sourceVersion", request.getVersion(), "newVersion", version));
+        return AjaxResult.success(version, "已恢复为新版本");
     }
 
     /**
@@ -66,9 +97,14 @@ public class ManagerDirectoryController {
         request.setOperatorId(loginUser.getEmployeeNo());
         request.setOperatorName(loginUser.getEmployeeName());
 
-        log.info("保存树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeNo());
+        log.info("保存树节点, type:{}, id:{}, name:{}, service:{}, 操作人:{}({})",
+                request.getNodeType(), request.getNodeId(), request.getNodeName(), request.getServiceName(),
+                loginUser.getEmployeeName(), loginUser.getEmployeeNo());
 
         String result = directoryService.treeNodeSave(request);
+        auditLogService.record(loginUser, request.getNodeId() == null ? "RESOURCE_CREATE" : "RESOURCE_UPDATE",
+                request.getNodeType().toUpperCase(), result, "SUCCESS", java.util.Map.of(
+                        "name", request.getNodeName(), "service", request.getServiceName()));
 
         String operation = request.getNodeId() == null ? "创建" : "更新";
         String nodeTypeName = "folder".equals(request.getNodeType()) ? "文件夹" : "脚本";
@@ -93,6 +129,8 @@ public class ManagerDirectoryController {
         log.info("删除树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeNo());
 
         boolean success = directoryService.treeNodeDelete(request);
+        auditLogService.record(loginUser, "RESOURCE_DELETE", "DIRECTORY_NODE", request.getNodeId(),
+                success ? "SUCCESS" : "FAILED", java.util.Map.of("forceDelete", request.getForceDelete()));
 
         if (success) {
             return AjaxResult.success("删除成功");

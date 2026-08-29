@@ -37,11 +37,6 @@
             <artifactId>spring-boot-starter-logging</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>io.github.chenyilei2016</groupId>
-            <artifactId>extension-spi</artifactId>
-            <version>1.0.0</version>
-        </dependency>
     </dependencies>
 
 </project>

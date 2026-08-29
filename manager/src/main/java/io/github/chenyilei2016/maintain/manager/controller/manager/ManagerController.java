@@ -4,15 +4,10 @@ package io.github.chenyilei2016.maintain.manager.controller.manager;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import io.github.chenyilei2016.extension.spi.ExtensionLoader;
-import io.github.chenyilei2016.extension.spi.kernel.URL;
 import io.github.chenyilei2016.maintain.client.common.console.IMaintainConsoleExecutor;
 import io.github.chenyilei2016.maintain.client.common.dto.ApiResult;
-import io.github.chenyilei2016.maintain.client.common.dto.InvokeScriptParamSignDTO;
 import io.github.chenyilei2016.maintain.client.common.dto.InvokeScriptResultDTO;
-import io.github.chenyilei2016.maintain.manager.caller.ClientCaller;
-import io.github.chenyilei2016.maintain.manager.caller.ClientCallerContext;
-import io.github.chenyilei2016.maintain.manager.constant.SPIConstants;
+import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
 import io.github.chenyilei2016.maintain.manager.controller.dto.DevopsScriptEvalWebRequest;
@@ -23,49 +18,51 @@ import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxPageResult;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import io.github.chenyilei2016.maintain.manager.pojo.dataobject.ScriptExecutionHistoryDO;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.DirectoryNode;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.Script;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptExecutionHistoryEntity;
-import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptPermissionEntity;
+import io.github.chenyilei2016.maintain.manager.pojo.entity.*;
 import io.github.chenyilei2016.maintain.manager.pojo.repository.ScriptExecutionHistoryRepository;
 import io.github.chenyilei2016.maintain.manager.pojo.vo.ScriptVO;
-import io.github.chenyilei2016.maintain.manager.service.DirectoryService;
+import io.github.chenyilei2016.maintain.manager.service.EnvironmentCatalogService;
 import io.github.chenyilei2016.maintain.manager.service.ScriptContentService;
+import io.github.chenyilei2016.maintain.manager.service.ScriptInvoker;
 import io.github.chenyilei2016.maintain.manager.utils.IdUtil;
 import io.github.chenyilei2016.maintain.manager.utils.MyProfileUtils;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-@CrossOrigin("*")
 @RestController
 @Slf4j
-public class ManagerController implements ApplicationContextAware {
+public class ManagerController {
+    private final ScriptExecutionHistoryRepository scriptExecutionHistoryRepository;
+    private final MaintainConsoleRegistryClientDiscovery registryClientDiscovery;
+    private final ScriptInvoker scriptInvoker;
+    private final ScriptContentService scriptContentService;
+    private final ManagerProperties managerProperties;
+    private final EnvironmentCatalogService environmentCatalogService;
+    private final Environment environment;
 
-    private ApplicationContext applicationContext;
-
-    @Resource
-    private IMaintainConsoleExecutor maintainConsoleExecutor;
-    @Resource
-    private ScriptExecutionHistoryRepository scriptExecutionHistoryRepository;
-
-    private final MaintainConsoleRegistryClientDiscovery registryClientDiscovery = ExtensionLoader.getExtensionLoader(MaintainConsoleRegistryClientDiscovery.class).getAdaptiveExtension();
-
-    private final ClientCaller clientCaller = ExtensionLoader.getExtensionLoader(ClientCaller.class).getAdaptiveExtension();
-
-    @Resource
-    private ScriptContentService scriptContentService;
-
-    @Resource
-    private DirectoryService directoryService;
+    public ManagerController(
+            ScriptExecutionHistoryRepository scriptExecutionHistoryRepository,
+            MaintainConsoleRegistryClientDiscovery registryClientDiscovery,
+            ScriptInvoker scriptInvoker,
+            ScriptContentService scriptContentService,
+            ManagerProperties managerProperties,
+            EnvironmentCatalogService environmentCatalogService,
+            Environment environment
+    ) {
+        this.scriptExecutionHistoryRepository = scriptExecutionHistoryRepository;
+        this.registryClientDiscovery = registryClientDiscovery;
+        this.scriptInvoker = scriptInvoker;
+        this.scriptContentService = scriptContentService;
+        this.managerProperties = managerProperties;
+        this.environmentCatalogService = environmentCatalogService;
+        this.environment = environment;
+    }
 
 
     /**
@@ -73,6 +70,7 @@ public class ManagerController implements ApplicationContextAware {
      */
     @PostMapping("/devops/manager/script/eval")
     public AjaxResult<String> scriptEvalRpc(@RequestBody @Valid DevopsScriptEvalWebRequest scriptDTO) {
+        rejectUnsafeLegacyProductionExecution(scriptDTO.getEnv());
         final String employeeId = LoginUserContext.getUser().getEmployeeNo();
         ScriptVO scriptVO = scriptContentService.findById(scriptDTO.getScriptId());
 
@@ -82,40 +80,41 @@ public class ManagerController implements ApplicationContextAware {
         if (!Objects.equals(scriptDTO.getService(), scriptVO.getServiceName())) {
             throw CommonException.createReminderException("脚本不属于此服务");
         }
-        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeId, ScriptPermissionEnum.INVOKE)) {
+        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeId,
+                ScriptPermissionEnum.INVOKE, managerProperties.getGlobalWhiteEmployeeNoList())) {
             throw CommonException.createReminderException("没有权限进行此操作:{},{}", employeeId, "INVOKE");
         }
 
-        String finalScriptContent = ScriptVO.mergeParamScript(scriptVO.getScriptContent(), scriptDTO.getParams());
-        log.info("接受scriptEval: {}, user:{} finalContent:{}", scriptDTO, LoginUserContext.getUser(), finalScriptContent);
-
-        InvokeScriptParamSignDTO invokeScriptParamDTO = new InvokeScriptParamSignDTO(finalScriptContent);
-        ClientCallerContext ctx = new ClientCallerContext(scriptDTO.getService());
-        ctx.setEnv(scriptDTO.getEnv());
+        ScriptParameterSchema.ResolvedScript resolvedScript = ScriptVO.resolveParamScript(
+                scriptVO.getScriptContent(), scriptDTO.getParams(), scriptVO.getScript().getParameterSchema());
+        String finalScriptContent = resolvedScript.executableContent();
+        log.info("接收脚本执行请求, service:{}, scriptId:{}, user:{}",
+                scriptDTO.getService(), scriptDTO.getScriptId(), LoginUserContext.getUser().getEmployeeNo());
 
         long startTime = System.currentTimeMillis();
 
         ApiResult<InvokeScriptResultDTO> apiResult = null;
-        Throwable tx;
         try {
-            apiResult = clientCaller.$invokeScript(ctx, invokeScriptParamDTO);
-        } catch (Throwable e) {
-            tx = e;
+            apiResult = scriptInvoker.invoke(scriptDTO.getService(), scriptDTO.getEnv(), null,
+                    finalScriptContent, resolvedScript);
+        } catch (RuntimeException e) {
+            log.warn("脚本执行失败, service:{}, scriptId:{}", scriptDTO.getService(), scriptDTO.getScriptId(), e);
+            apiResult = ApiResult.error(e.getMessage());
         } finally {
-            saveExecutionHistory(scriptVO.getScriptContent(), scriptDTO.getParams(), finalScriptContent, scriptVO, apiResult, startTime, System.currentTimeMillis());
+            saveExecutionHistory(scriptVO.getScriptContent(), resolvedScript.persistedParameters(), resolvedScript.persistedContent(),
+                    scriptVO, apiResult, startTime, System.currentTimeMillis());
         }
-        if (apiResult.isSuccess()) {
+        if (apiResult != null && apiResult.isSuccess()) {
             return AjaxResult.success(apiResult.getData().getScriptResult(), apiResult.getMsg());
-        } else {
-            return AjaxResult.success(apiResult.getMsg(), apiResult.getMsg());
         }
+        return AjaxResult.error(apiResult == null ? "脚本执行失败" : apiResult.getMsg());
     }
 
     @PostMapping("/manager/script/preview")
     public AjaxResult<String> preview(@RequestBody @Valid ScriptEvalPreviewWebRequest scriptDTO) {
         final String frontInputScript = scriptDTO.getScript();
-        String finalScriptContent = ScriptVO.mergeParamScript(frontInputScript, scriptDTO.getParams());
-        return AjaxResult.success(finalScriptContent);
+        return AjaxResult.success(ScriptVO.resolveParamScript(
+                frontInputScript, scriptDTO.getParams(), scriptDTO.getParameterSchema()).executableContent());
     }
 
     /**
@@ -124,6 +123,7 @@ public class ManagerController implements ApplicationContextAware {
      */
     @PostMapping("/manager/script/eval")
     public AjaxResult<String> scriptEval(@RequestBody @Valid ScriptEvalWebRequest scriptDTO) {
+        rejectUnsafeLegacyProductionExecution(scriptDTO.getEnv());
         final String employeeNo = LoginUserContext.getUser().getEmployeeNo();
         ScriptVO scriptVO = scriptContentService.findById(scriptDTO.getScriptId());
         //这里还用前端的脚本, 因为可能用户并没有保存
@@ -135,40 +135,63 @@ public class ManagerController implements ApplicationContextAware {
         if (!Objects.equals(scriptDTO.getService(), scriptVO.getServiceName())) {
             throw CommonException.createReminderException("脚本不属于此服务");
         }
-        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, ScriptPermissionEnum.INVOKE)) {
+        if (!ScriptPermissionEntity.checkPermission(scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo,
+                ScriptPermissionEnum.INVOKE, managerProperties.getGlobalWhiteEmployeeNoList())) {
             throw CommonException.createReminderException("没有权限进行此操作:{},{}", employeeNo, "INVOKE");
         }
-        String finalScriptContent = ScriptVO.mergeParamScript(frontInputScript, scriptDTO.getParams());
-        log.info("接受scriptEval: {}, user:{} finalContent:{}", scriptDTO, LoginUserContext.getUser(), finalScriptContent);
+        String parameterSchema = scriptDTO.getParameterSchema() == null
+                ? scriptVO.getScript().getParameterSchema()
+                : scriptDTO.getParameterSchema();
+        ScriptParameterSchema.ResolvedScript resolvedScript = ScriptVO.resolveParamScript(
+                frontInputScript, scriptDTO.getParams(), parameterSchema);
+        String finalScriptContent = resolvedScript.executableContent();
+        log.info("接收脚本执行请求, service:{}, scriptId:{}, user:{}",
+                scriptDTO.getService(), scriptDTO.getScriptId(), LoginUserContext.getUser().getEmployeeNo());
 
         if (scriptDTO.isDebug()) {
-            Object evaluate = maintainConsoleExecutor.execute(finalScriptContent);
+            if (!MyProfileUtils.isLocal(environment)) {
+                throw CommonException.createReminderException("仅本地环境允许调试执行");
+            }
+            Object evaluate = getLocalExecutor().execute(finalScriptContent);
             return AjaxResult.success(Objects.toString(evaluate), "ok");
         }
-
-        InvokeScriptParamSignDTO invokeScriptParamDTO = new InvokeScriptParamSignDTO(finalScriptContent);
-        ClientCallerContext ctx = new ClientCallerContext(scriptDTO.getService());
-        ctx.setEnv(scriptDTO.getEnv());
 
         long startTime = System.currentTimeMillis();
 
         ApiResult<InvokeScriptResultDTO> apiResult = null;
-        Throwable tx;
         try {
-            if (MyProfileUtils.isLocal(applicationContext.getEnvironment())) {
-                ctx.addParameter(SPIConstants.REGISTRY_CLIENT_DISCOVERY_TYPE, "local");
-            }
-            apiResult = clientCaller.$invokeScript(ctx, invokeScriptParamDTO);
-        } catch (Throwable e) {
-            //todo: 异常处理 , 记录
-            tx = e;
+            apiResult = scriptInvoker.invoke(scriptDTO.getService(), scriptDTO.getEnv(), null,
+                    finalScriptContent, resolvedScript);
+        } catch (RuntimeException e) {
+            log.warn("脚本执行失败, service:{}, scriptId:{}", scriptDTO.getService(), scriptDTO.getScriptId(), e);
+            apiResult = ApiResult.error(e.getMessage());
         } finally {
-            saveExecutionHistory(frontInputScript, scriptDTO.getParams(), finalScriptContent, scriptVO, apiResult, startTime, System.currentTimeMillis());
+            saveExecutionHistory(frontInputScript, resolvedScript.persistedParameters(), resolvedScript.persistedContent(),
+                    scriptVO, apiResult, startTime, System.currentTimeMillis());
         }
         if (apiResult != null && apiResult.isSuccess()) {
             return AjaxResult.success(apiResult.getData().getScriptResult(), apiResult.getMsg());
-        } else {
-            return AjaxResult.success(apiResult.getMsg(), apiResult.getMsg());
+        }
+        return AjaxResult.error(apiResult == null ? "脚本执行失败" : apiResult.getMsg());
+    }
+
+    @PostMapping("/manager/script/eval/v2")
+    public AjaxResult<ScriptExecutionResult> scriptEvalV2(@RequestBody @Valid ScriptEvalWebRequest request) {
+        AjaxResult<String> legacyResult = scriptEval(request);
+        if (!legacyResult.isSuccess()) {
+            return AjaxResult.error(legacyResult.getMsg());
+        }
+        return AjaxResult.success(ScriptExecutionResult.fromRaw(legacyResult.getData()), legacyResult.getMsg());
+    }
+
+    private IMaintainConsoleExecutor getLocalExecutor() {
+        return scriptInvoker.getLocalExecutor();
+    }
+
+    private void rejectUnsafeLegacyProductionExecution(String targetEnvironment) {
+        if (environmentCatalogService.isProduction(targetEnvironment)
+                && !managerProperties.getSecurity().isAllowLegacySynchronousExecution()) {
+            throw CommonException.createReminderException("生产环境已禁用无审批的同步执行接口，请使用执行任务流程");
         }
     }
 
@@ -196,13 +219,22 @@ public class ManagerController implements ApplicationContextAware {
                 if (apiResult.isSuccess()) {
                     historyEntity.setStatus("success");
                     historyEntity.setResult(apiResult.getData().getScriptResult());
+                    ScriptExecutionResult resultPayload = ScriptExecutionResult.fromRaw(apiResult.getData().getScriptResult());
+                    historyEntity.setProtocolVersion(resultPayload.getProtocolVersion());
+                    historyEntity.setResultPayload(resultPayload.toJson());
                 } else {
                     historyEntity.setStatus("error");
                     historyEntity.setResult(apiResult.getMsg());
+                    ScriptExecutionResult resultPayload = ScriptExecutionResult.error(apiResult.getMsg());
+                    historyEntity.setProtocolVersion(resultPayload.getProtocolVersion());
+                    historyEntity.setResultPayload(resultPayload.toJson());
                 }
             } else {
                 historyEntity.setStatus("error");
                 historyEntity.setErrorMessage("Result is null");
+                ScriptExecutionResult resultPayload = ScriptExecutionResult.error("Result is null");
+                historyEntity.setProtocolVersion(resultPayload.getProtocolVersion());
+                historyEntity.setResultPayload(resultPayload.toJson());
             }
             scriptExecutionHistoryRepository.save(historyEntity);
         } catch (Exception e) {
@@ -220,21 +252,12 @@ public class ManagerController implements ApplicationContextAware {
         queryWrapper.eq("script_id", scriptId);
         queryWrapper.orderByDesc("id");
         IPage<ScriptExecutionHistoryEntity> historyPage = scriptExecutionHistoryRepository.page(pageRequest, queryWrapper);
-        return new AjaxPageResult(true, historyPage.getRecords(), null, page, size, historyPage.getTotal());
+        return new AjaxPageResult<>(true, historyPage.getRecords(), null, page, size, historyPage.getTotal());
     }
 
     @PostMapping("/manager/service/list")
     public AjaxResult<List<String>> serviceList() {
-        URL url = new URL();
-        if (MyProfileUtils.isLocal(applicationContext.getEnvironment())) {
-            url.addParameter(SPIConstants.REGISTRY_CLIENT_DISCOVERY_TYPE, "local");
-        }
-        return AjaxResult.success(registryClientDiscovery.listServiceNames(url));
+        return AjaxResult.success(registryClientDiscovery.listServiceNames());
     }
 
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

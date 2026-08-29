@@ -26,6 +26,11 @@ public class Script {
     private String content;
 
     /**
+     * 类型化参数 Schema；为空表示沿用旧版原样替换协议。
+     */
+    private String parameterSchema;
+
+    /**
      * 权限配置JSON
      */
     private String permissions;

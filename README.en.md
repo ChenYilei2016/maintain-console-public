@@ -1,11 +1,14 @@
+> This English document describes the legacy release and is retained for historical context. For the current JDK 25 /
+> Spring Boot 4 architecture, security model, Worker mode, React workspace, migration steps, and verified commands, use
+> the [Chinese README](./README.md).
+
 <div align="center">
   <h1>🔧 Maintain Console</h1>
   <p><strong>Remote Groovy Script Execution & Operations Console</strong></p>
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.3.12-brightgreen.svg)
-![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-Hoxton.SR12-brightgreen.svg)
-![Java](https://img.shields.io/badge/Java-8+-orange.svg)
+![Manager](https://img.shields.io/badge/Manager-JDK%2025%20%7C%20Spring%20Boot%204.0.7-brightgreen.svg)
+![Client](https://img.shields.io/badge/Client-Java%208%20compatible-orange.svg)
 
 <p>
   Language:

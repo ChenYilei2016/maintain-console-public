@@ -1,8 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.controller.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  * 树节点删除请求

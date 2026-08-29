@@ -3,15 +3,13 @@
 package io.github.chenyilei2016.maintain.manager.exceptions;
 
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import org.slf4j.helpers.MessageFormatter;
 
 /**
  *
  */
-@Data
-@NoArgsConstructor
+@Getter
 public class CommonException extends RuntimeException {
 
     protected String errMsg;
@@ -58,13 +56,13 @@ public class CommonException extends RuntimeException {
 
     public static CommonException createReminderException(String msg) {
         CommonException commonException = new CommonException(msg);
-        commonException.setReminder(true);
+        commonException.isReminder = true;
         return commonException;
     }
 
     public static CommonException createReminderException(String format, Object... args) {
         CommonException commonException = new CommonException(strFormat(format, args));
-        commonException.setReminder(true);
+        commonException.isReminder = true;
         return commonException;
     }
 

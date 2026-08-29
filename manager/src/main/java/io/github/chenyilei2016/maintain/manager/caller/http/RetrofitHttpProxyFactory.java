@@ -1,6 +1,6 @@
 package io.github.chenyilei2016.maintain.manager.caller.http;
 
-import com.alibaba.fastjson.support.retrofit.Retrofit2ConverterFactory;
+import com.alibaba.fastjson2.support.retrofit.Retrofit2ConverterFactory;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
@@ -59,7 +59,7 @@ public class RetrofitHttpProxyFactory {
         @Override
         public Converter<?, RequestBody> requestBodyConverter(Type type, Annotation[] parameterAnnotations, Annotation[] methodAnnotations, Retrofit retrofit) {
             if (String.class.equals(type)) {
-                return (Converter<String, RequestBody>) value -> RequestBody.create(MEDIA_TYPE, value);
+                return (Converter<String, RequestBody>) value -> RequestBody.create(value, MEDIA_TYPE);
             }
             return null;
         }

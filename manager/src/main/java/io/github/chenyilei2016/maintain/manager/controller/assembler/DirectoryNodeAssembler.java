@@ -36,6 +36,7 @@ public interface DirectoryNodeAssembler {
         dto.setParentId(node.getParentId());
         dto.setServiceName(node.getServiceName());
         dto.setContent(script.getContent());
+        dto.setParameterSchema(script.getParameterSchema());
         dto.setPermissions(script.getPermissions());
         dto.setCreator(node.getCreatorId());
         if (node.getCreateTime() != null) {

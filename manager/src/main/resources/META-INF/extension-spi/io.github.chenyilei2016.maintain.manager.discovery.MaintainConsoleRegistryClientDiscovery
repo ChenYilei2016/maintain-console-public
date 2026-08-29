@@ -1,2 +1,0 @@
-springCloud=io.github.chenyilei2016.maintain.manager.discovery.SpringCloudRegistryClientDiscovery
-local=io.github.chenyilei2016.maintain.manager.discovery.LocalRegistryClientDiscovery

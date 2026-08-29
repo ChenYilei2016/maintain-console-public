@@ -1,8 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.controller.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  * @author chenyilei
@@ -18,6 +17,11 @@ public class ScriptEvalWebRequest {
     private String scriptId;
 
     private String params;
+
+    /**
+     * 当前编辑器中的参数 Schema；允许执行尚未保存的脚本版本。
+     */
+    private String parameterSchema;
 
     /**
      * 前端原始脚本内容(未替换)

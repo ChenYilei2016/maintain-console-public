@@ -2,6 +2,7 @@ package io.github.chenyilei2016.maintain.manager.pojo.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.chenyilei2016.maintain.manager.pojo.dataobject.ScriptExecutionHistoryDO;
 import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptExecutionHistoryEntity;
 
@@ -13,8 +14,10 @@ import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptExecutionHisto
  */
 public interface ScriptExecutionHistoryRepository {
 
-    //todo: 暂时省时间..
-    IPage<ScriptExecutionHistoryEntity> page(IPage page, QueryWrapper<ScriptExecutionHistoryDO> queryWrapper);
+    IPage<ScriptExecutionHistoryEntity> page(
+            Page<ScriptExecutionHistoryEntity> page,
+            QueryWrapper<ScriptExecutionHistoryDO> queryWrapper
+    );
 
     boolean save(ScriptExecutionHistoryEntity historyEntity);
 

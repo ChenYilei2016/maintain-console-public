@@ -4,12 +4,13 @@ import io.github.chenyilei2016.maintain.client.common.dto.BaseSignDTO;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.Cipher;
+import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.interfaces.RSAKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +22,6 @@ import java.util.Map;
 public class RSAUtil {
 
     private static final String RSA_SIGN_PUBLIC_KEY = "MFwwDQYJKoZIhvcNAQEBBQADSwA" + "wSAJBAPRcsqKmrL3F2sRc3a6XcOn" + "iR5yk1IxAUFFLePQHl/pz9TMxxML4oV+W" + "vefbztXa5v3l7XTX+i2Scy1MsHE/ZxsCAwEAAQ==";
-
-    private static final char[] HEX_DIGITS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
     public static void checkSignValid(Object dto, Long timeElapsedLimitMills) {
         if (!(dto instanceof BaseSignDTO)) {
@@ -58,10 +57,41 @@ public class RSAUtil {
         if (timeElapsedLimitMills == null) {
             timeElapsedLimitMills = 5 * 60 * 1000L; // 5 minutes
         }
-        if (System.currentTimeMillis() - timestamp > timeElapsedLimitMills) {
-            //如果非5分钟之内的数据
+        if (Math.abs(System.currentTimeMillis() - timestamp) > timeElapsedLimitMills) {
             throw new IllegalStateException("request sign time check error");
         }
+    }
+
+    public static String signSha256(String data, String privateKey) {
+        try {
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initSign(readPrivateKey(privateKey));
+            signature.update(data.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(signature.sign());
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException("RSA private key or signature is invalid", e);
+        }
+    }
+
+    public static boolean verifySha256(String data, String sign, String publicKey) {
+        try {
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initVerify(readPublicKey(publicKey));
+            signature.update(data.getBytes(StandardCharsets.UTF_8));
+            return signature.verify(Base64.getDecoder().decode(sign));
+        } catch (GeneralSecurityException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private static PrivateKey readPrivateKey(String privateKey) throws GeneralSecurityException {
+        byte[] encoded = Base64.getDecoder().decode(privateKey);
+        return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(encoded));
+    }
+
+    private static PublicKey readPublicKey(String publicKey) throws GeneralSecurityException {
+        byte[] encoded = Base64.getDecoder().decode(publicKey);
+        return KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(encoded));
     }
 
     public static String MD5(byte[] data) {
@@ -71,6 +101,14 @@ public class RSAUtil {
             return new BigInteger(messageDigest.digest()).toString(16).toUpperCase();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static String SHA256(byte[] data) {
+        try {
+            return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(data));
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("SHA-256 is unavailable", e);
         }
     }
 
@@ -95,7 +133,7 @@ public class RSAUtil {
         try {
             // 生成密钥对
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(512);
+            keyPairGenerator.initialize(2048);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             PublicKey publicObj = keyPair.getPublic();
             PrivateKey privateObj = keyPair.getPrivate();
@@ -103,8 +141,8 @@ public class RSAUtil {
             String privateKey = Base64.getEncoder().encodeToString(privateObj.getEncoded());
             map.put("publicKey", publicKey);
             map.put("privateKey", privateKey);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (GeneralSecurityException e) {
+            throw new IllegalStateException("RSA key pair generation failed", e);
         }
         return map;
     }
@@ -119,7 +157,6 @@ public class RSAUtil {
      * @return
      */
     public static String encryptByPrivateKey(String str, String privateKey) {
-        String result = null;
         try {
             byte[] encoded = Base64.getDecoder().decode(privateKey);
             PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encoded);
@@ -129,12 +166,11 @@ public class RSAUtil {
             cipher.init(Cipher.ENCRYPT_MODE, privateObj);
 
             //加密的字符串长度不能超过 117 个字节，否则报错，需要分段处理
-            byte[] resultBytes = getEncryptResult(str, cipher);
-            result = Base64.getEncoder().encodeToString(resultBytes);
-        } catch (Exception e) {
-            e.printStackTrace();
+            byte[] resultBytes = getEncryptResult(str, cipher, rsaKeyBytes(privateObj) - 11);
+            return Base64.getEncoder().encodeToString(resultBytes);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException("RSA private key encryption failed", e);
         }
-        return result;
     }
 
     /**
@@ -145,7 +181,6 @@ public class RSAUtil {
      * @return
      */
     public static String decryptByPublicKey(String str, String publicKey) {
-        String result = null;
         try {
             byte[] encoded = Base64.getDecoder().decode(publicKey);
             X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encoded);
@@ -153,12 +188,11 @@ public class RSAUtil {
             PublicKey publicObj = keyFactory.generatePublic(publicKeySpec);
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.DECRYPT_MODE, publicObj);
-            byte[] decryptedBytes = getDecryptResult(str, cipher);
-            result = new String(decryptedBytes, "UTF-8");
-        } catch (Exception e) {
-            e.printStackTrace();
+            byte[] decryptedBytes = getDecryptResult(str, cipher, rsaKeyBytes(publicObj));
+            return new String(decryptedBytes, StandardCharsets.UTF_8);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException("RSA public key decryption failed", e);
         }
-        return result;
     }
 
 
@@ -169,7 +203,6 @@ public class RSAUtil {
      * @return
      */
     public static String encryptByPublicKey(String str, String publicKey) {
-        String result = null;
         try {
             byte[] encoded = Base64.getDecoder().decode(publicKey);
             X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(encoded);
@@ -179,12 +212,11 @@ public class RSAUtil {
             cipher.init(Cipher.ENCRYPT_MODE, publicObj);
 
             //加密的字符串长度不能超过 117 个字节，否则报错，需要分段处理
-            byte[] resultBytes = getEncryptResult(str, cipher);
-            result = Base64.getEncoder().encodeToString(resultBytes);
-        } catch (Exception e) {
-            e.printStackTrace();
+            byte[] resultBytes = getEncryptResult(str, cipher, rsaKeyBytes(publicObj) - 11);
+            return Base64.getEncoder().encodeToString(resultBytes);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException("RSA public key encryption failed", e);
         }
-        return result;
     }
 
 
@@ -194,7 +226,6 @@ public class RSAUtil {
      * @return
      */
     public static String decryptByPrivateKey(String str, String privateKey) {
-        String result = null;
         try {
             byte[] encoded = Base64.getDecoder().decode(privateKey);
             PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encoded);
@@ -202,12 +233,11 @@ public class RSAUtil {
             PrivateKey privateObj = keyFactory.generatePrivate(privateKeySpec);
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.DECRYPT_MODE, privateObj);
-            byte[] decryptedBytes = getDecryptResult(str, cipher);
-            result = new String(decryptedBytes, StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            e.printStackTrace();
+            byte[] decryptedBytes = getDecryptResult(str, cipher, rsaKeyBytes(privateObj));
+            return new String(decryptedBytes, StandardCharsets.UTF_8);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException("RSA private key decryption failed", e);
         }
-        return result;
     }
 
 
@@ -216,24 +246,15 @@ public class RSAUtil {
      *
      * @return
      */
-    private static byte[] getEncryptResult(String str, Cipher cipher) throws Exception {
+    private static byte[] getEncryptResult(String str, Cipher cipher, int maxEncryptLength) throws GeneralSecurityException {
         byte[] originalBytes = str.getBytes(StandardCharsets.UTF_8);
-        int originalLength = originalBytes.length;
-        int offSet = 0;//偏移量
-        byte[] resultBytes = {};
-        byte[] cache = {};
-        while (originalLength - offSet > 0) {
-            if (originalLength - offSet > MAX_ENCRYPT_LENGTH) {
-                cache = cipher.doFinal(originalBytes, offSet, MAX_ENCRYPT_LENGTH);
-                offSet += MAX_ENCRYPT_LENGTH;
-            } else {
-                cache = cipher.doFinal(originalBytes, offSet, originalLength - offSet);
-                offSet = originalLength;
-            }
-            resultBytes = Arrays.copyOf(resultBytes, resultBytes.length + cache.length);
-            System.arraycopy(cache, 0, resultBytes, resultBytes.length - cache.length, cache.length);
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        for (int offset = 0; offset < originalBytes.length; offset += maxEncryptLength) {
+            int length = Math.min(maxEncryptLength, originalBytes.length - offset);
+            byte[] block = cipher.doFinal(originalBytes, offset, length);
+            result.write(block, 0, block.length);
         }
-        return resultBytes;
+        return result.toByteArray();
     }
 
     /**
@@ -242,24 +263,19 @@ public class RSAUtil {
      * @return
      * @throws Exception
      */
-    private static byte[] getDecryptResult(String str, Cipher cipher) throws Exception {
+    private static byte[] getDecryptResult(String str, Cipher cipher, int maxDecryptLength) throws GeneralSecurityException {
         byte[] decryptedBytes = Base64.getDecoder().decode(str.getBytes(StandardCharsets.UTF_8));
-        int originalLength = decryptedBytes.length;
-        int offSet = 0;//偏移量
-        byte[] resultBytes = {};
-        byte[] cache = {};
-        while (originalLength - offSet > 0) {
-            if (originalLength - offSet > MAX_DECRYPT_LENGTH) {
-                cache = cipher.doFinal(decryptedBytes, offSet, MAX_DECRYPT_LENGTH);
-                offSet += MAX_DECRYPT_LENGTH;
-            } else {
-                cache = cipher.doFinal(decryptedBytes, offSet, originalLength - offSet);
-                offSet = originalLength;
-            }
-            resultBytes = Arrays.copyOf(resultBytes, resultBytes.length + cache.length);
-            System.arraycopy(cache, 0, resultBytes, resultBytes.length - cache.length, cache.length);
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        for (int offset = 0; offset < decryptedBytes.length; offset += maxDecryptLength) {
+            int length = Math.min(maxDecryptLength, decryptedBytes.length - offset);
+            byte[] block = cipher.doFinal(decryptedBytes, offset, length);
+            result.write(block, 0, block.length);
         }
-        return resultBytes;
+        return result.toByteArray();
+    }
+
+    private static int rsaKeyBytes(Key key) {
+        return (((RSAKey) key).getModulus().bitLength() + 7) / 8;
     }
 
 }

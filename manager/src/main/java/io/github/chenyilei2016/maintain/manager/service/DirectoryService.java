@@ -4,6 +4,7 @@ import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWeb
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptNodeDTO;
+import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptRevisionDTO;
 
 import java.util.List;
 
@@ -47,4 +48,8 @@ public interface DirectoryService {
      * @return 是否成功
      */
     boolean treeNodeDelete(TreeNodeDeleteWebRequest request);
+
+    List<ScriptRevisionDTO> listScriptRevisions(String scriptId, String employeeNo);
+
+    Integer restoreScriptRevision(String scriptId, int version, String operatorId, String operatorName);
 }

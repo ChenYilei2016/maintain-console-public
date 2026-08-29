@@ -11,4 +11,6 @@ public abstract class MaintainConsoleClientHttpConst {
     public static final String URI_INVOKE_SCRIPT = "/maintain/console/$invokeScript";
 
     public static final String URI_INVOKE_COMMEND = "/maintain/console/$invokeCommend";
+
+    public static final String URI_RUNTIME_METADATA = "/maintain/console/$runtimeMetadata";
 }

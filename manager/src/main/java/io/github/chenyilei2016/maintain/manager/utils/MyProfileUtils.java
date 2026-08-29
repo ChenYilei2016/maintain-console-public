@@ -1,7 +1,6 @@
 package io.github.chenyilei2016.maintain.manager.utils;
 
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.env.Environment;
 
 import java.util.Arrays;
@@ -15,30 +14,27 @@ public class MyProfileUtils {
 
 
     public static boolean isProd(Environment environment) {
-        return contains(environment.getActiveProfiles(), "prod");
+        return isProd(activeOrDefaultProfiles(environment));
     }
 
     public static boolean isPre(Environment environment) {
-        return contains(environment.getActiveProfiles(), "pre");
+        return isPre(activeOrDefaultProfiles(environment));
     }
 
     public static boolean isTestTrunk(Environment environment) {
-        return contains(environment.getActiveProfiles(), "test-trunk");
+        return isTestTrunk(activeOrDefaultProfiles(environment));
     }
 
     public static boolean isLocal(Environment environment) {
-        return contains(environment.getActiveProfiles(), "local");
+        return isLocal(activeOrDefaultProfiles(environment));
     }
 
     public static boolean isUnit(Environment environment) {
-        return contains(environment.getActiveProfiles(), "unit") ||
-                isStartWith(environment.getActiveProfiles(), "unit") ||
-                isStartWith(environment.getActiveProfiles(), "unit-");
+        return isUnit(activeOrDefaultProfiles(environment));
     }
 
     public static boolean isProject(Environment environment) {
-        return contains(environment.getActiveProfiles(), "project") ||
-                isStartWith(environment.getActiveProfiles(), "project-");
+        return isProject(activeOrDefaultProfiles(environment));
     }
 
     public static boolean isProd(String[] activeProfiles) {
@@ -71,9 +67,13 @@ public class MyProfileUtils {
     }
 
     public static boolean isStartWith(String[] activeProfiles, String profile) {
-        return Arrays.stream(activeProfiles).anyMatch(s -> {
-            return StringUtils.startsWithIgnoreCase(s, profile);
-        });
+        return Arrays.stream(activeProfiles)
+                .anyMatch(activeProfile -> activeProfile.regionMatches(true, 0, profile, 0, profile.length()));
+    }
+
+    private static String[] activeOrDefaultProfiles(Environment environment) {
+        String[] activeProfiles = environment.getActiveProfiles();
+        return activeProfiles.length == 0 ? environment.getDefaultProfiles() : activeProfiles;
     }
 
 }

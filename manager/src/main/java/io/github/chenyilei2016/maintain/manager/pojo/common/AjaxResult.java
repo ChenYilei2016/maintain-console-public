@@ -20,8 +20,8 @@ public class AjaxResult<T> implements Serializable {
     private String msg;
     private int code = 200;
 
-    public static AjaxResult error(String msg) {
-        return new AjaxResult(false, null, msg);
+    public static <T> AjaxResult<T> error(String msg) {
+        return new AjaxResult<>(false, null, msg);
     }
 
     public static <T> AjaxResult<T> success(T data, String msg) {

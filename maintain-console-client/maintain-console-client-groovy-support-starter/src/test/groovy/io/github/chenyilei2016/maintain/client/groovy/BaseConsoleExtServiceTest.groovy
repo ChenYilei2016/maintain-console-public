@@ -24,4 +24,14 @@ class BaseConsoleExtServiceTest {
         List<String> list = ["a", "b"]
         assert BaseConsoleExtService.str(list) == "'[a, b]'"
     }
+
+    @Test
+    void createsInlineFileResult() {
+        Map<String, Object> block = BaseConsoleExtService.resultFileContent(
+                'report', 'report.csv', 'a,b'.bytes, 'text/csv')
+
+        assert block.type == 'file'
+        assert block.data.contentBase64 == 'YSxi'
+        assert block.data.size == 3
+    }
 }

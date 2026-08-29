@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <property name="APP_NAME" value="application"/>
-    <property name="LOG_PATH" value="${user.home}/logs/${APP_NAME}"/>
-    <property name="LOG_FILE" value="${LOG_PATH}/application.log"/>
-    <property name="ERROR_LOG_PARENT"
+    <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="./logs"/>
+    <property name="LOG_FILE" value="${LOG_PATH}/${APP_NAME}.log"/>
+    <property name="LOG_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [ %-5level ] [%thread] [ %logger{10} ] [at %F.%M.%L] - %msg%n"/>
 
     <property name="CONSOLE_LOG_PATTERN_TRACE"
@@ -20,7 +20,7 @@
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_FILE}</file>
         <encoder>
-            <pattern>${LOG_PARENT}</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>

@@ -49,10 +49,14 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>3.0.17</version>
-            <type>pom</type>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>4.0.28</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>4.0.28</version>
         </dependency>
     </dependencies>
     <build>
@@ -75,7 +79,7 @@
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
-                <version>1.13.1</version>
+                <version>4.2.0</version>
                 <configuration>
                     <targetBytecode>1.8</targetBytecode>
                     <!-- 联合编译：同时扫描 groovy 和 java 源码目录，解决 Java 引用 Groovy 类的编译顺序问题 -->

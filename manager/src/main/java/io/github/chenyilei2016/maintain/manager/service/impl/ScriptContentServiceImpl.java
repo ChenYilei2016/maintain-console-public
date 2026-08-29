@@ -7,9 +7,8 @@ import io.github.chenyilei2016.maintain.manager.pojo.repository.DirectoryNodeRep
 import io.github.chenyilei2016.maintain.manager.pojo.repository.ScriptRepository;
 import io.github.chenyilei2016.maintain.manager.pojo.vo.ScriptVO;
 import io.github.chenyilei2016.maintain.manager.service.ScriptContentService;
+import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 
 /**
  * @author chenyilei

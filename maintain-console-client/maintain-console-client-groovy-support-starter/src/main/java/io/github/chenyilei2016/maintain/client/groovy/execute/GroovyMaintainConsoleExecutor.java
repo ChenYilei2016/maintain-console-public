@@ -1,20 +1,11 @@
 package io.github.chenyilei2016.maintain.client.groovy.execute;
 
-import groovy.lang.Binding;
-import groovy.lang.GroovyClassLoader;
-import groovy.lang.GroovyShell;
 import io.github.chenyilei2016.maintain.client.common.console.IMaintainConsoleExecutor;
-import io.github.chenyilei2016.maintain.client.groovy.BaseConsoleExtService;
-import io.github.chenyilei2016.maintain.client.groovy.ConsoleStorage;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.github.chenyilei2016.maintain.client.common.dto.RuntimeMetadataDTO;
+import io.github.chenyilei2016.maintain.client.groovy.configuration.MaintainConsoleGroovyProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.util.StringUtils;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * @author chenyilei
@@ -24,28 +15,35 @@ public class GroovyMaintainConsoleExecutor implements IMaintainConsoleExecutor, 
 
     private ApplicationContext applicationContext;
 
-    private static final String VARS = "vars";
+    private final MaintainConsoleGroovyProperties properties;
+    private final GroovyScriptEngine scriptEngine = new GroovyScriptEngine();
 
-    private static final String CTX = "ctx";
+    public GroovyMaintainConsoleExecutor() {
+        this(new MaintainConsoleGroovyProperties());
+    }
 
-    private static final String LOG = "_log";
-
-    Logger _log = LoggerFactory.getLogger("maintain-console-exe");
+    public GroovyMaintainConsoleExecutor(MaintainConsoleGroovyProperties properties) {
+        this.properties = properties;
+    }
 
     public Object execute(String script) {
-        if (!StringUtils.hasText(script)) {
-            throw new IllegalArgumentException("Script text to compile cannot be null!");
+        if (properties.getExecutionMode() == MaintainConsoleGroovyProperties.ExecutionMode.ISOLATED_PROCESS) {
+            return new IsolatedGroovyProcessExecutor(properties).execute(script);
         }
-        GroovyClassLoader groovyClassLoader = new GroovyClassLoader(this.getClass().getClassLoader());
-        CompilerConfiguration compilerConfiguration = new CompilerConfiguration();
-        compilerConfiguration.setScriptBaseClass(BaseConsoleExtService.class.getName());
-        compilerConfiguration.setSourceEncoding(StandardCharsets.UTF_8.toString());
-        Binding binding = new Binding();
-        binding.setVariable(VARS, new ConsoleStorage());
-        binding.setVariable(CTX, applicationContext);
-        binding.setVariable(CTX.toUpperCase(), applicationContext);
-        binding.setVariable(LOG, _log);
-        return new GroovyShell(groovyClassLoader, binding, compilerConfiguration).evaluate(script);
+        Object context = properties.isExposeApplicationContext()
+                ? applicationContext
+                : new RestrictedBeanContext(applicationContext, properties.getAllowedBeanNames());
+        return scriptEngine.execute(script, context, properties.getMaxScriptLength(), properties.isAllowDangerousScripts());
+    }
+
+    @Override
+    public RuntimeMetadataDTO runtimeMetadata() {
+        if (properties.isExposeApplicationContext()
+                || properties.getExecutionMode() == MaintainConsoleGroovyProperties.ExecutionMode.ISOLATED_PROCESS) {
+            return new RuntimeMetadataDTO();
+        }
+        return new RestrictedBeanContext(applicationContext, properties.getAllowedBeanNames()).metadata(
+                properties.getMetadataMaxBeans(), properties.getMetadataMaxMethodsPerBean());
     }
 
     @Override

@@ -77,6 +77,12 @@ public class ScriptExecutionHistoryDO {
     @TableField("result")
     private String result;
 
+    @TableField("protocol_version")
+    private Integer protocolVersion;
+
+    @TableField("result_payload")
+    private String resultPayload;
+
     /**
      * 执行状态: success-成功, error-失败, running-运行中
      */

@@ -27,6 +27,10 @@ public class LoginInfoWebResponse {
      */
     private List<EnvironmentOption> availableEnvironments;
 
+    private boolean canApprove;
+
+    private boolean aiEnabled;
+
     /**
      * 环境选项
      */
@@ -46,5 +50,13 @@ public class LoginInfoWebResponse {
          * 图标样式
          */
         private String icon;
+
+        private String cluster;
+
+        private String namespace;
+
+        private String description;
+
+        private boolean production;
     }
 }

@@ -28,4 +28,12 @@ public interface HttpMaintainConsoleClientApiAdapter {
             MaintainConsoleClientHttpConst.HEADER_MAINTAIN_CONSOLE_URI + ":" + MaintainConsoleClientHttpConst.URI_INVOKE_COMMEND,
     })
     Call<ApiResult<InvokeCommandResultDTO>> $invokeCommend(@Header(OkHttpUrlSelectionInterceptor.HEADER_BASE_URL) String url, @Body InvokeCommandParamSignDTO invokeCommandParamDTO);
+
+    @POST(MaintainConsoleClientHttpConst.URI_RUNTIME_METADATA)
+    @Headers({
+            MaintainConsoleClientHttpConst.HEADER_MAINTAIN_CONSOLE_URI + ":" + MaintainConsoleClientHttpConst.URI_RUNTIME_METADATA,
+    })
+    Call<ApiResult<RuntimeMetadataDTO>> $runtimeMetadata(
+            @Header(OkHttpUrlSelectionInterceptor.HEADER_BASE_URL) String url,
+            @Body RuntimeMetadataParamSignDTO request);
 }

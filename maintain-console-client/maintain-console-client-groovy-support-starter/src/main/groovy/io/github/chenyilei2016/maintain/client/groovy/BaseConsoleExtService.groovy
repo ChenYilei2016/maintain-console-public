@@ -1,6 +1,6 @@
 package io.github.chenyilei2016.maintain.client.groovy
 
-import com.alibaba.fastjson.JSON
+import groovy.json.JsonOutput
 
 abstract class BaseConsoleExtService extends Script {
 
@@ -62,11 +62,51 @@ abstract class BaseConsoleExtService extends Script {
     }
 
     protected static String toJson(Object object, Boolean pretty = false) {
-        return JSON.toJSONString(object, pretty)
+        String json = JsonOutput.toJson(object)
+        return pretty ? JsonOutput.prettyPrint(json) : json
     }
 
     protected static String toJSON(Object object, Boolean pretty = false) {
         return toJson(object, pretty)
+    }
+
+    protected static String result(Object... blocks) {
+        return toJson([protocolVersion: 1, blocks: blocks as List])
+    }
+
+    protected static Map<String, Object> resultText(String title, Object value) {
+        return resultBlock('text', title, value)
+    }
+
+    protected static Map<String, Object> resultTable(String title, Collection<?> columns, Collection<?> rows) {
+        return resultBlock('table', title, [columns: columns, rows: rows])
+    }
+
+    protected static Map<String, Object> resultMetric(String title, Map<?, ?> values) {
+        return resultBlock('metric', title, values)
+    }
+
+    protected static Map<String, Object> resultChart(
+            String title, String chartType, Collection<?> labels, Collection<?> series) {
+        return resultBlock('chart', title, [chartType: chartType, labels: labels, series: series])
+    }
+
+    protected static Map<String, Object> resultFile(String title, String name, String url, String mimeType = null) {
+        return resultBlock('file', title, [name: name, url: url, mimeType: mimeType])
+    }
+
+    protected static Map<String, Object> resultFileContent(
+            String title, String name, byte[] content, String mimeType = 'application/octet-stream') {
+        return resultBlock('file', title, [
+                name         : name,
+                mimeType     : mimeType,
+                size         : content.length,
+                contentBase64: java.util.Base64.getEncoder().encodeToString(content)
+        ])
+    }
+
+    private static Map<String, Object> resultBlock(String type, String title, Object data) {
+        return [type: type, title: title, data: data]
     }
 
     protected static List<String> str2List(String str, String delimiter) {

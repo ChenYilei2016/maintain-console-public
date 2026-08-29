@@ -1,9 +1,8 @@
 package io.github.chenyilei2016.maintain.manager.controller.dto;
 
 import io.github.chenyilei2016.maintain.manager.constant.TreeNodeTypeEnum;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import javax.validation.constraints.NotBlank;
 
 /**
  * 树节点保存请求
@@ -48,6 +47,11 @@ public class TreeNodeSaveWebRequest {
      * 脚本内容（仅当nodeType为script时有效）
      */
     private String content;
+
+    /**
+     * 类型化参数 Schema JSON；为空时保持旧版参数替换协议。
+     */
+    private String parameterSchema;
 
     /**
      * 权限配置JSON（仅当nodeType为script时有效）

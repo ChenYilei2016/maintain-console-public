@@ -1,14 +1,12 @@
 package io.github.chenyilei2016.maintain.manager.pojo.entity;
 
-import com.alibaba.fastjson.JSON;
-import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
+import com.alibaba.fastjson2.JSON;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
-import io.github.chenyilei2016.maintain.manager.context.ApplicationContextHolder;
 import io.github.chenyilei2016.maintain.manager.utils.StrUtils;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -50,20 +48,25 @@ public class ScriptPermissionEntity {
         return JSON.toJSONString(scriptPermissionEntity);
     }
 
-    public static boolean checkPermission(DirectoryNode node, Script existingScript, String operatorId, ScriptPermissionEnum p) {
-        ManagerProperties mp = ApplicationContextHolder.getApplicationContext().getBean(ManagerProperties.class);
-        if (mp.getGlobalWhiteEmployeeNoList().contains(operatorId)) {
+    public static boolean checkPermission(
+            DirectoryNode node,
+            Script existingScript,
+            String operatorId,
+            ScriptPermissionEnum permission,
+            Set<String> globalWhiteEmployeeNos
+    ) {
+        if (globalWhiteEmployeeNos.contains(operatorId)) {
             return true;
         }
         if (Objects.equals(node.getCreatorId(), operatorId)) {
             return true;
         }
-        return checkPermission(existingScript, operatorId, p);
+        return checkPermission(existingScript, operatorId, permission);
     }
 
     public static boolean checkPermission(Script existingScript, String operatorId, ScriptPermissionEnum p) {
         String permissions = existingScript.getPermissions();
-        if (StringUtils.isBlank(permissions)) {
+        if (permissions == null || permissions.isBlank()) {
             permissions = "{}";
         }
         ScriptPermissionEntity scriptPermissionEntity = JSON.parseObject(permissions, ScriptPermissionEntity.class);
@@ -78,7 +81,7 @@ public class ScriptPermissionEntity {
                 break;
             case READ:
                 //默认都有
-                if (StringUtils.isBlank(scriptPermissionEntity.getReaderNo())) {
+                if (scriptPermissionEntity.getReaderNo() == null || scriptPermissionEntity.getReaderNo().isBlank()) {
                     isAuth = true;
                 } else {
                     isAuth = scriptPermissionEntity.checkAuth(scriptPermissionEntity, ScriptPermissionEntity::getReaderNo, operatorId);

@@ -3,10 +3,8 @@ package io.github.chenyilei2016.maintain.client.http.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.chenyilei2016.maintain.client.common.console.IMaintainConsoleExecutor;
 import io.github.chenyilei2016.maintain.client.common.constants.MaintainConsoleClientHttpConst;
-import io.github.chenyilei2016.maintain.client.common.dto.ApiResult;
-import io.github.chenyilei2016.maintain.client.common.dto.InvokeScriptParamSignDTO;
-import io.github.chenyilei2016.maintain.client.common.dto.InvokeScriptResultDTO;
-import io.github.chenyilei2016.maintain.client.common.utils.RSAUtil;
+import io.github.chenyilei2016.maintain.client.common.dto.*;
+import io.github.chenyilei2016.maintain.client.http.security.RequestSignatureVerifier;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.util.StreamUtils;
@@ -35,9 +33,14 @@ public class HttpMaintainConsoleClientApiImplFilter extends OncePerRequestFilter
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Charset DEFAULT_CHARSETS = StandardCharsets.UTF_8;
     private final IMaintainConsoleExecutor maintainConsoleExecutor;
+    private final RequestSignatureVerifier signatureVerifier;
 
-    public HttpMaintainConsoleClientApiImplFilter(IMaintainConsoleExecutor maintainConsoleExecutor) {
+    public HttpMaintainConsoleClientApiImplFilter(
+            IMaintainConsoleExecutor maintainConsoleExecutor,
+            RequestSignatureVerifier signatureVerifier
+    ) {
         this.maintainConsoleExecutor = maintainConsoleExecutor;
+        this.signatureVerifier = signatureVerifier;
     }
 
     @Override
@@ -79,6 +82,9 @@ public class HttpMaintainConsoleClientApiImplFilter extends OncePerRequestFilter
                 case MaintainConsoleClientHttpConst.URI_INVOKE_COMMEND:
                     write(ApiResult.error("暂不支持的执行指令"), response);
                     break;
+                case MaintainConsoleClientHttpConst.URI_RUNTIME_METADATA:
+                    write(ApiResult.success(doRuntimeMetadata(request)), response);
+                    break;
                 default:
                     write(ApiResult.error("不存在的执行指令"), response);
                     break;
@@ -103,11 +109,19 @@ public class HttpMaintainConsoleClientApiImplFilter extends OncePerRequestFilter
     private InvokeScriptResultDTO doInvokeScript(HttpServletRequest request) throws IOException {
         String requestBody = StreamUtils.copyToString(request.getInputStream(), DEFAULT_CHARSETS);
         InvokeScriptParamSignDTO invokeScriptParamDTO = objectMapper.readValue(requestBody, InvokeScriptParamSignDTO.class);
-        RSAUtil.checkSignValid(invokeScriptParamDTO, null);
+        signatureVerifier.verify(invokeScriptParamDTO);
         final String script = invokeScriptParamDTO.getScript();
         Object result = maintainConsoleExecutor.execute(script);
         InvokeScriptResultDTO resultDTO = new InvokeScriptResultDTO();
         resultDTO.setScriptResult(Objects.toString(result));
         return resultDTO;
+    }
+
+    private RuntimeMetadataDTO doRuntimeMetadata(HttpServletRequest request) throws IOException {
+        String requestBody = StreamUtils.copyToString(request.getInputStream(), DEFAULT_CHARSETS);
+        RuntimeMetadataParamSignDTO metadataRequest = objectMapper.readValue(
+                requestBody, RuntimeMetadataParamSignDTO.class);
+        signatureVerifier.verify(metadataRequest);
+        return maintainConsoleExecutor.runtimeMetadata();
     }
 }

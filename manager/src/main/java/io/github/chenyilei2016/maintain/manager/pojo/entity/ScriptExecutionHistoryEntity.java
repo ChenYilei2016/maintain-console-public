@@ -25,6 +25,8 @@ public class ScriptExecutionHistoryEntity {
     private String finalScriptContent;
     private String parameters;
     private String result;
+    private Integer protocolVersion;
+    private String resultPayload;
     private String status;
     private String errorMessage;
     private LocalDateTime startTime;

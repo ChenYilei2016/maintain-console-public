@@ -17,4 +17,6 @@ public interface MaintainConsoleClientApi {
      * common invoke
      */
     ApiResult<InvokeCommandResultDTO> $invokeCommend(InvokeCommandParamSignDTO invokeCommandParamDTO);
+
+    ApiResult<RuntimeMetadataDTO> $runtimeMetadata(RuntimeMetadataParamSignDTO request);
 }

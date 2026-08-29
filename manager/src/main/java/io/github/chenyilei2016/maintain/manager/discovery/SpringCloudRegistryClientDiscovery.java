@@ -3,38 +3,44 @@ package io.github.chenyilei2016.maintain.manager.discovery;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.github.chenyilei2016.extension.spi.context.Lifecycle;
-import io.github.chenyilei2016.extension.spi.kernel.URL;
 import io.github.chenyilei2016.maintain.client.common.constants.MaintainConsoleClientCommonConst;
+import io.github.chenyilei2016.maintain.manager.service.EnvironmentCatalogService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Setter;
-import lombok.SneakyThrows;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.ParametersAreNonnullByDefault;
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * @author chenyilei
  * @since 2024/05/20 16:42
  */
-public class SpringCloudRegistryClientDiscovery implements MaintainConsoleRegistryClientDiscovery, Lifecycle {
+@Component
+@Profile("!local")
+public class SpringCloudRegistryClientDiscovery implements MaintainConsoleRegistryClientDiscovery {
 
     /**
      * @see org.springframework.cloud.client.discovery.composite.CompositeDiscoveryClient
      */
-    @Setter
-    private DiscoveryClient compositeDiscoveryClient;
+    private final DiscoveryClient compositeDiscoveryClient;
+    private final EnvironmentCatalogService environmentCatalogService;
+
+    public SpringCloudRegistryClientDiscovery(
+            DiscoveryClient compositeDiscoveryClient,
+            EnvironmentCatalogService environmentCatalogService
+    ) {
+        this.compositeDiscoveryClient = compositeDiscoveryClient;
+        this.environmentCatalogService = environmentCatalogService;
+    }
 
     private static final String DUMMY = "DUMMY";
 
@@ -51,33 +57,26 @@ public class SpringCloudRegistryClientDiscovery implements MaintainConsoleRegist
             .refreshAfterWrite(Duration.ofSeconds(30L))
             .build(new CacheLoader<ServiceInstanceCacheKey, List<ServiceInstance>>() {
                 @Override
-                @NotNull
-                @ParametersAreNonnullByDefault
                 public List<ServiceInstance> load(final ServiceInstanceCacheKey cacheKey) {
                     List<ServiceInstance> instances = compositeDiscoveryClient.getInstances(cacheKey.getServiceId());
                     if (CollectionUtils.isEmpty(instances)) {
                         return Collections.emptyList();
                     }
-                    return instances.stream().filter(serviceInstance -> {
-                        if (
-                            // 是注册中心启用的服务
-                                ("true".equalsIgnoreCase(serviceInstance.getMetadata().get(MaintainConsoleClientCommonConst.KEY_REGISTRY_ENABLED)))
-                                        // 是选中的服务
-                                        && isEnvMatch(cacheKey, serviceInstance)
-                        ) {
-                            return true;
-                        }
-                        return false;
-                    }).limit(3).collect(Collectors.toList());
+                    return instances.stream()
+                            .filter(serviceInstance -> "true".equalsIgnoreCase(serviceInstance.getMetadata()
+                                    .get(MaintainConsoleClientCommonConst.KEY_REGISTRY_ENABLED)))
+                            .filter(serviceInstance -> isEnvMatch(cacheKey, serviceInstance))
+                            .toList();
                 }
             });
 
-    private static boolean isEnvMatch(ServiceInstanceCacheKey cacheKey, ServiceInstance serviceInstance) {
-        String env = cacheKey.getEnv();
-        if (env.equalsIgnoreCase("random")) {
+    private boolean isEnvMatch(ServiceInstanceCacheKey cacheKey, ServiceInstance serviceInstance) {
+        String namespace = environmentCatalogService.namespace(cacheKey.getEnv());
+        if (namespace == null) {
             return true;
         }
-        return env.equalsIgnoreCase(serviceInstance.getMetadata().get(MaintainConsoleClientCommonConst.KEY_NAMESPACE));
+        return namespace.equalsIgnoreCase(
+                serviceInstance.getMetadata().get(MaintainConsoleClientCommonConst.KEY_NAMESPACE));
     }
 
     private final LoadingCache<String, List<String>> serviceNamesCache = CacheBuilder.newBuilder()
@@ -85,8 +84,6 @@ public class SpringCloudRegistryClientDiscovery implements MaintainConsoleRegist
             .refreshAfterWrite(Duration.ofSeconds(30L))
             .build(new CacheLoader<String, List<String>>() {
                 @Override
-                @NotNull
-                @ParametersAreNonnullByDefault
                 public List<String> load(String key) {
                     List<String> services = compositeDiscoveryClient.getServices();
                     if (CollectionUtils.isEmpty(services)) {
@@ -97,42 +94,32 @@ public class SpringCloudRegistryClientDiscovery implements MaintainConsoleRegist
             });
 
     @Override
-    public ServiceInstance findServiceInstance(URL url, String serviceName, String env) {
-        if (StringUtils.isEmpty(serviceName)) {
+    public ServiceInstance findServiceInstance(String serviceName, String env) {
+        List<ServiceInstance> serviceInstances = listServiceInstances(serviceName, env);
+        if (serviceInstances.isEmpty()) {
+            return null;
+        }
+        return serviceInstances.get(ThreadLocalRandom.current().nextInt(serviceInstances.size()));
+    }
+
+    @Override
+    public List<ServiceInstance> listServiceInstances(String serviceName, String env) {
+        if (!StringUtils.hasText(serviceName)) {
             throw new IllegalArgumentException("Service name must not be empty");
         }
         try {
-            List<ServiceInstance> serviceInstances = serviceInstanceCache.get(new ServiceInstanceCacheKey(serviceName, env));
-            if (CollectionUtils.isEmpty(serviceInstances)) {
-                return null;
-            }
-            //随机取一个
-            return serviceInstances.get(ThreadLocalRandom.current().nextInt(serviceInstances.size()));
-        } catch (ExecutionException ignore) {
-        }
-        return null;
-    }
-
-    @Override
-    @SneakyThrows
-    public List<String> listServiceNames(URL url) {
-        return serviceNamesCache.get(DUMMY);
-    }
-
-    @Override
-    public void initialize() throws IllegalStateException {
-        if (this.compositeDiscoveryClient == null) {
-            throw new IllegalStateException("SpringCloudRegistryClientDiscovery 无可用的 org.springframework.cloud.client.discovery.DiscoveryClient");
+            return List.copyOf(serviceInstanceCache.get(new ServiceInstanceCacheKey(serviceName, env)));
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("读取服务实例失败", e.getCause());
         }
     }
 
     @Override
-    public void start() throws IllegalStateException {
-
-    }
-
-    @Override
-    public void destroy() throws IllegalStateException {
-
+    public List<String> listServiceNames() {
+        try {
+            return serviceNamesCache.get(DUMMY);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("读取服务列表失败", e.getCause());
+        }
     }
 }
