@@ -7,8 +7,10 @@ import io.github.chenyilei2016.maintain.client.common.dto.*;
 import io.github.chenyilei2016.maintain.manager.MaintainManagerBootstrap;
 import io.github.chenyilei2016.maintain.manager.caller.ClientCaller;
 import io.github.chenyilei2016.maintain.manager.caller.ClientCallerContext;
+import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
+import io.github.chenyilei2016.maintain.manager.discovery.MaintainConsoleRegistryClientDiscovery;
 import io.github.chenyilei2016.maintain.manager.service.ScriptInvoker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +19,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,9 +34,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -40,7 +46,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * 真实 HTTP 业务入口 + 独立 SQLite；身份放入既有可信上下文，不增加生产鉴权入口。
  */
 @SpringBootTest(classes = {MaintainManagerBootstrap.class, ToolWorkflowTest.ClientConfiguration.class},
-        properties = {"maintain.manager.ai.enabled=false", "spring.datasource.hikari.maximum-pool-size=2"})
+        properties = {"maintain.manager.ai.enabled=false", "spring.datasource.hikari.maximum-pool-size=2",
+                "maintain.manager.execution.max-targets=2"})
 @ActiveProfiles("local")
 class ToolWorkflowTest {
     private static final String SCHEMA = """
@@ -54,6 +61,8 @@ class ToolWorkflowTest {
     JdbcTemplate jdbc;
     @Autowired
     RecordingClient client;
+    @Autowired
+    RecordingDiscovery discovery;
     private MockMvc mvc;
 
     @DynamicPropertySource
@@ -67,6 +76,9 @@ class ToolWorkflowTest {
         mvc = MockMvcBuilders.webAppContextSetup(context).build();
         client.calls.set(0);
         client.delay = false;
+        client.failPort = -1;
+        client.missingResponse = false;
+        discovery.count = 1;
     }
 
     @AfterEach
@@ -77,6 +89,8 @@ class ToolWorkflowTest {
     @Test
     void authorSharesRunnerUsesSavedVersionAndRevocationIsImmediate() throws Exception {
         String id = create();
+        assertFalse(post("runner", "/manager/directory/treeNode/save", Map.of("nodeType", "script", "nodeName", "绕过检查",
+                "serviceName", "maintain-console", "content", "return 999")).getBooleanValue("success"), "仅执行用户不能通过新建获得任意代码执行能力");
         assertFalse(post("runner", "/manager/directory/script/detail", Map.of("scriptId", id)).getBooleanValue("success"));
         assertFalse(get("runner", "/manager/tools/" + id).getBooleanValue("success"));
         grant(id, 1);
@@ -168,6 +182,63 @@ class ToolWorkflowTest {
         assertEquals(1, client.calls.get());
     }
 
+    @Test
+    void missingResponseIsUnknownNotAConfirmedBusinessFailure() throws Exception {
+        String id = create();
+        grant(id, 1);
+        client.missingResponse = true;
+        JSONObject report = post("runner", "/manager/tools/run", runRequest(id, 2)).getJSONObject("data");
+        assertEquals("UNKNOWN", report.getString("outcome"), report.toJSONString());
+        assertEquals(1, client.calls.get());
+    }
+
+    @Test
+    void legacyRawTemplatesStayDeveloperOnlyAndRestoreCanClearSchema() throws Exception {
+        JSONObject created = post("author", "/manager/directory/treeNode/save", Map.of(
+                "nodeType", "script", "nodeName", "legacy", "serviceName", "maintain-console",
+                "content", "return '$${value}'", "allowedEnvironments", List.of("random")));
+        assertTrue(created.getBooleanValue("success"), created.toJSONString());
+        String id = created.getString("data");
+        assertFalse(post("author", "/manager/tools/" + id + "/grants", Map.of("expectedVersion", 1,
+                "permissions", Map.of("invokerNo", "runner", "allowedEnvironments", List.of("random")))).getBooleanValue("success"));
+        assertFalse(post("author", "/manager/tools/run", runRequest(id, 1)).getBooleanValue("success"));
+        assertFalse(post("author", "/devops/manager/script/eval", Map.of("scriptId", id, "version", 1,
+                "env", "random", "service", "maintain-console", "params", "{}", "riskConfirmed", true)).getBooleanValue("success"));
+        JSONObject debug = debugRequest(id, 1);
+        debug.put("content", "return '$${value}'");
+        debug.put("parameterSchema", null);
+        debug.put("parameters", Map.of("value", "compatibility"));
+        assertEquals("SUCCESS", post("author", "/manager/scripts/debug", debug).getJSONObject("data").getString("outcome"));
+        assertTrue(post("author", "/manager/directory/treeNode/save", Map.of("nodeId", id,
+                "nodeType", "script", "nodeName", "migrated", "serviceName", "maintain-console", "expectedVersion", 1,
+                "content", CONTENT, "parameterSchema", SCHEMA)).getBooleanValue("success"));
+        assertTrue(post("author", "/manager/directory/script/revision/restore",
+                Map.of("scriptId", id, "version", 1, "expectedVersion", 2)).getBooleanValue("success"));
+        assertNull(jdbc.queryForObject("SELECT parameter_schema FROM mc_script WHERE id = ?", String.class, id));
+        assertFalse(post("author", "/manager/tools/run", runRequest(id, 3)).getBooleanValue("success"));
+        assertEquals(1, client.calls.get());
+    }
+
+    @Test
+    void multiInstanceExecutionEnforcesLimitAndReturnsPerTargetOutcomes() throws Exception {
+        String id = create();
+        assertTrue(post("author", "/manager/tools/" + id + "/grants", Map.of("expectedVersion", 1,
+                "permissions", Map.of("invokerNo", "runner", "allowedEnvironments", List.of("random"),
+                        "allowAllInstances", true))).getBooleanValue("success"));
+        JSONObject request = runRequest(id, 2);
+        request.getJSONObject("target").put("selectionMode", "ALL");
+        discovery.count = 3;
+        assertFalse(post("runner", "/manager/tools/run", request).getBooleanValue("success"));
+        assertEquals(0, client.calls.get());
+        discovery.count = 2;
+        client.failPort = 10001;
+        JSONObject report = post("runner", "/manager/tools/run", request).getJSONObject("data");
+        assertEquals("PARTIAL_SUCCESS", report.getString("outcome"), report.toJSONString());
+        assertEquals(2, report.getJSONArray("targets").size());
+        assertEquals(2, client.calls.get(), "每个目标只调用一次");
+        assertFalse(report.toJSONString().contains("private-backend-detail"));
+    }
+
     private String create() throws Exception {
         JSONObject response = post("author", "/manager/directory/treeNode/save", Map.of(
                 "nodeType", "script", "nodeName", "tool-" + UUID.randomUUID(), "serviceName", "maintain-console",
@@ -212,11 +283,18 @@ class ToolWorkflowTest {
         LocalLoginUser actor = new LocalLoginUser();
         actor.setEmployeeNo(id);
         actor.setEmployeeName("name-" + id);
+        if (id.equals("author")) actor.getRoles().add(ConsoleRole.DEVELOPER.name());
         LoginUserContext.setUser(actor);
     }
 
     @TestConfiguration
     static class ClientConfiguration {
+        @Bean
+        @Primary
+        RecordingDiscovery recordingDiscovery() {
+            return new RecordingDiscovery();
+        }
+
         @Bean
         @Primary
         RecordingClient recordingClient() {
@@ -235,10 +313,14 @@ class ToolWorkflowTest {
     static class RecordingClient implements ClientCaller {
         final AtomicInteger calls = new AtomicInteger();
         volatile boolean delay;
+        volatile int failPort;
+        volatile boolean missingResponse;
 
         @Override
         public ApiResult<InvokeScriptResultDTO> $invokeScript(ClientCallerContext context, InvokeScriptParamSignDTO request) {
             calls.incrementAndGet();
+            if (missingResponse) return null;
+            if (context.getServiceInstance().getPort() == failPort) return ApiResult.error("private-backend-detail");
             if (delay) {
                 try {
                     Thread.sleep(2_000);
@@ -259,6 +341,26 @@ class ToolWorkflowTest {
         @Override
         public ApiResult<RuntimeMetadataDTO> $runtimeMetadata(ClientCallerContext context, RuntimeMetadataParamSignDTO request) {
             throw new UnsupportedOperationException();
+        }
+    }
+
+    static class RecordingDiscovery implements MaintainConsoleRegistryClientDiscovery {
+        int count = 1;
+
+        @Override
+        public ServiceInstance findServiceInstance(String service, String environment) {
+            return listServiceInstances(service, environment).getFirst();
+        }
+
+        @Override
+        public List<ServiceInstance> listServiceInstances(String service, String environment) {
+            return IntStream.range(0, count).mapToObj(index -> (ServiceInstance) new DefaultServiceInstance(
+                    "test-" + index, service, "127.0.0.1", 10000 + index, false)).toList();
+        }
+
+        @Override
+        public List<String> listServiceNames() {
+            return List.of("maintain-console");
         }
     }
 }

@@ -54,6 +54,7 @@ export default function ToolRunPage({id, login}: { id: string; login: LoginInfo 
         let active = true;
         setInstances([]);
         setTarget(current => ({...current, instanceId: ''}));
+        if (tool) setValues(current => ({...defaultParameterValues(tool.parameters), ...safeParameterValues(tool.parameters, current)}));
         if (environment) toolApi.instances(id, environment).then(result => {
             if (active) setInstances(result);
         })

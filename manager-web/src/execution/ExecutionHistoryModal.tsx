@@ -3,6 +3,7 @@ import {api} from '../api';
 import Modal from '../Modal';
 import ResultRenderer from '../ResultRenderer';
 import type {ExecutionHistory, ScriptExecutionResult} from '../types';
+import {type ExecutionReport, OUTCOME_LABELS} from './execution';
 
 export default function ExecutionHistoryModal({scriptId, onRestore, onClose}: {
     scriptId: string; onRestore: (values: Record<string, unknown>) => void; onClose: () => void;
@@ -31,6 +32,12 @@ export default function ExecutionHistoryModal({scriptId, onRestore, onClose}: {
         if (selected?.resultPayload) result = JSON.parse(selected.resultPayload);
     } catch { /* 兼容旧文本结果。 */
     }
+    let targets: ExecutionReport['targets'] = [];
+    try {
+        const stored = JSON.parse(selected?.targetsJson || '[]');
+        if (Array.isArray(stored)) targets = stored.filter(item => item && typeof item.host === 'string');
+    } catch { /* 旧记录没有结构化目标时仍展示原结果。 */
+    }
     return <Modal title="执行历史" wide onClose={onClose}>
         <p>默认只展示自己的记录；创建者和管理员可查看其管理工具的记录。回填参数不会再次执行。</p>
         {error && <p role="alert" className="safety-note">{error}</p>}
@@ -52,7 +59,11 @@ export default function ExecutionHistoryModal({scriptId, onRestore, onClose}: {
             <p>{selected.startTime.replace('T', ' ')} · {selected.draft ? '草稿调试' : '工具运行'} · {selected.outcome || selected.status}</p>
             <h3>参数（敏感值已脱敏）</h3>
             <pre>{selected.parameters || '无参数'}</pre>
-            <ResultRenderer result={result}/>
+            {targets.length ? targets.map(target => <section key={target.instanceId}>
+                <h3>{target.host}:{target.port} · {OUTCOME_LABELS[target.outcome] || target.outcome} · {target.duration} ms</h3>
+                {target.message && <p className="safety-note">{target.message}</p>}
+                {target.result && <ResultRenderer result={target.result}/>}
+            </section>) : <ResultRenderer result={result}/>}
         </div> : <>
             <div className="history-list">{items.map(item => <button type="button" key={item.id} className="history-row"
                                                                      onClick={() => setSelected(item)}>

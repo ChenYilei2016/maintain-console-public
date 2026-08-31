@@ -155,14 +155,14 @@ public class WebGlobalExceptionHandler implements EnvironmentAware {
     @ResponseBody
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public AjaxResult methodArgumentNotValidExceptionHandler(MethodArgumentNotValidException e) {
-        log.warn("MethodArgumentNotValidException 校验参数异常", e);
+        log.warn("请求参数校验失败, fields:{}", e.getBindingResult().getFieldErrors().stream().map(FieldError::getField).toList());
         return wrapperBindingResult(e.getBindingResult());
     }
 
     @ExceptionHandler(value = BindException.class)
     @ResponseBody
     public AjaxResult handleBindException(BindException e) {
-        log.warn("BindException 校验参数异常", e);
+        log.warn("请求绑定失败, fields:{}", e.getBindingResult().getFieldErrors().stream().map(FieldError::getField).toList());
         return wrapperBindingResult(e.getBindingResult());
     }
 

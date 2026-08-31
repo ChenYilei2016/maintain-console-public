@@ -1,6 +1,6 @@
 <div align="center">
   <h1>Maintain Console</h1>
-  <p><strong>面向分布式应用的远程脚本运维与自动化工作台</strong></p>
+  <p><strong>可授权分享的应用脚本工具台</strong></p>
 
 ![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
 ![Manager](https://img.shields.io/badge/Manager-JDK%2025%20%7C%20Spring%20Boot%204.0.7-brightgreen.svg)
@@ -10,7 +10,8 @@
 
 ## 项目定位
 
-Maintain Console 让运维人员和研发人员在一个 Web 工作台中管理 Groovy 脚本，选择目标环境、服务和实例后执行脚本，不需要单独部署前端，也不需要为每次运维操作重新发布业务应用。
+开发者将应用已开放的业务能力封装成 Groovy 工具，配置表单、用途与权限后分享链接。同事用自己的身份填写参数，在当前请求中获得结果，不需要理解代码。
+前端编译进 Manager resources，最终只部署一个 JAR；制作新脚本不需要重新发布业务应用。
 
 当前架构保持两个兼容边界：
 
@@ -20,13 +21,15 @@ Maintain Console 让运维人员和研发人员在一个 Web 工作台中管理 
 ## 已实现能力
 
 - React + CodeMirror 6：Groovy 高亮、括号补全、运行时 Bean/方法补全、参数补全和风险诊断。
-- 资源树、搜索、收藏、最近使用、读/编/执权限、脚本版本和恢复为新版本。
+- 工具首页：全部、我创建的、授权给我的、收藏、最近使用、服务与名称/用途搜索。
+- 开发工作台、独立运行页、私有工具授权分享；内容保存与授权管理分离。
 - 类型化参数 Schema：String、Number、Boolean、Enum、JSON、多行文本、日期时间、服务实例、校验与敏感值。
-- 兼容原有 `$${参数名}` 占位符；敏感值在任务、历史和日志摘要中脱敏。
-- 异步任务：排队、运行、取消、超时、随机/指定/全部实例、有界并发和部分成功。
-- SSE 状态推送与断线轮询；Manager 重启后收敛未完成任务。
+- 中文显示名、分组与高级参数、字段校验、默认值和按用户/工具/环境隔离的个人预设。
+- 当前 HTTP 请求执行：随机/指定实例，工具显式允许时可有界执行全部实例；区分成功、失败、部分成功、未开始与结果未知。
+- 保存/运行起始版本校验、版本内容对比、恢复为新版本、标签页草稿恢复与离开保护。
 - 结构化结果：text、log、json、table、metric、line/bar/pie/area/scatter chart、file、error。
-- 生产环境审批、请求内容摘要绑定、审批分离、二次确认、一次性消费和完整审计。
+- 当前结果内筛选、排序、分页、安全 CSV 导出；执行历史与审计。无任务中心、任务轮询、SSE 或审批依赖。
+- 生产/操作类风险确认、目标范围校验。确认和“查询类”标记都不是安全隔离或只读证明。
 - RSA-SHA256 v2：keyId、timestamp、nonce、防重放和多公钥轮换；旧签名为显式迁移开关。
 - 默认不暴露完整 Spring ApplicationContext，只能访问白名单 Bean。
 - 可选独立 Groovy Worker JVM：独立堆、输出限制、超时强制终止且不暴露 Spring Bean。
@@ -36,7 +39,7 @@ Maintain Console 让运维人员和研发人员在一个 Web 工作台中管理 
 
 ```mermaid
 flowchart LR
-    Browser[React 工作台] -->|REST / SSE| Manager[Manager<br/>JDK 25 + Boot 4]
+    Browser[工具首页 / 开发工作台 / 运行页] -->|REST 当前请求| Manager[Manager<br/>JDK 25 + Boot 4]
     Manager --> DB[(SQLite / MySQL<br/>Flyway)]
     Manager --> Discovery[Spring Cloud Discovery / Nacos]
     Manager -->|RSA-SHA256| Client[Client Starter<br/>Java 8 字节码]
@@ -45,8 +48,9 @@ flowchart LR
     Manager -->|可选受控输入| AI[Chat Completions 兼容服务]
 ```
 
-执行流程：前端提交脚本与实例策略 → Manager 校验权限、参数、环境和审批 → 持久化任务并有界分发 → Client 验签与防重放 →
-执行并聚合每个实例结果 → SSE 推送任务快照并持久化脱敏历史。
+执行流程：可信身份与权限 → 固定保存版本或调试草稿 → 校验类型化参数、环境、目标和风险确认 → Client 验签与防重放 →
+有界调用并汇总 → 保存记录、返回结果。
+调用不自动重试，不自动换实例；超时或断网只说明未得到确定结果，不能证明远端停止或操作未发生。
 
 ## 环境要求
 
@@ -92,25 +96,47 @@ pnpm build
 
 `pnpm build` 会将带 hash 的 JS/CSS 和 `index.html` 直接输出到 Manager 静态资源目录，因此最终仍只部署一个 JAR。
 
-### 在工作台中配置和使用参数
+### 开发者制作工具
 
-1. 选择环境、服务与脚本，点击右侧 **参数配置 → 添加参数**，设置名称、类型、用途说明、默认值及校验范围。
-2. 在左侧编辑器中使用 `def count = $${count}`。类型化参数不需要额外加引号，也可点击编辑器下方的参数引用插入。
-3. 在右侧 **运行填值** 填写本次值，点击 **预览替换** 核对最终代码，再执行脚本。运行值不会改写默认值。
-4. 点击 **保存脚本**，将脚本与参数配置一起保存。原始 Schema 保留在 **参数配置 → 高级 JSON** 的独立窗口中，与可视化配置双向同步。
+1. 在首页 **新建工具**，选择服务、环境和模板；默认私有。制作权限来自配置中的开发者名单、全局管理员名单，或可信身份中的
+   `DEVELOPER`，不是任意登录用户都能创建可执行代码。
+2. 右侧 **参数配置 → 添加参数**：设置技术名称、中文显示名、用途/示例、类型、默认值、分组及校验范围。
+3. 左侧使用 `def count = $${count}`。类型化参数是独立的数据表达式，不要额外加引号，也不要放入注释、字符串或标识符内部。
+4. **用途与风险** 填写说明、输入示例和操作类型；**运行填值** 填写本次值，点击 **调试当前内容**。草稿调试同时要求编辑与执行权限，不自动保存。
+5. **保存脚本** 更新共享工具的当前版本；起始版本冲突会拒绝覆盖。**版本历史** 可并排比较代码/参数定义，恢复会创建新版本，但不恢复旧授权、不撤销业务操作。
+6. **授权与分享** 添加员工 ID，选择仅运行/查看与运行/协作开发，配置允许环境与全部实例策略，再复制链接。
+
+### 同事通过分享使用
+
+1. 登录后在首页找到有权使用的工具，或打开 `/tools/{scriptId}`。链接本身不授予权限、不携带参数，也不会自动执行。
+2. 查看用途和风险，选择允许的环境/目标，填写参数。页面不返回或显示源码、完整授权和敏感默认值。
+3. 点击 **运行工具**。服务器只接受脚本 ID、已看版本、参数值与目标，代码/Schema/服务均由保存版本决定。版本变化需要刷新后重新核对。
+4. 在结果中查看表格、JSON、日志等；表格筛选/排序/分页/导出仅针对当前返回数据，截断结果不代表完整查询数据。
+5. **执行历史** 默认只看自己的记录；创建者/全局管理员可查看其管理工具的记录。回填参数不执行，敏感值不回填。
+
+预设保存在本浏览器，按用户、工具、环境隔离，最多 5 组；敏感参数不保存。开发草稿使用当前标签页 `sessionStorage`
+，不缓存运行值，剔除敏感默认值/示例；代码中硬编码的密钥不应作为草稿使用。
 
 工作台采用左侧编辑器、右侧参数、底部结果的布局。右侧切换 **运行填值 / 参数配置**，执行按钮始终位于侧栏底部；结果可收起、最大化及还原。
 资源栏可折叠，窄屏时参数通过 **参数与运行** 按钮打开抽屉；各区域独立滚动，切换布局不会重建编辑器。
 收藏、版本、权限、示例等操作直接展示在工具栏中；执行目标摘要固定在参数列表上方，点击 **目标设置** 修改并应用。
 参数区会根据实际溢出显示 **下方还有内容 / 上方还有内容 / 已到末尾**，点击下方提示可继续向下查看。
 
-工作区 UI 位于 `manager-web/src/workspace`：`WorkspaceToolbar` 管理脚本操作入口，`ScriptParametersPanel` 管理参数与表单校验，
-`ExecutionResultsPanel` 管理结果展示；`ScriptResourceExplorer` 管理资源筛选，`ExecutionTargetSettings` 管理运行目标，
-`ParameterScrollArea` 管理列表滚动提示。布局和模块样式限定在各自范围内。`App` 保留数据加载、保存、审批和执行编排，
-新增业务模块应使用独立目录与局部样式，不向全局样式堆叠页面布局。
+`App` 只负责身份加载和页面入口，页面、请求、状态与样式归属业务模块：
+
+| 模块                          | 职责                            |
+|-----------------------------|-------------------------------|
+| `manager-web/src/tools`     | 工具目录、独立运行页、授权分享与最小工具 API      |
+| `manager-web/src/workspace` | 编辑草稿、版本冲突/恢复、资源操作、目标配置与工作区布局  |
+| `manager-web/src/execution` | 当前请求状态、结果/未知态、历史查阅与参数回填       |
+| `manager-web/src/results`   | 当前表格筛选/排序/分页、CSV 转义及公式注入防护    |
+| 共享组件                        | CodeMirror、类型化参数表单、结构化结果、基础弹窗 |
+
+后端 `execution.ScriptExecutionService` 暴露 `runSaved / debugDraft` 两个清楚的入口，内部共用一次性执行核心；
+`ScriptAccessControl` 负责资源授权，`tools` 负责目录/最小运行表单/授权，历史独立于执行调度。没有引入通用工厂、发布平台或新前端依赖。
 
 新建脚本自带可直接执行的文本/数字参数与表格结果示例；旧脚本可点击 **入门示例** 预览，明确确认后才替换当前草稿，不会自动保存或执行。
-先编写了占位符的脚本，可在配置页点击 **从脚本识别** 补齐定义。未声明或未使用的参数会显示具体提示。
+先编写占位符的脚本可 **从脚本识别**；无 Schema 的旧脚本需在 **配置为类型化工具** 中查看候选配置并由作者确认，再人工调整引用位置。不会批量正则改写代码。
 
 编辑器输入时自动提供内置函数、常用片段和参数引用提示，也可点击 **代码补全** 或按 `Ctrl + Space` 手动触发；
 输入 `_log.` 查看日志方法。Bean/方法提示来自所选客户端的白名单元数据，页面会显示连接状态；这不是完整的 Groovy 语言服务器。
@@ -184,13 +210,22 @@ maintain.manager.security.key-id=default
 maintain.manager.security.private-key=${MAINTAIN_SIGN_PRIVATE_KEY}
 maintain.manager.security.identity-shared-secret=${MAINTAIN_IDENTITY_SHARED_SECRET}
 maintain.manager.security.allow-legacy-clients=false
-maintain.manager.security.allow-legacy-synchronous-execution=false
+maintain.manager.developer-employee-no-list[0]=developer-id
+maintain.manager.global-white-employee-no-list[0]=administrator-id
+
+maintain.manager.execution.target-core-pool-size=4
+maintain.manager.execution.target-max-pool-size=8
+maintain.manager.execution.target-queue-capacity=100
+maintain.manager.execution.max-targets=20
+maintain.manager.execution.max-timeout-seconds=900
 ```
 
 - 私钥是 Base64 编码的 PKCS#8 RSA 私钥。
 - 身份共享密钥至少 32 个字符，由可信网关为用户身份头做 HMAC-SHA256 签名。
 - 生产流量应启用 TLS；需要更强工作负载身份时再叠加 mTLS。
 - 轮换时先向 Client 增加新公钥，再切换 Manager keyId，最后移除旧公钥。
+- `local` 使用模拟身份与本进程执行器，只用于开发，不可作为生产鉴权方式。生产应明确覆盖管理员/开发者名单，不沿用开发默认 ID。
+- 外层网关需保留 `/tools/{id}` 和 `/workspace/{id}` 的登录后返回地址；Manager 直接访问/刷新返回同一嵌入页面，不提供独立账号系统。
 
 目标环境不再写死在 Controller：
 
@@ -203,7 +238,24 @@ maintain.manager.target-environments[0].production=true
 maintain.manager.target-environments[0].all-namespaces=false
 ```
 
-前端继续传旧字段 `env` 保持兼容，但服务端从正式环境目录解析 namespace 和生产属性。生产属性决定视觉警告、审批与二次确认。
+新入口使用 `target.environment`；旧兼容入口仍接收 `env`。服务器从环境目录解析 namespace 和生产属性，再校验工具的允许范围。
+全部实例需要工具显式允许，默认随机单实例。等待秒数默认 180，最大值受服务端配置约束；外层代理超时应匹配，否则页面可能提前报告结果未知。
+
+### 权限与旧接口兼容
+
+新工具的权限配置为 v2：空名单私有，编辑包含必要的源码读取，但不隐含执行或授权管理。创建者/全局管理员负责授权。
+未声明版本的旧 ACL 按 v1 解释：旧 public 节点且 `readerNo` 为空时保留公开读取；显式阅读名单、编辑/执行名单继续有效，不批量改写。
+通过授权面板保存旧 ACL 会明确确认升级为 v2；空名单不再公开。旧 ACL 未指定环境时只允许受限开发调试，分享运行前必须指定允许环境。
+
+| 接口                                     | 行为                                          |
+|----------------------------------------|---------------------------------------------|
+| `POST /manager/tools/run`              | 已保存工具运行：INVOKE，必传已看 `version`，必须有类型化 Schema |
+| `POST /manager/scripts/debug`          | 草稿调试：EDIT + INVOKE，必传起始 `version`，不自动保存     |
+| `POST /manager/script/eval`、`/eval/v2` | 兼容字段入口，统一进入草稿调试校验；不再有 local 绕过              |
+| `POST /devops/manager/script/eval`     | 统一进入保存工具运行，旧调用方需增加 `version`；不会代填最新版本       |
+| 旧任务/审批接口                               | 已移除，不创建任务、不订阅、不轮询、不恢复                       |
+
+权限撤销后新请求立即拒绝；已发出的调用、已显示的结果无法通过撤销权限收回。
 
 ## 参数协议
 
@@ -211,14 +263,18 @@ maintain.manager.target-environments[0].all-namespaces=false
 {
   "version": 1,
   "parameters": [
-    {"name": "orderId", "type": "STRING", "required": true, "pattern": "^[A-Za-z0-9_-]{1,64}$"},
+    {"name": "orderId", "label": "订单编号", "group": "查询条件", "type": "STRING", "required": true, "pattern": "^[A-Za-z0-9_-]{1,64}$"},
     {"name": "limit", "type": "NUMBER", "defaultValue": 100, "min": 1, "max": 1000},
     {"name": "token", "type": "STRING", "required": true, "sensitive": true}
   ]
 }
 ```
 
-旧脚本可继续只写 `$${name}`；存在 Schema 时，占位符集合必须完全一致。
+存在 Schema 时，占位符集合必须完全一致；字符串、JSON、数字、布尔按数据类型处理，未知参数被拒绝。
+`return '$${name}'` 这样的旧写法不能作为类型化工具分享，需改为 `return $${name}`。无 Schema 的原样替换仅用于有编辑+执行权限的开发兼容。
+
+业务数据权限使用服务器注入的 `_caller.employeeNo`，不能信任表单中的 employeeNo/tenantId 等字段作为授权来源。
+类型化参数不能代替 SQL 参数化或业务数据范围校验。敏感值会对结果和过程日志中的匹配值进行脱敏，这不是通用污点追踪，也不会追溯改写旧历史数据。
 
 ## 结构化结果
 
@@ -248,9 +304,12 @@ return result(resultFileContent(
 表格最多 1000 行，图表每组最多 1000 个点，完整协议最多 2 MiB。未知 block 会安全降级，不渲染任意 HTML，也不执行脚本返回的前端代码。普通字符串和普通
 JSON 仍分别兼容为 text/json。
 
+`_log.info/warn/error/debug/trace` 和 `println` 随当前结果返回，单次过程日志限制 16K 字符，不是实时流，也不等于业务 Bean
+的所有日志。
+
 ## AI 助手
 
-AI 默认关闭。配置 Chat Completions 兼容端点：
+AI 是可选能力，启用情况以当前配置为准。不使用时显式设置 `MAINTAIN_AI_ENABLED=false`；需要时配置 Chat Completions 兼容端点：
 
 ```properties
 maintain.manager.ai.enabled=true
@@ -259,7 +318,7 @@ maintain.manager.ai.api-key=${MAINTAIN_AI_API_KEY}
 maintain.manager.ai.model=your-model-name
 ```
 
-仅发送当前脚本、参数 Schema、服务名和用户说明；不发送运行参数、执行结果和历史日志。常见密钥字面量先脱敏。模型输出只修改未保存草稿，保存、执行、审批和审计仍走原流程；模型不可用不影响核心链路。
+仅发送当前脚本、参数 Schema、服务名和用户说明；不发送运行参数、执行结果和历史日志。常见密钥字面量先脱敏。模型输出只修改未保存草稿，保存、执行和审计仍走明确操作流程；模型不可用不影响核心链路。
 
 ## 安全边界
 
@@ -267,33 +326,36 @@ maintain.manager.ai.model=your-model-name
 |------------------|----------------------------------------------|
 | 用户身份             | 非本地环境要求可信身份头 HMAC-SHA256、timestamp、nonce、防重放 |
 | 脚本资源             | 读、编辑、执行独立权限                                  |
-| 生产执行             | 内容摘要绑定审批、申请审批分离、过期、一次性消费、二次确认                |
+| 生产执行             | 工具环境/目标授权、操作风险提示、二次确认；无审批流程                  |
 | Manager → Client | RSA-SHA256 v2、keyId、多公钥、timestamp、nonce、防重放  |
 | Groovy           | 白名单 Bean、风险拒绝；可选独立 Worker 强制终止               |
 | 展示               | React 转义、拒绝 HTML block、受限文件结果                |
-| 留痕               | 资源、执行、取消、审批和 AI 操作持久化审计                      |
+| 留痕               | 资源、授权、执行、版本与 AI 操作审计；历史按资源与执行者过滤             |
 
-`allow-dangerous-scripts`、`expose-application-context`、旧签名和旧同步执行接口都是迁移开关，不应作为生产默认配置。
+`allow-dangerous-scripts`、`expose-application-context` 和旧签名兼容开关不应作为生产默认配置。执行超时、按钮防重复点击不提供业务幂等保证。
 
 ## 数据迁移
 
 Flyway 同时维护 SQLite 与 MySQL：
 
-| 版本 | 内容                   |
-|----|----------------------|
-| V1 | 目录、脚本和执行历史基线         |
-| V2 | 参数 Schema、结构化结果、脚本版本 |
-| V3 | 异步执行任务               |
-| V4 | 生产审批与审计              |
-| V5 | 收藏与最近使用              |
+| 版本 | 内容                         |
+|----|----------------------------|
+| V1 | 目录、脚本和执行历史基线               |
+| V2 | 参数 Schema、结构化结果、脚本版本       |
+| V3 | 异步执行任务                     |
+| V4 | 生产审批与审计                    |
+| V5 | 收藏与最近使用                    |
+| V6 | 工具说明元数据、历史环境/版本/实例/结果状态及索引 |
 
-升级顺序：备份数据库 → 在副本验证 Flyway → Manager 临时开启旧 Client 兼容 → Client 升级协议 v2 与公钥 →
-观察签名/任务/审计 → 关闭旧签名和旧同步执行。回滚 Manager 时不要回退数据库版本；旧字段与 `$${name}` 协议仍保留。
+升级顺序：备份数据库 → 在副本验证 Flyway V6 → 升级 Manager/Client 并验证签名 → 作者核对旧工具类型化参数与环境授权 →
+升级仍使用旧执行接口的调用方。
+V1–V5 不修改；旧任务、审批、脚本和执行历史表均保留，不做数据清空或 ACL 批量改写。旧后台任务不会在新 Manager 中恢复，旧审批不再参与运行。
+生产 MySQL 上线前需在真实副本验证迁移；本次已执行的升级回归使用独立 SQLite，不代表 MySQL 已完成运行验证。
 
 ## 构建验证
 
 ```bash
-mvn -DfailIfNoTests=false test
+mvn -pl manager -am -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false test
 
 cd manager-web
 pnpm test
@@ -317,10 +379,15 @@ sample-projects/
 
 ## 当前边界
 
-- SSE 推送持久化任务快照和心跳，不是逐行远程日志流。
+- 没有后台续跑、轮询、恢复、自动重试或取消承诺；长任务应交给已有专用作业系统。
+- 工具目录单次扫描最多 100 个候选、返回最多 20 个可见项，可继续翻页；开发资源树上限 500 个节点。大规模目录应使用工具首页或后续服务端树分页。
+- 版本比较采用代码/参数定义并排查看，不建设分支、发布或自动合并。
+- 日志只随成功返回的结果收集；进程崩溃/网络中断时无法保证拿到完整远端日志。已发出操作的业务结果需要人工核对。
 - nonce 防重放缓存位于单进程；水平扩容需要共享短期存储。
 - Worker 不访问业务 Bean；隔离执行若需业务能力，应提供最小权限 RPC，不能重新暴露 ApplicationContext。
 - 内联文件适合 1 MiB 内结果；大文件应使用对象存储和短期签名 URL。
+
+本次设计取舍、退出代码清单与验收记录见 [工具台重构实施记录](docs/tool-console-refactor.md)。
 
 ## License
 

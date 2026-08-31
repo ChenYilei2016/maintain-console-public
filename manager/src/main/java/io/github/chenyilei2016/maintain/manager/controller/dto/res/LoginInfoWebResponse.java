@@ -18,6 +18,7 @@ public class LoginInfoWebResponse {
      * 员工工号
      */
     private String employeeNo;
+    private boolean canCreateTools;
 
 
     private String env;

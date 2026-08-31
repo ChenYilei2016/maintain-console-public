@@ -15,6 +15,10 @@ export default function CreateToolPage({login}: { login: LoginInfo }) {
     useEffect(() => {
         api.listServices().then(setServices).catch(failure => setError(failure.message));
     }, []);
+    if (!login.canCreateTools) return <main className="tool-home"><a href="/">← 工具首页</a>
+        <section className="tool-unavailable"><h1>当前账号没有工具制作权限</h1>
+            <p>你仍可以运行或编辑已获得相应授权的现有工具。</p></section>
+    </main>;
     return <main className="tool-home">
         <header className="tool-app-header"><a href="/">← 工具首页</a><strong>制作新工具</strong></header>
         <form className="new-tool-form form-stack" onSubmit={async event => {

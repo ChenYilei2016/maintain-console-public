@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class ScriptToolMetadata {
+    @jakarta.validation.constraints.NotNull
     private OperationType operationType = OperationType.UNSPECIFIED;
     @Size(max = 4000)
     private String riskNote;

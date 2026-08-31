@@ -6,7 +6,7 @@ interface DirectoryTreeProps {
     selectedId?: string;
     searching: boolean;
     onSelect: (node: DirectoryNode) => void;
-    onCreate: (parent: DirectoryNode) => void;
+    onCreate?: (parent: DirectoryNode) => void;
     onRename: (node: DirectoryNode) => void;
     onDelete: (node: DirectoryNode) => void;
 }
@@ -41,7 +41,7 @@ function TreeNodeRow({node, selectedId, searching, onSelect, onCreate, onRename,
                                                      title={node.permissionType === 'private' ? '私有脚本' : '公共脚本'}/>}
                 </button>
                 <span className="tree-actions">
-          {isFolder && (node.level ?? 0) <= 1 && (
+          {onCreate && isFolder && (node.level ?? 0) <= 1 && (
               <button type="button" aria-label={`在 ${node.name} 下新建`} onClick={() => onCreate(node)}>+</button>
           )}
                     <button type="button" aria-label={`重命名 ${node.name}`} onClick={() => onRename(node)}>✎</button>

@@ -20,15 +20,18 @@ public class LoginController {
     private final ManagerProperties managerProperties;
     private final EnvironmentCatalogService environmentCatalogService;
     private final Environment environment;
+    private final io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl access;
 
     public LoginController(
             ManagerProperties managerProperties,
             EnvironmentCatalogService environmentCatalogService,
-            Environment environment
+            Environment environment,
+            io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl access
     ) {
         this.managerProperties = managerProperties;
         this.environmentCatalogService = environmentCatalogService;
         this.environment = environment;
+        this.access = access;
     }
 
     @PostMapping("/manager/login/getInfo")
@@ -37,6 +40,7 @@ public class LoginController {
         LocalLoginUser user = LoginUserContext.getUser();
         r.setEmployeeName(user.getEmployeeName());
         r.setEmployeeNo(user.getEmployeeNo());
+        r.setCanCreateTools(access.canCreateTools(user));
         r.setAiEnabled(managerProperties.getAi().isEnabled());
 
         String[] activeProfiles = environment.getActiveProfiles();

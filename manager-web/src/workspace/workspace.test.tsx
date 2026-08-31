@@ -50,6 +50,7 @@ describe('工作区模块契约', () => {
 
     it('所有脚本操作直接展示，不再折叠到更多菜单', () => {
         const html = renderToStaticMarkup(<WorkspaceToolbar script={parameters.script} draftChanged={false}
+                                                            canCreateTools
                                                             saving={false} scriptIsFavorite={false} aiEnabled
                                                             parameterCount={6} parametersOpen={false}
                                                             onNameChange={noop} onParametersToggle={noop} onSave={noop}

@@ -32,6 +32,9 @@ public class SecurityHeadersFilter extends OncePerRequestFilter {
         response.setHeader("X-Content-Type-Options", "nosniff");
         response.setHeader("X-Frame-Options", "DENY");
         response.setHeader("Referrer-Policy", "no-referrer");
+        if (request.getRequestURI().startsWith("/manager/") || request.getRequestURI().startsWith("/devops/")) {
+            response.setHeader("Cache-Control", "no-store");
+        }
         response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'nonce-" + nonce + "'; "
                 + "connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
         filterChain.doFilter(request, response);

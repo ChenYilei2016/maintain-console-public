@@ -11,8 +11,8 @@ type ResourceDialog = {
 };
 
 /** 资源的请求、筛选及变更状态集中在资源 Module，不由编辑页面代管。 */
-export default function WorkspaceResources({serviceName, scriptId, environment, revision}: {
-    serviceName: string; scriptId: string; environment: string; revision: number;
+export default function WorkspaceResources({serviceName, scriptId, environment, revision, canCreateTools}: {
+    serviceName: string; scriptId: string; environment: string; revision: number; canCreateTools: boolean;
 }) {
     const [tree, setTree] = useState<DirectoryNode[]>([]);
     const [overview, setOverview] = useState<ScriptResourceOverview>({favorites: [], recent: []});
@@ -38,13 +38,13 @@ export default function WorkspaceResources({serviceName, scriptId, environment, 
     return <>
         <ScriptResourceExplorer serviceName={serviceName} tree={tree} overview={overview} loading={loading}
                                 selectedId={scriptId} onSelect={id => window.location.assign(`/workspace/${id}`)}
-                                onCreate={parent => setDialog({
+                                onCreate={canCreateTools ? parent => setDialog({
                                     kind: 'create',
                                     node: parent,
                                     name: '',
                                     nodeType: 'script',
                                     forceDelete: false
-                                })}
+                                }) : undefined}
                                 onRename={async node => {
                                     try {
                                         const detail = node.type === 'script' ? await api.getScriptDetail(node.id) : undefined;

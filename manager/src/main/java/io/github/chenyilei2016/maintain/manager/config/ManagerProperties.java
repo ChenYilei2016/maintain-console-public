@@ -22,6 +22,11 @@ public class ManagerProperties {
      */
     private Set<String> globalWhiteEmployeeNoList = new HashSet<>(Set.of("0", "1"));
 
+    /**
+     * 仅授予制作新工具能力，不等于全局管理员。
+     */
+    private Set<String> developerEmployeeNoList = new HashSet<>();
+
     private Execution execution = new Execution();
 
     private Security security = new Security();

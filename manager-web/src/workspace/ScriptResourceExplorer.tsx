@@ -10,7 +10,7 @@ interface Props {
     loading: boolean;
     selectedId?: string;
     onSelect: (scriptId: string) => void;
-    onCreate: (parent?: DirectoryNode) => void;
+    onCreate?: (parent?: DirectoryNode) => void;
     onRename: (node: DirectoryNode) => void;
     onDelete: (node: DirectoryNode) => void;
 }
@@ -61,7 +61,7 @@ export default function ScriptResourceExplorer({
     return <section className="explorer">
         <div className="explorer-heading">
             <span><small>脚本资源</small><strong>{serviceName || '未选择服务'}</strong></span>
-            <button type="button" disabled={!serviceName} onClick={() => onCreate()}>+ 新建</button>
+            {onCreate && <button type="button" disabled={!serviceName} onClick={() => onCreate()}>+ 新建</button>}
         </div>
         <input className="search-input" value={search} onChange={(event) => setSearch(event.target.value)}
                placeholder="搜索文件夹或脚本" aria-label="搜索目录树"/>

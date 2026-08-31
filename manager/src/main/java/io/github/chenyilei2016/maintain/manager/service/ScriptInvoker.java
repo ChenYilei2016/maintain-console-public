@@ -42,7 +42,11 @@ public class ScriptInvoker {
         ApiResult<InvokeScriptResultDTO> result;
         if (MyProfileUtils.isLocal(environment)) {
             InvokeScriptResultDTO localResult = new InvokeScriptResultDTO();
-            localResult.setScriptResult(Objects.toString(getLocalExecutor().execute(script)));
+            try {
+                localResult.setScriptResult(Objects.toString(getLocalExecutor().execute(script)));
+            } catch (RuntimeException failure) {
+                return ApiResult.error(failure.getMessage());
+            }
             result = ApiResult.success(localResult);
         } else {
             ClientCallerContext context = new ClientCallerContext(serviceName);
@@ -51,11 +55,12 @@ public class ScriptInvoker {
             context.setTimeoutMillis(timeoutMillis);
             result = clientCaller.$invokeScript(context, new InvokeScriptParamSignDTO(script));
         }
-        if (result == null || !result.isSuccess()) {
+        if (result == null) throw new IllegalStateException("客户端未返回执行结果");
+        if (!result.isSuccess()) {
             return result;
         }
         if (result.getData() == null) {
-            return ApiResult.error("客户端返回空执行结果");
+            throw new IllegalStateException("客户端返回空执行结果，无法确定远端状态");
         }
         result.getData().setScriptResult(resolvedScript.sanitizeResult(result.getData().getScriptResult()));
         return result;

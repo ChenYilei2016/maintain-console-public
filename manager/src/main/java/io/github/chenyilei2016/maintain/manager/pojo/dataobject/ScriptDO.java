@@ -1,9 +1,6 @@
 package io.github.chenyilei2016.maintain.manager.pojo.dataobject;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -32,7 +29,7 @@ public class ScriptDO {
     @TableField("content")
     private String content;
 
-    @TableField("parameter_schema")
+    @TableField(value = "parameter_schema", updateStrategy = FieldStrategy.ALWAYS)
     private String parameterSchema;
 
     /**
@@ -44,8 +41,9 @@ public class ScriptDO {
     /**
      * 脚本描述
      */
-    @TableField("description")
+    @TableField(value = "description", updateStrategy = FieldStrategy.ALWAYS)
     private String description;
+    @TableField(value = "tool_metadata", updateStrategy = FieldStrategy.ALWAYS)
     private String toolMetadata;
 
     /**

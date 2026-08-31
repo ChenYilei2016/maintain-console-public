@@ -26,7 +26,7 @@ public class LocalLoginUser {
         LocalLoginUser localLoginUser = new LocalLoginUser();
         localLoginUser.setEmployeeName("cyl");
         localLoginUser.setEmployeeNo("1");
-        localLoginUser.getRoles().add("ADMIN");
+        localLoginUser.getRoles().add(io.github.chenyilei2016.maintain.manager.constant.ConsoleRole.ADMIN.name());
         return localLoginUser;
     }
 }

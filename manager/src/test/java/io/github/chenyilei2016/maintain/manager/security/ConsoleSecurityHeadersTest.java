@@ -16,7 +16,7 @@ class ConsoleSecurityHeadersTest {
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new IndexController())
                 .addFilters(new SecurityHeadersFilter()).build();
         String previousNonce = null;
-        for (String path : new String[]{"/", "/index.html", "/static/console/index.html", "/static/console/"}) {
+        for (String path : new String[]{"/", "/index.html", "/static/console/index.html", "/static/console/", "/workspace", "/workspace/123", "/tools/123"}) {
             var response = mvc.perform(get(path)).andReturn().getResponse();
             assertEquals(200, response.getStatus());
             String policy = response.getHeader("Content-Security-Policy");

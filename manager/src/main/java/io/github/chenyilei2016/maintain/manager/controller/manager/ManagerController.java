@@ -64,7 +64,9 @@ public class ManagerController {
         ExecutionReport report = debugLegacy(request);
         if (report.outcome() != ExecutionReport.Outcome.SUCCESS)
             return AjaxResult.error(report.targets().getFirst().message());
-        return AjaxResult.success(report.targets().getFirst().result());
+        ExecutionReport.TargetResult target = report.targets().getFirst();
+        return AjaxResult.success(target.result() == null
+                ? ScriptExecutionResult.fromRaw(target.message()) : target.result());
     }
 
     @PostMapping("/manager/script/preview")
@@ -89,7 +91,8 @@ public class ManagerController {
     private AjaxResult<String> legacyResult(ExecutionReport report) {
         if (report.outcome() != ExecutionReport.Outcome.SUCCESS)
             return AjaxResult.error(report.targets().getFirst().message());
-        return AjaxResult.success(report.targets().getFirst().result().primaryText(), report.warning());
+        ExecutionReport.TargetResult target = report.targets().getFirst();
+        return AjaxResult.success(target.result() == null ? target.message() : target.result().primaryText(), report.warning());
     }
 
     private Map<String, Object> parameters(String json) {

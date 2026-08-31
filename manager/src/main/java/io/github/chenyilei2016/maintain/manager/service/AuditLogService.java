@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
+import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.pojo.dataobject.AuditLogDO;
@@ -39,7 +40,7 @@ public class AuditLogService {
             String action,
             String targetId
     ) {
-        if (!user.getRoles().contains("ADMIN") && !user.getRoles().contains("AUDITOR")
+        if (!ConsoleRole.ADMIN.grantedTo(user) && !ConsoleRole.AUDITOR.grantedTo(user)
                 && !managerProperties.getGlobalWhiteEmployeeNoList().contains(user.getEmployeeNo())) {
             throw CommonException.createReminderException("当前用户没有审计日志查看权限");
         }

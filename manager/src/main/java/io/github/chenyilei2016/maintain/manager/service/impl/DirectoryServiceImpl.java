@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.constant.TreeNodeTypeEnum;
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.controller.assembler.DirectoryNodeAssembler;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
@@ -17,6 +18,7 @@ import io.github.chenyilei2016.maintain.manager.pojo.repository.ScriptRepository
 import io.github.chenyilei2016.maintain.manager.pojo.repository.ScriptRevisionRepository;
 import io.github.chenyilei2016.maintain.manager.pojo.vo.ScriptVO;
 import io.github.chenyilei2016.maintain.manager.service.DirectoryService;
+import io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl;
 import io.github.chenyilei2016.maintain.manager.service.ScriptContentService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,9 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,19 +45,22 @@ public class DirectoryServiceImpl implements DirectoryService {
     private final ScriptRevisionRepository scriptRevisionRepository;
     private final ScriptContentService scriptContentService;
     private final ManagerProperties managerProperties;
+    private final ScriptAccessControl access;
 
     public DirectoryServiceImpl(
             DirectoryNodeRepository directoryNodeRepository,
             ScriptRepository scriptRepository,
             ScriptRevisionRepository scriptRevisionRepository,
             ScriptContentService scriptContentService,
-            ManagerProperties managerProperties
+            ManagerProperties managerProperties,
+            ScriptAccessControl access
     ) {
         this.directoryNodeRepository = directoryNodeRepository;
         this.scriptRepository = scriptRepository;
         this.scriptRevisionRepository = scriptRevisionRepository;
         this.scriptContentService = scriptContentService;
         this.managerProperties = managerProperties;
+        this.access = access;
     }
 
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -66,7 +69,7 @@ public class DirectoryServiceImpl implements DirectoryService {
     public List<DirectoryNodeDTO> getDirectoryTree(String serviceName, String creator) {
         log.info("获取目录树结构，服务名：{}，创建人：{}", serviceName, creator);
 
-        // 查询用户可见的所有节点（所有文件夹 + 公共脚本 + 用户的私有脚本）
+        // 有界读取目录后，按同一份资源授权筛选，避免逐节点查库。
         List<DirectoryNode> allNodes = directoryNodeRepository.findServiceTree(serviceName)
                 .stream().filter(node -> DirectoryNode.TYPE_FOLDER.equals(node.getType())
                         || ScriptPermissionEntity.checkPermission(node, new Script().setPermissions(node.getScriptPermissions()),
@@ -98,7 +101,12 @@ public class DirectoryServiceImpl implements DirectoryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String treeNodeSave(TreeNodeSaveWebRequest request) {
+    public String treeNodeSave(TreeNodeSaveWebRequest request, LocalLoginUser actor) {
+        request.setOperatorId(actor.getEmployeeNo());
+        request.setOperatorName(actor.getEmployeeName());
+        if (request.getNodeId() == null && !access.canCreateTools(actor)) {
+            throw CommonException.createReminderException("当前账号没有工具制作权限，请联系管理员配置开发者身份");
+        }
         log.info("保存树节点, type:{}, id:{}, name:{}, service:{}",
                 request.getNodeType(), request.getNodeId(), request.getNodeName(), request.getServiceName());
 
@@ -135,7 +143,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         }
 
         boolean administrator = managerProperties.getGlobalWhiteEmployeeNoList().contains(request.getOperatorId());
-        if (!administrator && !java.util.Objects.equals(node.getCreatorId(), request.getOperatorId())) {
+        if (!administrator && !Objects.equals(node.getCreatorId(), request.getOperatorId())) {
             throw CommonException.createReminderException("只有创建者或管理员可以删除资源");
         }
         if (DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
@@ -148,19 +156,20 @@ public class DirectoryServiceImpl implements DirectoryService {
         if (!request.getForceDelete() && !children.getOrDefault(node.getId(), List.of()).isEmpty()) {
             throw CommonException.createReminderException("目录不为空，请明确确认包含子资源");
         }
-        List<String> ids = new ArrayList<>();
-        java.util.ArrayDeque<DirectoryNode> pending = new java.util.ArrayDeque<>();
+        Set<String> ids = new LinkedHashSet<>();
+        ArrayDeque<DirectoryNode> pending = new ArrayDeque<>();
         pending.add(node);
         while (!pending.isEmpty()) {
             DirectoryNode current = pending.removeFirst();
-            if (!administrator && !java.util.Objects.equals(current.getCreatorId(), request.getOperatorId())) {
+            if (!administrator && !Objects.equals(current.getCreatorId(), request.getOperatorId())) {
                 throw CommonException.createReminderException("目录包含其他人管理的资源，请先联系对应创建者");
             }
-            ids.add(current.getId());
+            if (!ids.add(current.getId()))
+                throw CommonException.createReminderException("目录存在循环引用，无法安全删除");
             pending.addAll(children.getOrDefault(current.getId(), List.of()));
         }
         // 一次批量逻辑删除；源码、版本和执行历史保留，避免循环查库和破坏历史外键。
-        return directoryNodeRepository.deleteAll(ids);
+        return directoryNodeRepository.deleteAll(List.copyOf(ids));
     }
 
     /**
@@ -237,7 +246,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         return nodeId;
     }
 
-    public String doScriptCreate(TreeNodeSaveWebRequest request) {
+    private String doScriptCreate(TreeNodeSaveWebRequest request) {
         // 检查名称重复
         checkNameDuplicate(request.getNodeName(), request.getParentId(), request.getServiceName());
 
@@ -264,7 +273,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         String content = StringUtils.hasText(request.getContent()) ? request.getContent() : "// 新建脚本\nreturn \"Hello World\";";
         script.setContent(content);
         script.setParameterSchema(normalizeParameterSchema(request.getParameterSchema(), content));
-        ScriptPermissionEntity permissions = ScriptPermissionEntity.parse(ScriptPermissionEntity.init(request.getOperatorId()));
+        ScriptPermissionEntity permissions = ScriptPermissionEntity.privateTool();
         permissions.setAllowedEnvironments(request.getAllowedEnvironments() == null ? List.of() : request.getAllowedEnvironments());
         script.setPermissions(JSON.toJSONString(permissions));
         script.setDescription(StringUtils.hasText(request.getDescription()) ? request.getDescription() : request.getNodeName());
@@ -281,7 +290,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         return savedScriptNode.getId();
     }
 
-    public void doScriptUpdate(TreeNodeSaveWebRequest request, String nodeId) {
+    private void doScriptUpdate(TreeNodeSaveWebRequest request, String nodeId) {
         ScriptVO current = scriptContentService.findById(nodeId);
         DirectoryNode node = current.getDirectoryNode();
         Script script = current.getScript();
@@ -289,7 +298,7 @@ public class DirectoryServiceImpl implements DirectoryService {
                 || !hasPermission(current, request.getOperatorId(), ScriptPermissionEnum.EDIT)) {
             throw CommonException.createReminderException("没有编辑权限或脚本所属服务不匹配");
         }
-        if (!java.util.Objects.equals(request.getExpectedVersion(), script.getVersion())) {
+        if (!Objects.equals(request.getExpectedVersion(), script.getVersion())) {
             throw CommonException.createReminderException("保存冲突：工具已更新或请求缺少起始版本，请刷新并比较差异");
         }
         if (request.getPermissions() != null && !request.getPermissions().equals(script.getPermissions())) {

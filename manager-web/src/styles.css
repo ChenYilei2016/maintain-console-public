@@ -1355,138 +1355,6 @@ tbody tr:focus {
     gap: 8px;
 }
 
-.cancel-button {
-    border-color: #f0b5b5;
-    color: #bd3030;
-}
-
-.task-result,
-.target-results {
-    display: grid;
-    gap: 12px;
-}
-
-.task-summary {
-    display: grid;
-    grid-template-columns: minmax(160px, 2fr) repeat(3, minmax(90px, 1fr));
-    gap: 8px;
-}
-
-.task-summary > span {
-    display: grid;
-    gap: 4px;
-    border: 1px solid #e7eaf0;
-    border-radius: 8px;
-    background: #fafbfc;
-    padding: 9px 10px;
-    color: #3e4a5e;
-    font-size: 11px;
-}
-
-.task-summary small,
-.target-result header small {
-    color: #8a95a7;
-    font-size: 9px;
-}
-
-.task-summary code {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.task-error {
-    margin: 0;
-    border-left: 3px solid #dc4545;
-    background: #fff2f2;
-    padding: 9px 11px;
-    color: #a82b2b;
-    font-size: 11px;
-}
-
-.production-approval-form,
-.approval-list {
-    display: grid;
-    gap: 14px;
-}
-
-.production-approval-form label {
-    display: grid;
-    gap: 7px;
-    color: #5d697e;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.production-approval-form code {
-    user-select: all;
-}
-
-.approval-card {
-    display: grid;
-    gap: 10px;
-    border: 1px solid #e3e7ee;
-    border-radius: 10px;
-    padding: 13px;
-}
-
-.approval-card > header,
-.approval-card > footer,
-.approval-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.approval-card > header > span {
-    display: grid;
-    gap: 3px;
-}
-
-.approval-card small,
-.approval-meta {
-    color: #818c9d;
-    font-size: 10px;
-}
-
-.approval-card p {
-    margin: 0;
-    color: #4c586b;
-    font-size: 12px;
-}
-
-.approval-card pre {
-    max-height: 180px;
-}
-
-.approval-card > footer {
-    justify-content: flex-end;
-}
-
-.target-result {
-    overflow: hidden;
-    border: 1px solid #e5e9f0;
-    border-radius: 9px;
-}
-
-.target-result > header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #edf0f5;
-    background: #fafbfc;
-    padding: 9px 11px;
-}
-
-.target-result > header > span {
-    display: grid;
-    gap: 2px;
-}
-
-.target-result .result-blocks,
-.target-result > .console-output {
-    margin: 10px;
-}
 
 .chart-wrap,
 .pie-chart {
@@ -2146,8 +2014,7 @@ tbody tr:focus {
     .parameter-grid,
     .detail-grid,
     .revision-compare,
-    .execution-target-config,
-    .task-summary {
+    .execution-target-config {
         grid-template-columns: 1fr;
     }
 

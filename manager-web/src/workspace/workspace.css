@@ -512,7 +512,7 @@
         background: rgb(15 23 42 / 28%);
     }
 
-    .workbench .app-name {
+    .workbench .workspace-service {
         display: none;
     }
 }

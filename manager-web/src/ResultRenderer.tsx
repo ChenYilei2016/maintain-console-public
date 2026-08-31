@@ -54,16 +54,21 @@ function ChartBlock({block}: { block: ResultBlock }) {
     if (chartType === 'pie' && pieItems.length) {
         const total = pieItems.reduce((sum, item) => sum + item.value, 0);
         let offset = 0;
-        const stops = pieItems.map((item, index) => {
+        const slices = pieItems.map((item, index) => {
             const start = offset;
-            offset += total ? item.value / total * 100 : 0;
-            return `${CHART_COLORS[index % CHART_COLORS.length]} ${start}% ${offset}%`;
+            const portion = total ? item.value / total * 100 : 0;
+            offset += portion;
+            return <circle key={index} cx="32" cy="32" r="16" fill="none" strokeWidth="32"
+                           stroke={CHART_COLORS[index % CHART_COLORS.length]} pathLength="100"
+                           strokeDasharray={`${portion} ${100 - portion}`} strokeDashoffset={-start}
+                           transform="rotate(-90 32 32)"/>;
         });
         return <div className="pie-chart">
-            <div className="pie-visual"
-                 style={{background: `conic-gradient(${stops.join(',')})`}}/>
+            <svg className="pie-visual" viewBox="0 0 64 64" role="img" aria-label="饼图">{slices}</svg>
             <div className="chart-legend">{pieItems.map((item, index) => <span key={`${item.name}-${index}`}>
-                <i style={{background: CHART_COLORS[index % CHART_COLORS.length]}}/>{item.name}
+                <svg className="legend-color" aria-hidden="true" viewBox="0 0 8 8"><rect width="8" height="8"
+                                                                                         fill={CHART_COLORS[index % CHART_COLORS.length]}/></svg>
+                {item.name}
                 <b>{item.value}</b></span>)}</div>
         </div>;
     }
@@ -114,7 +119,9 @@ function ChartBlock({block}: { block: ResultBlock }) {
                                                             textAnchor="middle">{label}</text>)}
         </svg>
         <div className="chart-legend">{numericSeries.map((item, index) => <span key={`${item.name}-${index}`}>
-        <i style={{background: CHART_COLORS[index % CHART_COLORS.length]}}/>{item.name}</span>)}</div>
+        <svg className="legend-color" aria-hidden="true" viewBox="0 0 8 8"><rect width="8" height="8"
+                                                                                 fill={CHART_COLORS[index % CHART_COLORS.length]}/></svg>
+            {item.name}</span>)}</div>
     </div>;
 }
 

@@ -1,7 +1,9 @@
 package io.github.chenyilei2016.maintain.manager.service;
 
 import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
+import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptPermissionEntity;
 import io.github.chenyilei2016.maintain.manager.pojo.vo.ScriptVO;
@@ -16,6 +18,12 @@ import org.springframework.stereotype.Component;
 public class ScriptAccessControl {
     private final ScriptContentService scripts;
     private final ManagerProperties properties;
+
+    public boolean canCreateTools(LocalLoginUser actor) {
+        return properties.getGlobalWhiteEmployeeNoList().contains(actor.getEmployeeNo())
+                || properties.getDeveloperEmployeeNoList().contains(actor.getEmployeeNo())
+                || ConsoleRole.DEVELOPER.grantedTo(actor);
+    }
 
     public ScriptVO require(String scriptId, String actorId, ScriptPermissionEnum permission) {
         ScriptVO script = scripts.findById(scriptId);

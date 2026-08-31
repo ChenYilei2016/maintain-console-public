@@ -39,7 +39,7 @@ public interface DirectoryService {
      * @param request 保存请求（包含操作人信息）
      * @return 节点ID
      */
-    String treeNodeSave(TreeNodeSaveWebRequest request);
+    String treeNodeSave(TreeNodeSaveWebRequest request, io.github.chenyilei2016.maintain.manager.context.LocalLoginUser actor);
 
     /**
      * 统一删除树节点（文件夹/脚本的删除）

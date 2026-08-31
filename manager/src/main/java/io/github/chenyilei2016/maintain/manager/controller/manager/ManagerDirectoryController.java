@@ -101,7 +101,7 @@ public class ManagerDirectoryController {
                 request.getNodeType(), request.getNodeId(), request.getNodeName(), request.getServiceName(),
                 loginUser.getEmployeeName(), loginUser.getEmployeeNo());
 
-        String result = directoryService.treeNodeSave(request);
+        String result = directoryService.treeNodeSave(request, loginUser);
         auditLogService.record(loginUser, request.getNodeId() == null ? "RESOURCE_CREATE" : "RESOURCE_UPDATE",
                 request.getNodeType().toUpperCase(), result, "SUCCESS", java.util.Map.of(
                         "name", request.getNodeName(), "service", request.getServiceName()));

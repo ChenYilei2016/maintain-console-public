@@ -142,7 +142,8 @@ public class ScriptExecutionService {
                         if (response == null)
                             return targetResult(instance, UNKNOWN, elapsed(callStart), null, "客户端未返回结果，操作可能已经发生");
                         if (!response.isSuccess()) return targetResult(instance, FAILED, elapsed(callStart), null,
-                                "客户端报告执行失败；不代表已撤销业务操作，请联系工具作者核查");
+                                draft ? ScriptExecutionResult.fromRaw(resolved.sanitizeResult(response.getMsg())).primaryText()
+                                        : "客户端报告执行失败；不代表已撤销业务操作，请联系工具作者核查");
                         return targetResult(instance, SUCCESS, elapsed(callStart),
                                 ScriptExecutionResult.fromRaw(response.getData().getScriptResult()), null);
                     } catch (RuntimeException exception) {
@@ -191,7 +192,7 @@ public class ScriptExecutionService {
         ScriptExecutionResult payload = results.size() == 1 && results.getFirst().result() != null
                 ? results.getFirst().result() : ScriptExecutionResult.fromRaw(JSON.toJSONString(results));
         try {
-            histories.save(new ScriptExecutionHistoryEntity().setId(id).setScriptId(tool.getScript().getId())
+            boolean saved = histories.save(new ScriptExecutionHistoryEntity().setId(id).setScriptId(tool.getScript().getId())
                     .setScriptName(tool.getDirectoryNode().getName()).setServiceName(tool.getServiceName())
                     .setExecutorId(actor.getEmployeeNo()).setExecutorName(actor.getEmployeeName())
                     .setScriptContent("").setFinalScriptContent("").setParameters(resolved.persistedParameters())
@@ -201,6 +202,7 @@ public class ScriptExecutionService {
                     .setResult(payload.primaryText()).setResultPayload(payload.toJson()).setProtocolVersion(1)
                     .setStartTime(startedAt).setEndTime(LocalDateTime.now()).setDuration(Math.toIntExact(elapsed(started)))
                     .setCreateTime(LocalDateTime.now()));
+            if (!saved) throw new IllegalStateException("执行记录未写入");
         } catch (RuntimeException historyFailure) {
             log.error("执行记录写入失败, executionId:{}, exception:{}", id, historyFailure.getClass().getSimpleName());
             warning = "业务调用已结束，但执行记录未能保存；请保留本次结果，不要因此重复执行";

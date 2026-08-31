@@ -40,7 +40,7 @@ public class RuntimeMetadataService {
         }
         List<ServiceInstance> instances = registryClientDiscovery.listServiceInstances(serviceName, targetEnvironment);
         ServiceInstance instance = instanceId == null || instanceId.isBlank()
-                ? registryClientDiscovery.findServiceInstance(serviceName, targetEnvironment)
+                ? instances.stream().findFirst().orElse(null)
                 : instances.stream()
                 .filter(candidate -> ServiceInstanceDTO.idOf(candidate).equals(instanceId))
                 .findFirst().orElse(null);

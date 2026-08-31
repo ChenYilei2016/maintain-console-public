@@ -35,7 +35,11 @@ public class HttpClientCaller implements ClientCaller {
 
     private <T> T extractResult(Call<T> call) {
         try {
-            return call.execute().body();
+            var response = call.execute();
+            if (!response.isSuccessful()) {
+                throw new IOException("Client HTTP " + response.code() + "，未获得确定的执行结果");
+            }
+            return response.body();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

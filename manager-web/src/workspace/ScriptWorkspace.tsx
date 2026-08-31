@@ -72,7 +72,6 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
     useEffect(() => {
         let active = true;
         setInstances([]);
-        setRuntimeMetadata(undefined);
         setTarget(current => ({...current, instanceId: ''}));
         if (tool && environment) api.listInstances(id, environment).then(result => {
             if (active) setInstances(result);
@@ -86,6 +85,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
     }, [id, tool?.version, environment]);
     useEffect(() => {
         let active = true;
+        setRuntimeMetadata(undefined);
         if (tool && environment) api.getRuntimeMetadata(id, tool.serviceName, environment, target.selectionMode === 'SPECIFIC' ? target.instanceId : undefined)
             .then(result => {
                 if (active) setRuntimeMetadata(result);
@@ -95,7 +95,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
         return () => {
             active = false;
         };
-    }, [id, tool?.serviceName, environment, target.selectionMode, target.instanceId]);
+    }, [id, tool?.serviceName, tool?.version, environment, target.selectionMode, target.instanceId]);
     const schemaState = useMemo(() => {
         try {
             return {schema: parseParameterSchema(draft?.schema), error: ''};
@@ -106,7 +106,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
     const definitions = useMemo(() => parameterDefinitions(draft?.content || '', schemaState.schema), [draft?.content, schemaState.schema]);
     useEffect(() => {
         setValues(current => ({...defaultParameterValues(definitions), ...safeParameterValues(definitions, current)}));
-    }, [definitions]);
+    }, [definitions, environment]);
     const issues = parameterSchemaIssues(draft?.content || '', schemaState.schema);
     const save = async () => {
         if (await editor.save()) {
@@ -126,7 +126,8 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                     onClick={() => setResourcesOpen(!resourcesOpen)}>☰
             </button>
             <a className="app-name" href="/">工具首页</a><span className="workspace-service">{tool.serviceName}</span>
-            <div className="context-selectors"><label><span>调试环境</span><select value={environment}
+            <div className="context-selectors"><label><span>调试环境</span><select aria-label="调试环境"
+                                                                                   value={environment}
                                                                                    disabled={execution.running}
                                                                                    onChange={event => setEnvironment(event.target.value)}>
                 {!environments.length && <option value="">未授权环境</option>}{environments.map(item => <option
@@ -137,12 +138,14 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
         {resourcesOpen &&
             <button className="resource-backdrop" aria-label="关闭资源栏" onClick={() => setResourcesOpen(false)}/>}
         <aside className="workbench-sidebar" id="resource-sidebar"><WorkspaceResources serviceName={tool.serviceName}
+                                                                                       canCreateTools={login.canCreateTools}
                                                                                        scriptId={id}
                                                                                        environment={environment}
                                                                                        revision={resourceRevision}/>
         </aside>
         <section className="workbench-main">
             <WorkspaceToolbar script={currentScript} draftChanged={editor.dirty} saving={editor.saving}
+                              canCreateTools={login.canCreateTools}
                               scriptIsFavorite={favorite}
                               aiEnabled={login.aiEnabled && tool.canEdit} parameterCount={definitions.length}
                               parametersOpen={parametersOpen}
@@ -189,7 +192,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
             </div>}
             {editor.recovery && <div className="workspace-notice">此标签页有可恢复草稿（基于 v{editor.recovery.version}）；运行值与敏感默认值未缓存。
                 <button onClick={() => {
-                    if (window.confirm('恢复将替换当前编辑内容。请检查与服务器版本的差异；敏感默认值需要重新填写。')) editor.recover();
+                    if (window.confirm(`缓存基于 v${editor.recovery!.version}，服务器当前为 v${tool.version}。恢复会替换当前编辑内容，但不会保存；请在版本对比中核对差异，敏感默认值需要重新填写。`)) editor.recover();
                 }}>恢复草稿</button>
                 <button onClick={editor.discardRecovery}>放弃缓存</button>
             </div>}

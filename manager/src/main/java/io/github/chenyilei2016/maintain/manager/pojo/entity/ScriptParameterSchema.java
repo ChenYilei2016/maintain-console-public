@@ -150,15 +150,31 @@ public class ScriptParameterSchema {
     ) {
         public String sanitizeResult(String result) {
             if (result == null || sensitiveValues == null || sensitiveValues.isEmpty()) return result;
-            String sanitized = result;
             List<String> ordered = sensitiveValues.stream().filter(value -> !value.isEmpty())
                     .sorted((left, right) -> Integer.compare(right.length(), left.length())).toList();
-            for (String value : ordered) {
-                sanitized = sanitized.replace(value, MASKED_VALUE);
-                String encoded = JSON.toJSONString(value);
-                sanitized = sanitized.replace(encoded.substring(1, encoded.length() - 1), MASKED_VALUE);
+            ScriptExecutionResult payload = ScriptExecutionResult.fromRaw(result);
+            payload.getBlocks().forEach(block -> {
+                block.setData(redact(block.getData(), ordered));
+                if (block.getTitle() != null) block.setTitle((String) redact(block.getTitle(), ordered));
+            });
+            return payload.toJson();
+        }
+
+        /**
+         * 先解析传输编码，再脱敏业务值，不破坏 protocolVersion 等协议字段。
+         */
+        private static Object redact(Object value, List<String> secrets) {
+            if (value instanceof Map<?, ?> object) {
+                Map<String, Object> sanitized = new LinkedHashMap<>();
+                object.forEach((key, item) -> sanitized.put((String) redact(String.valueOf(key), secrets), redact(item, secrets)));
+                return sanitized;
             }
-            return sanitized;
+            if (value instanceof List<?> list) return list.stream().map(item -> redact(item, secrets)).toList();
+            if (value instanceof String text) {
+                for (String secret : secrets) text = text.replace(secret, MASKED_VALUE);
+                return text;
+            }
+            return value != null && secrets.contains(String.valueOf(value)) ? MASKED_VALUE : value;
         }
     }
 

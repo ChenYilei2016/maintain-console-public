@@ -48,7 +48,9 @@ export function useScriptDraft(scriptId: string, userId: string) {
             setDraft(draftOf(detail));
             try {
                 const cached = JSON.parse(sessionStorage.getItem(key) || 'null') as Recovery | null;
-                if (cached?.draft && typeof cached.draft.content === 'string' && typeof cached.draft.schema === 'string') setRecovery(cached);
+                if (detail.canEdit && cached?.draft && typeof cached.version === 'number'
+                    && typeof cached.draft.content === 'string' && typeof cached.draft.schema === 'string'
+                    && typeof cached.draft.name === 'string' && cached.draft.metadata) setRecovery(cached);
             } catch { /* 损坏的缓存不影响读取服务器版本。 */
             }
         }).catch(failure => {
@@ -68,7 +70,14 @@ export function useScriptDraft(scriptId: string, userId: string) {
         return () => window.removeEventListener('beforeunload', protect);
     }, [dirty]);
     useEffect(() => {
-        if (!dirty || !tool || !draft || recovery) return;
+        if (!tool || !draft || recovery) return;
+        if (!dirty) {
+            try {
+                sessionStorage.removeItem(key);
+            } catch { /* 撤销回保存版本时不保留过期草稿。 */
+            }
+            return;
+        }
         const timer = window.setTimeout(() => {
             try {
                 const schema = parseParameterSchema(draft.schema);
@@ -97,7 +106,10 @@ export function useScriptDraft(scriptId: string, userId: string) {
                 parameterSchema: draft.schema, description: draft.description, toolMetadata: draft.metadata
             });
             await reload();
-            sessionStorage.removeItem(key);
+            try {
+                sessionStorage.removeItem(key);
+            } catch { /* 存储不可用不改变已保存的事实。 */
+            }
             setRecovery(undefined);
             return true;
         } catch (failure) {
@@ -120,7 +132,10 @@ export function useScriptDraft(scriptId: string, userId: string) {
             setRecovery(undefined);
         },
         discardRecovery: () => {
-            sessionStorage.removeItem(key);
+            try {
+                sessionStorage.removeItem(key);
+            } catch { /* 仅清理当前标签页缓存。 */
+            }
             setRecovery(undefined);
         },
         acceptLatestVersion: () => {

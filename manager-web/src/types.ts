@@ -24,6 +24,7 @@ export interface EnvironmentOption {
 }
 
 export interface LoginInfo {
+    canCreateTools: boolean;
     employeeName: string;
     employeeNo: string;
     env: string;

@@ -6,7 +6,6 @@ import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptFavoriteWeb
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptResourceOverviewDTO;
 import io.github.chenyilei2016.maintain.manager.service.AuditLogService;
-import io.github.chenyilei2016.maintain.manager.service.DirectoryService;
 import io.github.chenyilei2016.maintain.manager.service.ScriptUserPreferenceService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -21,16 +20,13 @@ import java.util.Map;
 public class ScriptUserPreferenceController {
     private final ScriptUserPreferenceService preferenceService;
     private final AuditLogService auditLogService;
-    private final DirectoryService directoryService;
 
     public ScriptUserPreferenceController(
             ScriptUserPreferenceService preferenceService,
-            AuditLogService auditLogService,
-            DirectoryService directoryService
+            AuditLogService auditLogService
     ) {
         this.preferenceService = preferenceService;
         this.auditLogService = auditLogService;
-        this.directoryService = directoryService;
     }
 
     @GetMapping("/overview")

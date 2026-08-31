@@ -21,6 +21,7 @@ interface Props {
 
 export default function ParameterSchemaEditor({value, script, disabled, onChange, onEditScript, onLoadExample}: Props) {
     const [showJson, setShowJson] = useState(false);
+    const [showMigration, setShowMigration] = useState(false);
     const [editing, setEditing] = useState<{ index: number; parameter: ParameterDefinition }>();
     const [formError, setFormError] = useState('');
     let schema;
@@ -91,6 +92,8 @@ export default function ParameterSchemaEditor({value, script, disabled, onChange
         {!parseError && <>
             <div className="schema-actions panel-actions">
                 {!schema && <small>旧脚本兼容模式 · 编辑配置后启用类型化替换，请移除引用外层引号</small>}
+                {!schema && <button type="button" disabled={disabled}
+                                    onClick={() => setShowMigration(true)}>配置为类型化工具</button>}
                 <button type="button" disabled={disabled || !missing.length} onClick={() => updateDefinitions([
                     ...definitions, ...missing.map((name): ParameterDefinition => ({name, type: 'STRING'})),
                 ])}>从脚本识别{missing.length ? `（${missing.length}）` : ''}</button>
@@ -138,6 +141,26 @@ export default function ParameterSchemaEditor({value, script, disabled, onChange
             <button type="button" onClick={onEditScript}>前往编写脚本</button>
         </div>}
         <p className="schema-footnote">类型化引用不需要额外加引号；字符串会安全转义。配置修改保存在当前草稿中，点击“保存脚本”后持久化。</p>
+
+        {showMigration && <Modal title="确认旧参数协议转换" wide onClose={() => setShowMigration(false)} footer={<>
+            <button onClick={() => setShowMigration(false)}>取消</button>
+            <button className="primary" onClick={() => {
+                updateDefinitions(definitions);
+                setShowMigration(false);
+            }}>确认生成定义，继续逐项配置
+            </button>
+        </>}><p>旧协议把输入作为 Groovy 原文；新协议把输入作为数据。下面先按文本生成定义，数字、布尔、JSON
+            等类型请逐项确认。</p>
+            <p className="safety-note">代码不会自动改写。请手动移除占位符外层引号，并比较预览结果后再保存、授权。</p>
+            <div className="source-comparison">
+                <section><h3>当前代码（保持不变）</h3>
+                    <pre>{script}</pre>
+                </section>
+                <section><h3>将新增的参数定义</h3>
+                    <pre>{JSON.stringify({version: 1, parameters: definitions}, null, 2)}</pre>
+                </section>
+            </div>
+        </Modal>}
 
         {editing && <Modal title={editing.index < 0 ? '添加参数' : `编辑参数 ${definitions[editing.index].name}`} wide
                            onClose={() => setEditing(undefined)} footer={<>

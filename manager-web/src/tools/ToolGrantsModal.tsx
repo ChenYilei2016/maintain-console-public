@@ -23,7 +23,12 @@ export default function ToolGrantsModal({scriptId, environments, onSaved, onClos
     const [saving, setSaving] = useState(false);
     const [copied, setCopied] = useState(false);
     useEffect(() => {
-        loadGrants(scriptId).then(setGrants).catch(failure => setError(failure.message));
+        loadGrants(scriptId).then(value => setGrants({
+            ...value, permissions: {
+                ...value.permissions,
+                allowedEnvironments: value.permissions.allowedEnvironments || []
+            }
+        })).catch(failure => setError(failure.message));
     }, [scriptId]);
     const patch = (value: Partial<ToolPermissions>) => setGrants(current => current ? {
         ...current,
@@ -50,7 +55,7 @@ export default function ToolGrantsModal({scriptId, environments, onSaved, onClos
     </>}>
         {error && <p className="safety-note" role="alert">{error}</p>}
         {grants && <div className="grants-panel">
-            <p>创建者 <strong>{grants.ownerId}</strong> 与管理员负责授权。编辑权限不包含授权管理；分享链接需要接收者登录，不会自动运行。
+            <p>创建者 <strong>{grants.ownerId}</strong> 与管理员负责授权。新配置中编辑包含查看源码，但不包含运行或授权管理；链接需要登录，不会自动运行。
             </p>
             {grants.permissions.version === 1 &&
                 <p className="safety-note">这是旧版权限配置。公开工具的空阅读名单可能代表公开阅读，保存前请明确核对授权名单；不会批量改写其他工具。</p>}

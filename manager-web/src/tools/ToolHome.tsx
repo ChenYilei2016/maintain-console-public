@@ -46,7 +46,7 @@ export default function ToolHome({login}: { login: LoginInfo }) {
         <section className="catalog-intro">
             <div><p className="eyebrow">应用脚本工具台</p><h1>找到工具，填表就能用</h1>
                 <p>查数、诊断与经授权的手动操作。每次运行使用你自己的身份，并留下执行记录。</p></div>
-            <a className="button primary" href="/workspace">＋ 制作新工具</a></section>
+            {login.canCreateTools && <a className="button primary" href="/workspace">＋ 制作新工具</a>}</section>
         <section className="catalog-panel">
             <nav className="catalog-tabs" aria-label="工具分类">{Object.entries(CATALOG_VIEWS).map(([key, label]) =>
                 <button type="button" key={key} aria-pressed={view === key} onClick={() => {

@@ -30,6 +30,7 @@ public class TreeNodeSaveWebRequest {
      * 节点名称
      */
     @NotBlank(message = "节点名称不能为空")
+    @jakarta.validation.constraints.Size(max = 200)
     private String nodeName;
 
     /**
@@ -46,11 +47,13 @@ public class TreeNodeSaveWebRequest {
     /**
      * 脚本内容（仅当nodeType为script时有效）
      */
+    @jakarta.validation.constraints.Size(max = 1_048_576)
     private String content;
 
     /**
      * 类型化参数 Schema JSON；为空时保持旧版参数替换协议。
      */
+    @jakarta.validation.constraints.Size(max = 262_144)
     private String parameterSchema;
 
     /**
@@ -61,6 +64,7 @@ public class TreeNodeSaveWebRequest {
     /**
      * 脚本描述（仅当nodeType为script时有效）
      */
+    @jakarta.validation.constraints.Size(max = 4000)
     private String description;
 
     /**
