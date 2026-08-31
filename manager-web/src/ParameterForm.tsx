@@ -11,7 +11,7 @@ interface ParameterFormProps {
 
 export default function ParameterForm({definitions, values, onChange, instances = []}: ParameterFormProps) {
     if (!definitions.length) return <p
-        className="inline-empty">当前脚本无需填写参数，可直接运行。需要动态输入？打开上方“配置参数”。</p>;
+        className="inline-empty">当前脚本无需填写参数，可直接运行。</p>;
 
     return <div className="parameter-grid">
         {definitions.map((definition) => {

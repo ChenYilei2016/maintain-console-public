@@ -1,0 +1,51 @@
+.parameter-scroll-area {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+}
+
+.parameter-scroll-viewport {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #acbad0 #f3f6fa;
+    padding: 14px 16px;
+}
+
+.parameter-scroll-viewport:focus-visible {
+    outline: 2px solid #a8b7f7;
+    outline-offset: -2px;
+}
+
+.parameter-scroll-status {
+    display: flex;
+    min-height: 30px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid #e5ebf4;
+    background: #f5f8ff;
+    padding: 5px 12px;
+    color: #798aa5;
+    font-size: 11px;
+}
+
+.parameter-scroll-status button {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    padding: 2px 0;
+    color: #405fd5;
+    font-size: 11px;
+}
+
+.parameter-scroll-status small {
+    flex-shrink: 0;
+    color: #8b98ac;
+    font-size: 11px;
+}

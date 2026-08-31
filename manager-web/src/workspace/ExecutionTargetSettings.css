@@ -1,0 +1,49 @@
+.execution-target-summary {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 10px 14px;
+    border: 1px solid #e0e7f2;
+    border-radius: 7px;
+    background: #f7f9fd;
+    padding: 9px 10px;
+}
+
+.execution-target-summary > div {
+    display: grid;
+    min-width: 0;
+    gap: 5px;
+}
+
+.execution-target-summary strong {
+    color: #43526d;
+    font-size: 12px;
+}
+
+.execution-target-summary strong span {
+    display: inline-block;
+    margin-left: 7px;
+    color: #7887a0;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.execution-target-summary small {
+    overflow: hidden;
+    color: #8a97ab;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.execution-target-summary button {
+    flex-shrink: 0;
+    border: 1px solid #d8e0ee;
+    border-radius: 5px;
+    background: #fff;
+    padding: 6px 8px;
+    color: #4a64bb;
+    font-size: 11px;
+}

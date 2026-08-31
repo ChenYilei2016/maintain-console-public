@@ -1,12 +1,13 @@
 import {lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {api} from './api';
 import AiAssistantModal from './AiAssistantModal';
-import DirectoryTree from './DirectoryTree';
-import ExecutionTaskPanel from './ExecutionTaskPanel';
+import ScriptResourceExplorer from './workspace/ScriptResourceExplorer';
+import ExecutionResultsPanel, {type ResultView} from './workspace/ExecutionResultsPanel';
+import WorkspaceToolbar from './workspace/WorkspaceToolbar';
+import './workspace/workspace.css';
 import Modal from './Modal';
-import ParameterForm from './ParameterForm';
-import ParameterSchemaEditor from './ParameterSchemaEditor';
-import ResultRenderer from './ResultRenderer';
+import ScriptParametersPanel, {type ParameterTab} from './workspace/ScriptParametersPanel';
+import type {ExecutionTarget} from './workspace/ExecutionTargetSettings';
 import {
     executionParameters,
     parameterDefinitions,
@@ -14,7 +15,6 @@ import {
     parameterValueText,
     parseParameterSchema
 } from './parameters';
-import {filterTree} from './tree';
 import type {
     DirectoryNode,
     ExecutionApproval,
@@ -29,14 +29,13 @@ import type {
     ScriptResourceOverview,
     ScriptRevision,
     ServiceInstance,
-    TargetSelectionMode,
     TreeNodeSaveRequest,
 } from './types';
 
 const CodeEditor = lazy(() => import('./CodeEditor'));
 
 const DEFAULT_SCRIPT = [
-    '// 在“配置参数”中声明参数，在下方运行表单中填值；引用无需额外加引号',
+    '// 在右侧“参数配置”声明参数，在“运行填值”中输入；引用无需额外加引号',
     'def name = $${name}',
     'def count = $${count}',
     '',
@@ -111,22 +110,26 @@ export default function App() {
     const [environment, setEnvironment] = useState('');
     const [service, setService] = useState('');
     const [tree, setTree] = useState<DirectoryNode[]>([]);
-    const [search, setSearch] = useState('');
-    const [resourceView, setResourceView] = useState<'all' | 'favorites' | 'recent'>('all');
     const [resourceOverview, setResourceOverview] = useState<ScriptResourceOverview>({favorites: [], recent: []});
     const [script, setScript] = useState<ScriptDetail>();
     const [permissions, setPermissions] = useState('{}');
     const [parameterSchema, setParameterSchema] = useState('');
-    const [editorTab, setEditorTab] = useState<'code' | 'parameters' | 'permissions'>('code');
+    const [parameterTab, setParameterTab] = useState<ParameterTab>('values');
+    const [resourcesOpen, setResourcesOpen] = useState(() => window.innerWidth >= 1280);
+    const [parametersOpen, setParametersOpen] = useState(false);
+    const [resultView, setResultView] = useState<ResultView>('collapsed');
+    const [showPermissions, setShowPermissions] = useState(false);
     const [savedDraft, setSavedDraft] = useState('');
     const [showExample, setShowExample] = useState(false);
-    const executionForm = useRef<HTMLFormElement>(null);
     const [parameterValues, setParameterValues] = useState<Record<string, string>>({});
     const [instances, setInstances] = useState<ServiceInstance[]>([]);
     const [runtimeMetadata, setRuntimeMetadata] = useState<RuntimeMetadata>();
-    const [selectionMode, setSelectionMode] = useState<TargetSelectionMode>('RANDOM');
-    const [instanceId, setInstanceId] = useState('');
-    const [timeoutSeconds, setTimeoutSeconds] = useState(180);
+    const [executionTarget, setExecutionTarget] = useState<ExecutionTarget>({
+        selectionMode: 'RANDOM',
+        instanceId: '',
+        timeoutSeconds: 180
+    });
+    const {selectionMode, instanceId, timeoutSeconds} = executionTarget;
     const [executionTask, setExecutionTask] = useState<ExecutionTask>();
     const [executionApproval, setExecutionApproval] = useState<ExecutionApproval>();
     const [productionConfirmation, setProductionConfirmation] = useState('');
@@ -152,6 +155,13 @@ export default function App() {
     const [showAiAssistant, setShowAiAssistant] = useState(false);
     const noticeTimer = useRef<number | undefined>(undefined);
     const stopWatchingTask = useRef<() => void>(() => undefined);
+
+    useEffect(() => {
+        const wideScreen = window.matchMedia('(min-width: 1280px)');
+        const updateResources = (event: MediaQueryListEvent) => setResourcesOpen(event.matches);
+        wideScreen.addEventListener('change', updateResources);
+        return () => wideScreen.removeEventListener('change', updateResources);
+    }, []);
 
     const showNotice = useCallback((message: string, type: NoticeType = 'error') => {
         window.clearTimeout(noticeTimer.current);
@@ -215,6 +225,7 @@ export default function App() {
         setParameterValues({});
         setResult('等待执行脚本…');
         setExecutionTask(undefined);
+        setResultView('collapsed');
         setExecutionApproval(undefined);
         setProductionConfirmation('');
         setExecuting(false);
@@ -225,7 +236,7 @@ export default function App() {
 
     useEffect(() => {
         let active = true;
-        setInstanceId('');
+        setExecutionTarget((current) => ({...current, instanceId: ''}));
         if (!service || !environment) {
             setInstances([]);
             return () => {
@@ -277,6 +288,7 @@ export default function App() {
             setParameterValues({});
             setResult('等待执行脚本…');
             setExecutionTask(undefined);
+            setResultView('collapsed');
             setExecutionApproval(undefined);
             setProductionConfirmation('');
             setShowAiAssistant(false);
@@ -298,16 +310,15 @@ export default function App() {
         () => parameterDefinitions(script?.content || '', parsedParameterSchema),
         [parsedParameterSchema, script?.content],
     );
-    const visibleTree = useMemo(() => filterTree(tree, search), [search, tree]);
-    const visibleShortcuts = useMemo(() => {
-        const items = resourceView === 'favorites' ? resourceOverview.favorites : resourceOverview.recent;
-        const keyword = search.trim().toLowerCase();
-        return keyword ? items.filter((item) => item.name.toLowerCase().includes(keyword)) : items;
-    }, [resourceOverview, resourceView, search]);
     const selectedEnvironment = login?.availableEnvironments.find((item) => item.value === environment);
     const isProduction = Boolean(selectedEnvironment?.production);
     const draftChanged = Boolean(script && savedDraft !== JSON.stringify([script.name, script.content, permissions, parameterSchema]));
     const schemaIssues = parameterSchemaIssues(script?.content || '', parsedParameterSchema);
+
+    useEffect(() => {
+        setParameterTab(definitions.length ? 'values' : 'schema');
+        setParametersOpen(false);
+    }, [script?.id]);
 
     useEffect(() => {
         setParameterValues((current) => Object.fromEntries(
@@ -404,7 +415,6 @@ export default function App() {
     };
 
     const buildExecutionRequest = (): ExecutionTaskRequest | undefined => {
-        if (!executionForm.current?.reportValidity()) return undefined;
         const current = validateScript();
         if (!current) return undefined;
         if (!current.canInvoke) {
@@ -458,6 +468,8 @@ export default function App() {
             }
         }
         setExecuting(true);
+        setResultView('open');
+        setParametersOpen(false);
         setExecutionTask(undefined);
         setResult('正在创建执行任务…');
         try {
@@ -546,7 +558,6 @@ export default function App() {
     };
 
     const openPreview = async () => {
-        if (!executionForm.current?.reportValidity()) return;
         const current = validateScript();
         if (!current) return;
         const normalizedParameterSchema = validatedParameterSchema();
@@ -685,18 +696,14 @@ export default function App() {
     };
 
     return (
-        <main className="app-shell">
-            <aside className="sidebar">
-                <header className="brand">
-                    <span className="brand-mark">MC</span>
-                    <span><strong>Maintain Console</strong><small>远程脚本运维平台</small></span>
-                    <button className="icon-button" type="button" aria-label="使用帮助"
-                            onClick={() => setShowHelp(true)}>?
-                    </button>
-                </header>
-
+        <main className={`workbench ${resourcesOpen ? '' : 'resources-collapsed'}`}>
+            <header className="workbench-header">
+                <button className="icon-button" type="button" aria-label={resourcesOpen ? '收起资源栏' : '展开资源栏'}
+                        aria-expanded={resourcesOpen} aria-controls="resource-sidebar"
+                        onClick={() => setResourcesOpen(!resourcesOpen)}>☰
+                </button>
+                <strong className="app-name">Maintain Console</strong>
                 <section className="context-selectors">
-                    {isProduction && <div className="production-warning">生产环境 · 谨慎操作</div>}
                     <label>
                         <span>执行环境</span>
                         <select value={environment} onChange={(event) => setEnvironment(event.target.value)}>
@@ -713,53 +720,29 @@ export default function App() {
                         </select>
                     </label>
                 </section>
-
-                <section className="explorer">
-                    <div className="explorer-heading">
-                        <span><small>脚本资源</small><strong>{service || '未选择服务'}</strong></span>
-                        <button type="button" disabled={!service}
-                                onClick={() => setCreateDialog({type: 'folder', name: ''})}>+ 新建
-                        </button>
-                    </div>
-                    <input className="search-input" value={search} onChange={(event) => setSearch(event.target.value)}
-                           placeholder="搜索文件夹或脚本" aria-label="搜索目录树"/>
-                    <div className="resource-tabs">
-                        <button className={resourceView === 'all' ? 'active' : ''} type="button"
-                                onClick={() => setResourceView('all')}>全部
-                        </button>
-                        <button className={resourceView === 'favorites' ? 'active' : ''} type="button"
-                                onClick={() => setResourceView('favorites')}>收藏 {resourceOverview.favorites.length}</button>
-                        <button className={resourceView === 'recent' ? 'active' : ''} type="button"
-                                onClick={() => setResourceView('recent')}>最近 {resourceOverview.recent.length}</button>
-                    </div>
-                    <div className="tree-scroll">
-                        {loadingTree ? <p className="empty-hint">目录加载中…</p> : !service ? (
-                            <p className="empty-hint">选择应用服务后查看脚本</p>
-                        ) : resourceView !== 'all' ? (visibleShortcuts.length ? <div className="shortcut-list">
-                                    {visibleShortcuts.map((item) => <button type="button" key={item.id}
-                                                                            className={script?.id === item.id ? 'active' : ''}
-                                                                            onClick={() => void loadScript(item.id)}>
-                                        <span>{item.favorite ? '★' : '◷'}</span><strong>{item.name}</strong>
-                                        <small>{item.lastOpenTime ? formatTime(item.lastOpenTime) : '已收藏'}</small>
-                                    </button>)}</div> :
-                                <p className="empty-hint">暂无{resourceView === 'favorites' ? '收藏' : '最近使用'}脚本</p>
-                        ) : visibleTree.length ? (
-                            <DirectoryTree
-                                nodes={visibleTree}
-                                selectedId={script?.id}
-                                searching={Boolean(search.trim())}
-                                onSelect={(node) => void loadScript(node.id)}
-                                onCreate={(parent) => setCreateDialog({
-                                    parent,
-                                    type: (parent.level ?? 0) >= 1 ? 'script' : 'folder',
-                                    name: ''
-                                })}
-                                onRename={(node) => setRenameDialog({node, name: node.name})}
-                                onDelete={(node) => setDeleteDialog({node, forceDelete: false})}
-                            />
-                        ) : <p className="empty-hint">{search ? '没有匹配结果' : '暂无脚本资源'}</p>}
-                    </div>
-                </section>
+                {isProduction && <span className="production-badge">生产环境</span>}
+                <div className="app-header-actions">
+                    {login?.canApprove &&
+                        <button type="button" onClick={() => void openPendingApprovals()}>待审批</button>}
+                    <button className="icon-button" type="button" aria-label="使用帮助"
+                            onClick={() => setShowHelp(true)}>?
+                    </button>
+                </div>
+            </header>
+            {resourcesOpen && <button className="resource-backdrop" type="button" aria-label="关闭资源栏"
+                                      onClick={() => setResourcesOpen(false)}/>}
+            <aside className="workbench-sidebar" id="resource-sidebar" aria-label="脚本资源">
+                <ScriptResourceExplorer key={service} serviceName={service} tree={tree} overview={resourceOverview}
+                                        loading={loadingTree} selectedId={script?.id}
+                                        onSelect={(scriptId) => {
+                                            void loadScript(scriptId);
+                                            if (window.innerWidth < 1280) setResourcesOpen(false);
+                                        }}
+                                        onCreate={(parent) => setCreateDialog({
+                                            parent, type: (parent?.level ?? 0) >= 1 ? 'script' : 'folder', name: '',
+                                        })}
+                                        onRename={(node) => setRenameDialog({node, name: node.name})}
+                                        onDelete={(node) => setDeleteDialog({node, forceDelete: false})}/>
 
                 <footer className="user-card">
                     <span className="avatar">{login?.employeeName?.slice(0, 1) || 'U'}</span>
@@ -768,157 +751,87 @@ export default function App() {
                 </footer>
             </aside>
 
-            <section className="workspace">
-                <header className="workspace-header">
-                    <div>
-                        <p className="eyebrow">SCRIPT WORKSPACE</p>
-                        <h1>{script?.name || '脚本工作台'}</h1>
-                    </div>
-                    <div className="header-context">
-                        <span>{selectedEnvironment?.name || '未选环境'}</span><b>/</b><span>{service || '未选服务'}</span>
-                        {login?.canApprove &&
-                            <button type="button" onClick={() => void openPendingApprovals()}>待审批</button>}
-                    </div>
-                </header>
+            <section className="workbench-main">
+                <WorkspaceToolbar script={script} draftChanged={draftChanged} saving={saving}
+                                  scriptIsFavorite={scriptIsFavorite} aiEnabled={Boolean(login?.aiEnabled)}
+                                  parameterCount={definitions.length} parametersOpen={parametersOpen}
+                                  onNameChange={(name) => updateScript({name})}
+                                  onParametersToggle={() => {
+                                      setResultView((current) => current === 'maximized' ? 'open' : current);
+                                      setParametersOpen(!parametersOpen);
+                                  }}
+                                  onSave={saveScript} onHistory={openHistory} onRevisions={openRevisions}
+                                  onFavorite={toggleFavorite}
+                                  onPermissions={() => setShowPermissions(true)} onExample={() => setShowExample(true)}
+                                  onAiAssistant={() => setShowAiAssistant(true)}/>
 
-                {!script ? (
-                    <div className="welcome-card">
-                        <div className="welcome-symbol">⌁</div>
-                        <h2>选择一个脚本开始工作</h2>
-                        <p>在左侧选择环境、应用服务和脚本。你也可以新建目录，将常用运维操作沉淀为可审计的 Groovy 脚本。</p>
-                    </div>
-                ) : (
-                    <div className="editor-layout">
-                        <section className="panel script-panel">
-                            <div className="panel-heading">
-                                <div className="script-title">
-                                    <input value={script.name} disabled={!script.canEdit}
-                                           onChange={(event) => updateScript({name: event.target.value})}
-                                           aria-label="脚本名称"/>
-                                    <span className="permission-badges">
-                    <b className={script.canRead ? 'allowed' : ''}>读</b>
-                    <b className={script.canEdit ? 'allowed' : ''}>编</b>
-                    <b className={script.canInvoke ? 'allowed' : ''}>执</b>
-                  </span>
-                                </div>
-                                <div className="panel-actions">
-                                    <span className={`draft-state ${draftChanged ? 'unsaved' : ''}`}>
-                                        {draftChanged ? '● 未保存草稿' : '✓ 已保存'}</span>
-                                    <button type="button"
-                                            className={scriptIsFavorite ? 'favorite-button active' : 'favorite-button'}
-                                            onClick={() => void toggleFavorite()}>{scriptIsFavorite ? '★ 已收藏' : '☆ 收藏'}</button>
-                                    {login?.aiEnabled && <button type="button" className="ai-button"
-                                                                 onClick={() => setShowAiAssistant(true)}>AI
-                                        助手</button>}
-                                    <button type="button" onClick={() => void openPreview()}>预览替换</button>
-                                    <button type="button" onClick={() => void openRevisions()}>版本历史</button>
-                                    <button type="button" onClick={() => void openHistory()}>执行历史</button>
-                                    <button className="primary" type="button" disabled={!script.canEdit || saving}
-                                            onClick={() => void saveScript()}>{saving ? '保存中…' : '保存脚本'}</button>
-                                </div>
-                            </div>
+                {!script ? <div className="welcome-card">
+                    <div className="welcome-symbol">⌁</div>
+                    <h2>选择一个脚本开始工作</h2>
+                    <p>选择环境与应用服务，再从资源栏打开脚本。左侧编写代码，右侧填参数，下方查看执行结果。</p>
+                    <button type="button" className="welcome-resource-button"
+                            onClick={() => setResourcesOpen(true)}>打开脚本资源
+                    </button>
+                </div> : <div className={'workbench-panels result-' + resultView}>
+                    <section className="panel workbench-editor" aria-label="脚本编辑区">
+                        {(!definitions.length || schemaIssues.length > 0 || schemaValidation.error) &&
+                            <div
+                                className={'script-guidance ' + (schemaIssues.length || schemaValidation.error ? 'has-issues' : '')}>
+                                <span>{schemaValidation.error || schemaIssues.join(' ') || '将每次会变化的值定义为参数，运行时只需填表。'}</span>
+                                <button type="button" onClick={() => {
+                                    setParameterTab('schema');
+                                    setParametersOpen(true);
+                                }}>配置参数 →
+                                </button>
+                            </div>}
+                        <Suspense fallback={<div className="code-editor-loading">编辑器加载中…</div>}>
+                            <CodeEditor key={script.id} value={script.content} disabled={!script.canEdit}
+                                        parameterNames={definitions.map((definition) => definition.name)}
+                                        runtimeMetadata={runtimeMetadata}
+                                        onChange={(content) => updateScript({content})}/>
+                        </Suspense>
+                    </section>
 
-                            <div className="workspace-tabs" role="tablist" aria-label="脚本配置">
-                                {([['code', '编写脚本'], ['parameters', `配置参数 · ${definitions.length}`], ['permissions', '权限设置']] as const)
-                                    .map(([tab, title]) => <button key={tab} id={`tab-${tab}`} role="tab" type="button"
-                                                                   aria-selected={editorTab === tab}
-                                                                   aria-controls={`panel-${tab}`}
-                                                                   onClick={() => setEditorTab(tab)}>{title}</button>)}
-                            </div>
-                            <div id="panel-code" role="tabpanel" aria-labelledby="tab-code"
-                                 hidden={editorTab !== 'code'}>
-                                <div className="script-guidance">
-                                    <span>{definitions.length ? `已配置 ${definitions.length} 个运行参数，在下方填值后即可预览和执行。`
-                                        : '脚本需要订单号、查询数量等输入？先配置参数，使用者即可通过表单运行。'}</span>
-                                    <button type="button" onClick={() => setEditorTab('parameters')}>配置参数 →</button>
-                                    <button type="button" onClick={() => setShowExample(true)}>入门示例</button>
-                                </div>
-                                {schemaIssues.length > 0 &&
-                                    <div className="parameter-issues" role="status">{schemaIssues.join(' ')}</div>}
-                                {schemaValidation.error && <div className="field-error" role="alert">
-                                    参数配置无效：{schemaValidation.error}，请在“配置参数 → 高级 JSON”中修正。</div>}
-                                <Suspense fallback={<div className="code-editor-loading">编辑器加载中…</div>}>
-                                    <CodeEditor key={script.id} value={script.content} disabled={!script.canEdit}
-                                                parameterNames={definitions.map((definition) => definition.name)}
-                                                runtimeMetadata={runtimeMetadata}
-                                                onChange={(content) => updateScript({content})}/>
-                                </Suspense>
-                            </div>
-                            <div id="panel-parameters" role="tabpanel" aria-labelledby="tab-parameters"
-                                 hidden={editorTab !== 'parameters'}>
-                                <ParameterSchemaEditor key={script.id} value={parameterSchema} script={script.content}
-                                                       disabled={!script.canEdit} onChange={setParameterSchema}
-                                                       onEditScript={() => setEditorTab('code')}
-                                                       onLoadExample={() => setShowExample(true)}/>
-                            </div>
-                            <div id="panel-permissions" role="tabpanel" aria-labelledby="tab-permissions"
-                                 hidden={editorTab !== 'permissions'}>
-                                <p className="schema-footnote">权限设置控制脚本的读取、编辑与执行。留空对象沿用默认权限规则。</p>
-                                <label className="field-label" htmlFor="permissions">权限配置 <span>JSON · readerNo / editorNo / invokerNo</span></label>
-                                <textarea id="permissions" className="permission-editor" rows={5} value={permissions}
-                                          disabled={!script.canEdit}
-                                          onChange={(event) => setPermissions(event.target.value)} spellCheck={false}/>
-                                <p className="schema-footnote">更新于 {formatTime(script.updateTime)}</p>
-                            </div>
-                        </section>
-
-                        <form className="panel parameter-panel" id="execution-form" ref={executionForm}
-                              onSubmit={(event) => {
-                                  event.preventDefault();
-                                  void executeScript();
-                              }}>
-                            <div className="section-title"><span><i
-                                className="blue-dot"/>运行配置与参数</span><small>{definitions.length} 个参数 ·
-                                本次运行值不会改写默认值</small>
-                            </div>
-                            <div className="execution-target-config">
-                                <label><span>执行模式</span><select value={selectionMode}
-                                                                    onChange={(event) => setSelectionMode(event.target.value as TargetSelectionMode)}>
-                                    <option value="RANDOM">随机单实例</option>
-                                    <option value="SPECIFIC">指定单实例</option>
-                                    <option value="ALL">全部实例</option>
-                                </select></label>
-                                {selectionMode === 'SPECIFIC' && <label><span>目标实例</span><select value={instanceId}
-                                                                                                     onChange={(event) => setInstanceId(event.target.value)}>
-                                    <option value="">请选择实例</option>
-                                    {instances.map((instance) => <option key={instance.id} value={instance.id}>
-                                        {instance.id} · {instance.host}:{instance.port}
-                                    </option>)}
-                                </select></label>}
-                                <label><span>超时时间（秒）</span><input type="number" min={1} max={900}
-                                                                       value={timeoutSeconds}
-                                                                       onChange={(event) => setTimeoutSeconds(Number(event.target.value))}/></label>
-                                <small>已发现 {instances.length} 个可用实例</small>
-                            </div>
-                            <ParameterForm definitions={definitions} values={parameterValues} instances={instances}
-                                           onChange={(name, value) => setParameterValues((current) => ({
+                    <ScriptParametersPanel script={script} parameterSchema={parameterSchema}
+                                           definitions={definitions} parameterValues={parameterValues}
+                                           onSchemaChange={setParameterSchema}
+                                           onValueChange={(name, value) => setParameterValues((current) => ({
                                                ...current,
                                                [name]: value
-                                           }))}/>
-                        </form>
+                                           }))}
+                                           target={executionTarget} onTargetChange={setExecutionTarget}
+                                           instances={instances}
+                                           environment={selectedEnvironment}
+                                           draftChanged={draftChanged} executing={executing}
+                                           hasApproval={Boolean(executionApproval)}
+                                           parameterTab={parameterTab} onTabChange={setParameterTab}
+                                           parametersOpen={parametersOpen} onClose={() => setParametersOpen(false)}
+                                           onPreview={openPreview} onExecute={executeScript}
+                                           onExample={() => setShowExample(true)}
+                                           onEditScript={() => {
+                                               setParametersOpen(false);
+                                               document.querySelector<HTMLElement>('[aria-label="Groovy 脚本内容"]')?.focus({preventScroll: true});
+                                           }}/>
 
-                        <section className="panel result-panel">
-                            <div className="section-title">
-                                <span><i
-                                    className={(typeof result === 'string' && result.startsWith('执行失败')) ||
-                                    (typeof result !== 'string' && result.blocks.some((block) => block.type === 'error')) ? 'red-dot' : 'green-dot'}/>执行结果</span>
-                                <span className="result-actions">
-                                    {executing && executionTask && <button type="button" className="cancel-button"
-                                                                           onClick={() => void cancelExecution()}>取消任务</button>}
-                                    <button className="run-button" type="submit" form="execution-form"
-                                            disabled={!script.canInvoke || executing}
-                                    >{executing ? '执行中…'
-                                        : isProduction && executionApproval ? '检查审批并执行' : '▶ 执行脚本'}</button>
-                                </span>
-                            </div>
-                            {executionTask ? <ExecutionTaskPanel task={executionTask}/> :
-                                <ResultRenderer result={result}/>}
-                        </section>
-                    </div>
-                )}
+                    <ExecutionResultsPanel executionTask={executionTask} result={result} executing={executing}
+                                           resultView={resultView} onViewChange={setResultView}
+                                           onCancel={cancelExecution}/>
+                </div>}
             </section>
 
             {notice && <div className={`toast ${notice.type}`} role="status">{notice.message}</div>}
+
+            {showPermissions && script && <Modal title="脚本权限设置" onClose={() => setShowPermissions(false)}
+                                                 footer={<button type="button"
+                                                                 onClick={() => setShowPermissions(false)}>完成，返回工作台</button>}>
+                <p className="schema-footnote">控制脚本的读取、编辑与执行；修改后需点击“保存脚本”。</p>
+                <label className="field-label"
+                       htmlFor="permissions">权限配置 <span>readerNo / editorNo / invokerNo</span></label>
+                <textarea id="permissions" className="permission-editor" rows={6} value={permissions}
+                          disabled={!script.canEdit} onChange={(event) => setPermissions(event.target.value)}
+                          spellCheck={false}/>
+                <p className="schema-footnote">更新于 {formatTime(script.updateTime)}</p>
+            </Modal>}
 
             {showHelp && (
                 <Modal title="Maintain Console 使用指南" wide onClose={() => setShowHelp(false)}>
@@ -928,11 +841,11 @@ export default function App() {
                         <ol>
                             <li>选择执行环境与应用服务。</li>
                             <li>从目录树选择脚本，或在目录下新建脚本。</li>
-                            <li>打开“配置参数”，添加名称、类型、用途说明和默认值，无需手写 Schema。</li>
+                            <li>打开右侧“参数配置”，添加名称、类型、用途说明和默认值，无需手写 Schema。</li>
                             <li>在脚本中使用 <code>{'def count = $${count}'}</code> 引用参数，不要额外加引号。
                                 也可以先写占位符，再点击“从脚本识别”。
                             </li>
-                            <li>在运行表单填值，数字、下拉选项、是/否等会按类型显示；本次输入不改变默认值。</li>
+                            <li>切换右侧“运行填值”，数字、下拉选项、是/否等会按类型显示；本次输入不改变默认值。</li>
                             <li>点击“代码补全”或按 Ctrl + Space 查看提示；输入 <code>_log.</code> 查看日志方法。
                                 <code>ctx</code> 仅能获取客户端白名单中的 Spring Bean。
                             </li>
@@ -951,7 +864,7 @@ export default function App() {
                     updateScript({content: DEFAULT_SCRIPT});
                     setParameterSchema(DEFAULT_PARAMETER_SCHEMA);
                     setParameterValues({});
-                    setEditorTab('code');
+                    setParameterTab('values');
                     setShowExample(false);
                     showNotice('示例已载入草稿，尚未保存或执行', 'success');
                 }}>替换当前草稿为示例

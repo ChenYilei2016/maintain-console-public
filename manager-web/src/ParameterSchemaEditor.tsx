@@ -62,26 +62,34 @@ export default function ParameterSchemaEditor({value, script, disabled, onChange
 
     return <div className="schema-editor">
         <header className="schema-heading">
-            <div><h2>把脚本变量变成运行表单</h2>
-                <p>配置名称、类型与默认值，运行时会自动生成输入框；无需编写 JSON。</p></div>
+            <p>定义名称、类型和默认值，自动生成运行表单。</p>
             <div className="panel-actions">
                 <button type="button" aria-expanded={showJson} onClick={() => setShowJson(!showJson)}>
-                    {showJson ? '返回可视化配置' : '高级 JSON'}</button>
+                    高级 JSON
+                </button>
                 <button type="button" disabled={disabled} onClick={onLoadExample}>查看入门示例</button>
             </div>
         </header>
-        <div className="parameter-guide">
+        <details className="parameter-help">
+            <summary>参数怎么用？</summary>
+            <div className="parameter-guide">
             <span><b>1</b> 添加参数：例如 count，类型选数字</span>
             <span><b>2</b> 脚本引用：<code>{'def count = $${count}'}</code></span>
-            <span><b>3</b> 下方填写值，再预览或执行</span>
-        </div>
-        {showJson ? <label className="schema-json-field">
+                <span><b>3</b> 切换“运行填值”，再预览或执行</span>
+            </div>
+        </details>
+        {showJson && <Modal title="高级参数 JSON" wide onClose={() => setShowJson(false)}
+                            footer={<button type="button"
+                                            onClick={() => setShowJson(false)}>完成，返回可视化配置</button>}>
+            <label className="schema-json-field">
             <span>参数 Schema JSON <small>与可视化配置双向同步，修改后需保存脚本。</small></span>
             <textarea className="permission-editor" rows={12} value={value} disabled={disabled}
                       onChange={(event) => onChange(event.target.value)} spellCheck={false}/>
-        </label> : !parseError && <>
+            </label>
+            {parseError && <p className="field-error" role="alert">{parseError}</p>}
+        </Modal>}
+        {!parseError && <>
             <div className="schema-actions panel-actions">
-                <strong>{definitions.length} 个参数</strong>
                 {!schema && <small>旧脚本兼容模式 · 编辑配置后启用类型化替换，请移除引用外层引号</small>}
                 <button type="button" disabled={disabled || !missing.length} onClick={() => updateDefinitions([
                     ...definitions, ...missing.map((name): ParameterDefinition => ({name, type: 'STRING'})),
