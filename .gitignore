@@ -1,4 +1,6 @@
 manager/src/main/resources/sqlite/maintain-manager.sqlite
+manager/src/main/resources/sqlite/maintain-manager.sqlite-shm
+manager/src/main/resources/sqlite/maintain-manager.sqlite-wal
 
 .idea/*
 target/
