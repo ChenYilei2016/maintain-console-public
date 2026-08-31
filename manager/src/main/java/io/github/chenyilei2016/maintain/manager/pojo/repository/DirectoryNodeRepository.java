@@ -35,11 +35,13 @@ public interface DirectoryNodeRepository {
      */
     boolean deleteById(String id);
 
+    boolean deleteAll(List<String> ids);
+
 
     /**
-     * 根据服务名和创建人查询用户可见节点（所有文件夹 + 公共脚本 + 用户的私有脚本）
+     * 有界读取服务资源树及授权元数据；调用者必须按实际操作校验权限。
      */
-    List<DirectoryNode> findVisibleByServiceNameAndCreator(String serviceName, String creatorId);
+    List<DirectoryNode> findServiceTree(String serviceName);
 
     List<DirectoryNode> findByNameAndParentIdAndServiceName(String name, String parentId, String serviceName);
 }

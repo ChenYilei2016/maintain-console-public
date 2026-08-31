@@ -6,7 +6,6 @@ import groovy.lang.GroovyShell;
 import io.github.chenyilei2016.maintain.client.groovy.BaseConsoleExtService;
 import io.github.chenyilei2016.maintain.client.groovy.ConsoleStorage;
 import org.codehaus.groovy.control.CompilerConfiguration;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,8 +29,10 @@ public final class GroovyScriptEngine {
             binding.setVariable("vars", new ConsoleStorage());
             binding.setVariable(CONTEXT_VARIABLE, context);
             binding.setVariable(CONTEXT_VARIABLE.toUpperCase(), context);
-            binding.setVariable("_log", LoggerFactory.getLogger("maintain-console-exe"));
-            return new GroovyShell(classLoader, binding, compilerConfiguration).evaluate(script);
+            ScriptExecutionLog executionLog = new ScriptExecutionLog();
+            binding.setVariable("_log", executionLog);
+            binding.setVariable("out", new java.io.PrintWriter(executionLog));
+            return executionLog.withResult(new GroovyShell(classLoader, binding, compilerConfiguration).evaluate(script));
         } catch (IOException e) {
             throw new IllegalStateException("Failed to close Groovy class loader", e);
         }

@@ -30,6 +30,7 @@ public class ManagerAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uri.equals("/") || uri.equals("/index.html") || uri.equals("/favicon.ico")
+                || uri.equals("/workspace") || uri.startsWith("/workspace/") || uri.startsWith("/tools/")
                 || uri.startsWith("/static/") || uri.equals("/actuator/health") || uri.equals("/actuator/info");
     }
 

@@ -67,7 +67,12 @@ public class DirectoryServiceImpl implements DirectoryService {
         log.info("获取目录树结构，服务名：{}，创建人：{}", serviceName, creator);
 
         // 查询用户可见的所有节点（所有文件夹 + 公共脚本 + 用户的私有脚本）
-        List<DirectoryNode> allNodes = directoryNodeRepository.findVisibleByServiceNameAndCreator(serviceName, creator);
+        List<DirectoryNode> allNodes = directoryNodeRepository.findServiceTree(serviceName)
+                .stream().filter(node -> DirectoryNode.TYPE_FOLDER.equals(node.getType())
+                        || ScriptPermissionEntity.checkPermission(node, new Script().setPermissions(node.getScriptPermissions()),
+                        creator, ScriptPermissionEnum.READ, managerProperties.getGlobalWhiteEmployeeNoList())
+                        || ScriptPermissionEntity.checkPermission(node, new Script().setPermissions(node.getScriptPermissions()),
+                        creator, ScriptPermissionEnum.INVOKE, managerProperties.getGlobalWhiteEmployeeNoList())).toList();
 
         // 构建树形结构，只支持根目录和二级目录（最多两级）
         return buildDirectoryTreeWithMaxDepth(allNodes, 2);
@@ -78,12 +83,16 @@ public class DirectoryServiceImpl implements DirectoryService {
         log.info("获取脚本详情，脚本ID：{}", scriptId);
 
         ScriptVO scriptVO = scriptContentService.findById(scriptId);
-
+        if (!hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ)) {
+            throw CommonException.createReminderException("没有查看代码权限，请使用工具运行页");
+        }
         ScriptNodeDTO dto = convertToScriptNodeDTO(scriptVO);
         //填充权限
         dto.setCanRead(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ));
         dto.setCanInvoke(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.INVOKE));
         dto.setCanEdit(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.EDIT));
+        dto.setCanManage(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.MANAGE));
+        if (!dto.isCanManage()) dto.setPermissions(null);
         return dto;
     }
 
@@ -96,6 +105,13 @@ public class DirectoryServiceImpl implements DirectoryService {
         // 验证节点类型
         TreeNodeTypeEnum nodeTypeEnum = TreeNodeTypeEnum.getEnumThrow(request.getNodeType());
         String nodeId = request.getNodeId();
+        if (nodeId == null && request.getParentId() != null) {
+            DirectoryNode parent = directoryNodeRepository.findById(request.getParentId());
+            if (parent == null || !DirectoryNode.TYPE_FOLDER.equals(parent.getType())
+                    || !parent.getServiceName().equals(request.getServiceName())) {
+                throw CommonException.createReminderException("父目录不存在或不属于当前服务");
+            }
+        }
 
         if (TreeNodeTypeEnum.FOLDER == nodeTypeEnum) {
             // 处理文件夹
@@ -118,17 +134,33 @@ public class DirectoryServiceImpl implements DirectoryService {
             throw new RuntimeException("节点不存在");
         }
 
-        node.checkThrowAuth(request.getOperatorId());
-
-        if (DirectoryNode.TYPE_FOLDER.equals(node.getType())) {
-            // 处理文件夹删除
-            return handleFolderDelete(request, node);
-        } else if (DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
-            // 处理脚本删除
-            return handleScriptDelete(request, node);
-        } else {
-            throw new IllegalArgumentException("不支持的节点类型：" + node.getType());
+        boolean administrator = managerProperties.getGlobalWhiteEmployeeNoList().contains(request.getOperatorId());
+        if (!administrator && !java.util.Objects.equals(node.getCreatorId(), request.getOperatorId())) {
+            throw CommonException.createReminderException("只有创建者或管理员可以删除资源");
         }
+        if (DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
+            return directoryNodeRepository.deleteById(node.getId());
+        }
+        List<DirectoryNode> nodes = directoryNodeRepository.findServiceTree(node.getServiceName());
+        Map<String, List<DirectoryNode>> children = nodes.stream()
+                .filter(item -> item.getParentId() != null)
+                .collect(Collectors.groupingBy(DirectoryNode::getParentId));
+        if (!request.getForceDelete() && !children.getOrDefault(node.getId(), List.of()).isEmpty()) {
+            throw CommonException.createReminderException("目录不为空，请明确确认包含子资源");
+        }
+        List<String> ids = new ArrayList<>();
+        java.util.ArrayDeque<DirectoryNode> pending = new java.util.ArrayDeque<>();
+        pending.add(node);
+        while (!pending.isEmpty()) {
+            DirectoryNode current = pending.removeFirst();
+            if (!administrator && !java.util.Objects.equals(current.getCreatorId(), request.getOperatorId())) {
+                throw CommonException.createReminderException("目录包含其他人管理的资源，请先联系对应创建者");
+            }
+            ids.add(current.getId());
+            pending.addAll(children.getOrDefault(current.getId(), List.of()));
+        }
+        // 一次批量逻辑删除；源码、版本和执行历史保留，避免循环查库和破坏历史外键。
+        return directoryNodeRepository.deleteAll(ids);
     }
 
     /**
@@ -173,6 +205,10 @@ public class DirectoryServiceImpl implements DirectoryService {
             if (existingFolder == null) {
                 throw new RuntimeException("文件夹不存在");
             }
+            existingFolder.checkThrowAuth(request.getOperatorId());
+            if (!DirectoryNode.TYPE_FOLDER.equals(existingFolder.getType())) {
+                throw CommonException.createReminderException("节点类型不匹配");
+            }
 
             // 检查名称重复（如果名称有变化）
             if (!request.getNodeName().equals(existingFolder.getName())) {
@@ -213,7 +249,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         scriptNode.setServiceName(request.getServiceName());
         scriptNode.setSortOrder(0);
         scriptNode.setCreatorId(request.getOperatorName());
-        scriptNode.setPermissionType(DirectoryNode.PERMISSION_PUBLIC); // 脚本默认为公共权限
+        scriptNode.setPermissionType(DirectoryNode.PERMISSION_PRIVATE);
         scriptNode.setCreateTime(LocalDateTime.now());
         scriptNode.setUpdateTime(LocalDateTime.now());
         scriptNode.setCreatorId(request.getOperatorId());
@@ -228,14 +264,11 @@ public class DirectoryServiceImpl implements DirectoryService {
         String content = StringUtils.hasText(request.getContent()) ? request.getContent() : "// 新建脚本\nreturn \"Hello World\";";
         script.setContent(content);
         script.setParameterSchema(normalizeParameterSchema(request.getParameterSchema(), content));
-        try {
-            ScriptPermissionEntity scriptPermissionEntity = JSON.parseObject(StringUtils.hasText(request.getPermissions()) ? request.getPermissions() : ScriptPermissionEntity.init(request.getOperatorId())
-                    , ScriptPermissionEntity.class);
-            script.setPermissions(JSON.toJSONString(scriptPermissionEntity));
-        } catch (Exception e) {
-            throw CommonException.createReminderException("permission json解析失败");
-        }
+        ScriptPermissionEntity permissions = ScriptPermissionEntity.parse(ScriptPermissionEntity.init(request.getOperatorId()));
+        permissions.setAllowedEnvironments(request.getAllowedEnvironments() == null ? List.of() : request.getAllowedEnvironments());
+        script.setPermissions(JSON.toJSONString(permissions));
         script.setDescription(StringUtils.hasText(request.getDescription()) ? request.getDescription() : request.getNodeName());
+        script.setToolMetadata(JSON.toJSONString(request.getToolMetadata() == null ? new ScriptToolMetadata() : request.getToolMetadata()));
         script.setVersion(1);
         script.setCreateTime(LocalDateTime.now());
         script.setUpdateTime(LocalDateTime.now());
@@ -249,81 +282,36 @@ public class DirectoryServiceImpl implements DirectoryService {
     }
 
     public void doScriptUpdate(TreeNodeSaveWebRequest request, String nodeId) {
-        // 更新脚本
-        DirectoryNode existingNode = directoryNodeRepository.findById(nodeId);
-        if (existingNode == null) {
-            throw new RuntimeException("脚本不存在");
+        ScriptVO current = scriptContentService.findById(nodeId);
+        DirectoryNode node = current.getDirectoryNode();
+        Script script = current.getScript();
+        if (!node.getServiceName().equals(request.getServiceName())
+                || !hasPermission(current, request.getOperatorId(), ScriptPermissionEnum.EDIT)) {
+            throw CommonException.createReminderException("没有编辑权限或脚本所属服务不匹配");
         }
-
-        existingNode.checkThrowAuth(request.getOperatorId());
-
-        // 更新目录节点名称（如果有变化）
-        if (!request.getNodeName().equals(existingNode.getName())) {
-            checkNameDuplicate(request.getNodeName(), existingNode.getParentId(), existingNode.getServiceName());
-            existingNode.setName(request.getNodeName());
-            existingNode.setUpdateTime(LocalDateTime.now());
-            directoryNodeRepository.save(existingNode);
+        if (!java.util.Objects.equals(request.getExpectedVersion(), script.getVersion())) {
+            throw CommonException.createReminderException("保存冲突：工具已更新或请求缺少起始版本，请刷新并比较差异");
         }
-
-        // 更新脚本内容（带乐观锁机制）
-        Script existingScript = scriptRepository.findByScriptId(nodeId);
-        if (existingScript == null) {
-            throw CommonException.createReminderException("脚本异常, 请删除此节点");
-        } else {
-
-            if (!ScriptPermissionEntity.checkPermission(existingNode, existingScript, request.getOperatorId(),
-                    ScriptPermissionEnum.EDIT, managerProperties.getGlobalWhiteEmployeeNoList())) {
-                throw CommonException.createReminderException("没有权限进行此操作:{},{}", request.getOperatorId(), "EDIT");
-            }
-            // 更新现有脚本内容
-            boolean contentChanged = isScriptContentChanged(request, existingScript);
-            if (contentChanged) {
-                existingScript.setUpdateTime(LocalDateTime.now());
-                Script u = scriptRepository.save(existingScript, true);
-                if (u == null) {
-                    throw CommonException.createReminderException("更新脚本冲突, 存在抢占行为");
-                }
-                scriptRevisionRepository.saveRevision(u, request.getOperatorId(), request.getOperatorName());
-                log.info("脚本内容更新成功，版本号：{} -> {}，操作人：{}",
-                        existingScript.getVersion(), u.getVersion(), request.getOperatorName());
-            }
+        if (request.getPermissions() != null && !request.getPermissions().equals(script.getPermissions())) {
+            throw CommonException.createReminderException("保存内容不能修改授权，请使用授权设置");
         }
-
-        log.info("更新脚本成功，ID：{}，名称：{}，操作人：{}", nodeId, request.getNodeName(), request.getOperatorName());
-    }
-
-    private static boolean isScriptContentChanged(TreeNodeSaveWebRequest request, Script existingScript) {
-        boolean contentChanged = false;
-        String updatedContent = existingScript.getContent();
-        if (StringUtils.hasText(request.getContent()) && !request.getContent().equals(existingScript.getContent())) {
-            existingScript.setContent(request.getContent());
-            updatedContent = request.getContent();
-            contentChanged = true;
+        if (!request.getNodeName().equals(node.getName())) {
+            checkNameDuplicate(request.getNodeName(), node.getParentId(), node.getServiceName());
+            node.setName(request.getNodeName());
         }
-        if (request.getParameterSchema() != null) {
-            String parameterSchema = normalizeParameterSchema(request.getParameterSchema(), updatedContent);
-            if (!java.util.Objects.equals(parameterSchema, existingScript.getParameterSchema())) {
-                existingScript.setParameterSchema(parameterSchema);
-                contentChanged = true;
-            }
-        } else if (existingScript.getParameterSchema() != null) {
-            normalizeParameterSchema(existingScript.getParameterSchema(), updatedContent);
-        }
-        if (StringUtils.hasText(request.getPermissions()) && !request.getPermissions().equals(existingScript.getPermissions())) {
-            try {
-                ScriptPermissionEntity scriptPermissionEntity = JSON.parseObject(StringUtils.hasText(request.getPermissions()) ? request.getPermissions() : ScriptPermissionEntity.init(request.getOperatorId())
-                        , ScriptPermissionEntity.class);
-                existingScript.setPermissions(JSON.toJSONString(scriptPermissionEntity));
-            } catch (Exception e) {
-                throw CommonException.createReminderException("permission json解析失败");
-            }
-            contentChanged = true;
-        }
-        if (StringUtils.hasText(request.getDescription()) && !request.getDescription().equals(existingScript.getDescription())) {
-            existingScript.setDescription(request.getDescription());
-            contentChanged = true;
-        }
-        return contentChanged;
+        String content = request.getContent() == null ? script.getContent() : request.getContent();
+        if (!StringUtils.hasText(content)) throw CommonException.createReminderException("脚本内容不能为空");
+        script.setContent(content);
+        script.setParameterSchema(normalizeParameterSchema(
+                request.getParameterSchema() == null ? script.getParameterSchema() : request.getParameterSchema(), content));
+        if (request.getDescription() != null) script.setDescription(request.getDescription());
+        if (request.getToolMetadata() != null) script.setToolMetadata(JSON.toJSONString(request.getToolMetadata()));
+        script.setUpdateTime(LocalDateTime.now());
+        Script saved = scriptRepository.save(script, true);
+        if (saved == null) throw CommonException.createReminderException("保存冲突，请刷新并比较差异");
+        node.setUpdateTime(saved.getUpdateTime());
+        directoryNodeRepository.save(node);
+        scriptRevisionRepository.saveRevision(saved, request.getOperatorId(), request.getOperatorName());
     }
 
     private static String normalizeParameterSchema(String parameterSchema, String scriptContent) {
@@ -342,7 +330,7 @@ public class DirectoryServiceImpl implements DirectoryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Integer restoreScriptRevision(String scriptId, int version, String operatorId, String operatorName) {
+    public Integer restoreScriptRevision(String scriptId, int version, int expectedVersion, String operatorId, String operatorName) {
         ScriptVO scriptVO = scriptContentService.findById(scriptId);
         if (scriptVO == null || !hasPermission(scriptVO, operatorId, ScriptPermissionEnum.EDIT)) {
             throw CommonException.createReminderException("脚本不存在或没有编辑权限");
@@ -352,9 +340,12 @@ public class DirectoryServiceImpl implements DirectoryService {
             throw CommonException.createReminderException("脚本版本不存在: {}", version);
         }
         Script script = scriptVO.getScript();
+        if (script.getVersion() != expectedVersion) {
+            throw CommonException.createReminderException("恢复冲突：工具已更新，请刷新并比较差异");
+        }
         script.setContent(revision.getContent());
         script.setParameterSchema(revision.getParameterSchema());
-        script.setPermissions(revision.getPermissions());
+        script.setToolMetadata(revision.getToolMetadata());
         script.setDescription(revision.getDescription());
         script.setUpdateTime(LocalDateTime.now());
         Script restored = scriptRepository.save(script, true);
@@ -369,78 +360,6 @@ public class DirectoryServiceImpl implements DirectoryService {
         return ScriptPermissionEntity.checkPermission(
                 scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, permission,
                 managerProperties.getGlobalWhiteEmployeeNoList());
-    }
-
-    /**
-     * 处理文件夹删除
-     */
-    private boolean handleFolderDelete(TreeNodeDeleteWebRequest request, DirectoryNode folder) {
-        // 检查文件夹是否包含子节点
-        List<DirectoryNode> children = directoryNodeRepository.findByParentId(folder.getId());
-
-        if (!children.isEmpty() && !request.getForceDelete()) {
-            throw new RuntimeException("文件夹不为空，无法删除。如需强制删除，请设置forceDelete为true");
-        }
-
-        if (request.getForceDelete()) {
-            // 强制删除：递归删除所有子节点
-            deleteNodeRecursively(folder.getId(), request.getOperatorName());
-            log.info("强制删除文件夹及所有子节点成功，ID：{}，操作人：{}", folder.getId(), request.getOperatorName());
-        } else {
-            // 非强制删除：直接删除空文件夹
-            directoryNodeRepository.deleteById(folder.getId());
-            log.info("删除空文件夹成功，ID：{}，操作人：{}", folder.getId(), request.getOperatorName());
-        }
-
-        return true;
-    }
-
-    /**
-     * 处理脚本删除
-     */
-    private boolean handleScriptDelete(TreeNodeDeleteWebRequest request, DirectoryNode script) {
-        // 删除脚本内容
-        Script scriptEntity = scriptRepository.findByScriptId(script.getId());
-        if (scriptEntity != null) {
-            scriptRepository.deleteById(scriptEntity.getId());
-        }
-
-        // 删除目录节点
-        directoryNodeRepository.deleteById(script.getId());
-
-        log.info("删除脚本成功，ID：{}，名称：{}，操作人：{}", script.getId(), script.getName(), request.getOperatorName());
-
-        return true;
-    }
-
-    /**
-     * 递归删除节点及其所有子节点
-     */
-    private void deleteNodeRecursively(String nodeId, String operator) {
-        DirectoryNode node = directoryNodeRepository.findById(nodeId);
-        if (node == null) {
-            return;
-        }
-
-        // 先删除所有子节点
-        List<DirectoryNode> children = directoryNodeRepository.findByParentId(nodeId);
-        for (DirectoryNode child : children) {
-            deleteNodeRecursively(child.getId(), operator);
-        }
-
-        // 删除当前节点
-        if (DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
-            // 删除脚本内容
-            Script scriptEntity = scriptRepository.findByScriptId(nodeId);
-            if (scriptEntity != null) {
-                scriptRepository.deleteById(scriptEntity.getId());
-            }
-        }
-
-        // 删除目录节点
-        directoryNodeRepository.deleteById(nodeId);
-
-        log.debug("递归删除节点：{}，类型：{}，操作人：{}", nodeId, node.getType(), operator);
     }
 
     /**

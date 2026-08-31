@@ -11,4 +11,8 @@ public class ScriptRevisionRestoreWebRequest {
 
     @Min(value = 1, message = "版本号必须大于 0")
     private int version;
+
+    @jakarta.validation.constraints.NotNull
+    @Min(1)
+    private Integer expectedVersion;
 }

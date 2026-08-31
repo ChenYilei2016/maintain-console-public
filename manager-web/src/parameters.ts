@@ -94,3 +94,34 @@ export function executionParameters(
         return [[definition.name, value?.trim() ? value : 'null']];
     }));
 }
+
+export function parameterError(definition: ParameterDefinition, value: string): string {
+    if (!value.trim()) return definition.required && definition.defaultValue == null ? '请填写此必填参数' : '';
+    if (definition.type === 'NUMBER') {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return '请输入有效数字';
+        if (definition.min != null && number < definition.min) return `不能小于 ${definition.min}`;
+        if (definition.max != null && number > definition.max) return `不能大于 ${definition.max}`;
+    }
+    if (definition.type === 'JSON') {
+        try {
+            JSON.parse(value);
+        } catch {
+            return '请输入合法 JSON';
+        }
+    }
+    if (definition.type === 'ENUM' && !definition.options?.includes(value)) return '请选择当前可用选项';
+    if (definition.type === 'BOOLEAN' && !['true', 'false'].includes(value)) return '请选择是或否';
+    return '';
+}
+
+/** 缓存、预设和历史回填共用同一敏感值过滤规则。 */
+export function safeParameterValues(definitions: ParameterDefinition[], values: Record<string, unknown>): Record<string, string> {
+    return Object.fromEntries(definitions.filter(definition => !definition.sensitive && Object.hasOwn(values, definition.name))
+        .map(definition => [definition.name, parameterValueText(values[definition.name])]));
+}
+
+export function defaultParameterValues(definitions: ParameterDefinition[]): Record<string, string> {
+    return Object.fromEntries(definitions.map(definition => [definition.name,
+        definition.sensitive ? '' : parameterValueText(definition.defaultValue)]));
+}

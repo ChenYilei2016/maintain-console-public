@@ -1,26 +1,25 @@
+import {useState} from 'react';
+import ResultTable from './results/ResultTable';
 import type {ResultBlock, ScriptExecutionResult} from './types';
 
 function json(value: unknown) {
     return JSON.stringify(value, null, 2);
 }
 
-function TableBlock({block}: { block: ResultBlock }) {
-    const table = block.data as { columns?: unknown[]; rows?: unknown[] };
-    const columns = Array.isArray(table?.columns) ? table.columns.map(String) : [];
-    const rows = Array.isArray(table?.rows) ? table.rows : [];
-    if (!columns.length) return <pre className="console-output">{json(block.data)}</pre>;
-
-    return <div className="table-scroll">
-        <table>
-            <thead>
-            <tr>{columns.map((column) =>
-                <th key={column}>{column}</th>)}</tr>
-            </thead>
-            <tbody>{rows.map((row, index) => {
-                const values = Array.isArray(row) ? row : columns.map((column) => (row as Record<string, unknown>)?.[column]);
-                return <tr key={index}>{values.map((value, cell) => <td key={cell}>{String(value ?? '')}</td>)}</tr>;
-            })}</tbody>
-        </table>
+function JsonBlock({value}: { value: unknown }) {
+    const [notice, setNotice] = useState('');
+    return <div className="json-result">
+        <button type="button" onClick={async () => {
+            try {
+                await navigator.clipboard.writeText(json(value));
+                setNotice('已复制 JSON');
+            } catch {
+                setNotice('剪贴板不可用');
+            }
+        }}>复制 JSON
+        </button>
+        {notice && <small role="status">{notice}</small>}
+        <pre className="console-output">{json(value)}</pre>
     </div>;
 }
 
@@ -142,13 +141,13 @@ function FileBlock({block}: { block: ResultBlock }) {
 
 function Block({block}: { block: ResultBlock }) {
     const title = block.title && <h3>{block.title}</h3>;
-    if (block.type === 'table') return <section className="result-block">{title}<TableBlock block={block}/></section>;
+    if (block.type === 'table') return <section className="result-block">{title}<ResultTable block={block}/></section>;
     if (block.type === 'metric') return <section className="result-block">{title}<MetricBlock block={block}/></section>;
     if (block.type === 'chart') return <section className="result-block">{title}<ChartBlock block={block}/></section>;
     if (block.type === 'file') return <section className="result-block">{title}<FileBlock block={block}/></section>;
     if (block.type === 'json') {
         return <section className="result-block">{title}
-            <pre className="console-output">{json(block.data)}</pre>
+            <JsonBlock value={block.data}/>
         </section>;
     }
     return <section className={`result-block ${block.type}`}>{title}
@@ -158,6 +157,7 @@ function Block({block}: { block: ResultBlock }) {
 
 export default function ResultRenderer({result}: { result: ScriptExecutionResult | string }) {
     if (typeof result === 'string') return <pre className="console-output">{result}</pre>;
+    if (!result.blocks?.length) return <p className="inline-empty">执行已结束，没有返回内容。</p>;
     return <div className="result-blocks">{result.blocks.map((block, index) =>
         <Block key={`${block.type}-${index}`} block={block}/>)}</div>;
 }

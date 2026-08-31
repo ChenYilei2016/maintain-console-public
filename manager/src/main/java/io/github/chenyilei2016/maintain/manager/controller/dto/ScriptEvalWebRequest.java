@@ -17,6 +17,9 @@ public class ScriptEvalWebRequest {
     private String scriptId;
 
     private String params;
+    @jakarta.validation.constraints.NotNull
+    private Integer version;
+    private boolean riskConfirmed;
 
     /**
      * 当前编辑器中的参数 Schema；允许执行尚未保存的脚本版本。

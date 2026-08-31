@@ -64,6 +64,19 @@ public class TreeNodeSaveWebRequest {
     private String description;
 
     /**
+     * 编辑开始时看到的版本；更新脚本时必填。
+     */
+    private Integer expectedVersion;
+
+    @jakarta.validation.Valid
+    private io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptToolMetadata toolMetadata;
+
+    /**
+     * 仅创建时使用；后续通过独立授权入口修改。
+     */
+    private java.util.List<String> allowedEnvironments;
+
+    /**
      * 操作人ID（由Controller层设置）
      */
     private String operatorId;

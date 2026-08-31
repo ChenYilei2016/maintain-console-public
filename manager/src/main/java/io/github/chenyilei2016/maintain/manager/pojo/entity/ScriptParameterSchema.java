@@ -37,6 +37,7 @@ public class ScriptParameterSchema {
 
     public String validateForScript(String script) {
         validateDefinitions();
+        ScriptParameterPlacement.validate(script == null ? "" : script, PLACEHOLDER);
         Set<String> placeholders = new HashSet<>();
         Matcher matcher = PLACEHOLDER.matcher(script == null ? "" : script);
         while (matcher.find()) {
@@ -61,6 +62,7 @@ public class ScriptParameterSchema {
         JSONObject input;
         try {
             input = paramsJson == null || paramsJson.isBlank() ? new JSONObject() : JSON.parseObject(paramsJson);
+            if (input == null) throw new IllegalArgumentException("脚本参数必须是 JSON 对象");
         } catch (RuntimeException e) {
             throw new IllegalArgumentException("脚本参数不是合法 JSON", e);
         }
@@ -91,7 +93,7 @@ public class ScriptParameterSchema {
             String rendered = hasValue(value) ? definition.getType().render(value, definition) : "null";
             executable.append(script, previousEnd, matcher.start()).append(rendered);
             persisted.append(script, previousEnd, matcher.start())
-                    .append(definition.isSensitive() ? quote(MASKED_VALUE) : rendered);
+                    .append(definition.isSensitive() ? groovyStringLiteral(MASKED_VALUE) : rendered);
             persistedParameters.put(name, definition.isSensitive() && hasValue(value) ? MASKED_VALUE : value);
             if (definition.isSensitive() && hasValue(value)) {
                 sensitiveValues.add(String.valueOf(value));
@@ -130,7 +132,8 @@ public class ScriptParameterSchema {
         return value != null && (!(value instanceof String text) || !text.isBlank());
     }
 
-    private static String quote(String value) {
+    public static String groovyStringLiteral(String value) {
+        if (value == null) return "null";
         return "'" + value
                 .replace("\\", "\\\\")
                 .replace("'", "\\'")
@@ -152,6 +155,8 @@ public class ScriptParameterSchema {
                     .sorted((left, right) -> Integer.compare(right.length(), left.length())).toList();
             for (String value : ordered) {
                 sanitized = sanitized.replace(value, MASKED_VALUE);
+                String encoded = JSON.toJSONString(value);
+                sanitized = sanitized.replace(encoded.substring(1, encoded.length() - 1), MASKED_VALUE);
             }
             return sanitized;
         }
@@ -160,6 +165,9 @@ public class ScriptParameterSchema {
     @Data
     public static class ParameterDefinition {
         private String name;
+        private String label;
+        private String group;
+        private boolean advanced;
         private ParameterType type = ParameterType.STRING;
         private boolean required;
         private Object defaultValue;
@@ -178,7 +186,7 @@ public class ScriptParameterSchema {
             String render(Object value, ParameterDefinition definition) {
                 String text = String.valueOf(value);
                 validatePattern(text, definition);
-                return quote(text);
+                return groovyStringLiteral(text);
             }
         },
         NUMBER {
@@ -226,7 +234,7 @@ public class ScriptParameterSchema {
                 if (!definition.getOptions().contains(text)) {
                     throw invalid(definition, "不在可选值 " + definition.getOptions() + " 中");
                 }
-                return quote(text);
+                return groovyStringLiteral(text);
             }
         },
         JSON {
@@ -234,7 +242,7 @@ public class ScriptParameterSchema {
             String render(Object value, ParameterDefinition definition) {
                 try {
                     Object parsed = value instanceof String text ? com.alibaba.fastjson2.JSON.parse(text) : value;
-                    return quote(com.alibaba.fastjson2.JSON.toJSONString(parsed));
+                    return groovyStringLiteral(com.alibaba.fastjson2.JSON.toJSONString(parsed));
                 } catch (RuntimeException e) {
                     throw invalid(definition, "必须是合法 JSON");
                 }
@@ -245,7 +253,7 @@ public class ScriptParameterSchema {
             String render(Object value, ParameterDefinition definition) {
                 String text = String.valueOf(value);
                 validatePattern(text, definition);
-                return quote(text);
+                return groovyStringLiteral(text);
             }
         },
         DATETIME {
@@ -257,13 +265,13 @@ public class ScriptParameterSchema {
                 } catch (DateTimeParseException e) {
                     throw invalid(definition, "必须是 ISO-8601 日期时间");
                 }
-                return quote(text);
+                return groovyStringLiteral(text);
             }
         },
         SERVICE_INSTANCE {
             @Override
             String render(Object value, ParameterDefinition definition) {
-                return quote(String.valueOf(value));
+                return groovyStringLiteral(String.valueOf(value));
             }
         };
 

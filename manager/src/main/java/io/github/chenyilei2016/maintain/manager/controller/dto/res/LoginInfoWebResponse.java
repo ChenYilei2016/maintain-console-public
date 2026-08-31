@@ -27,7 +27,6 @@ public class LoginInfoWebResponse {
      */
     private List<EnvironmentOption> availableEnvironments;
 
-    private boolean canApprove;
 
     private boolean aiEnabled;
 

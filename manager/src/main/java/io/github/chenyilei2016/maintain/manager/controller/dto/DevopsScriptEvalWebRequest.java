@@ -17,4 +17,7 @@ public class DevopsScriptEvalWebRequest {
     private String scriptId;
 
     private String params;
+    @jakarta.validation.constraints.NotNull
+    private Integer version;
+    private boolean riskConfirmed;
 }

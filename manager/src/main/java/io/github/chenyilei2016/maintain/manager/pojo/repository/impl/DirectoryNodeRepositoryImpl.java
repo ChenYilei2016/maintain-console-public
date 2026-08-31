@@ -22,6 +22,7 @@ import java.util.List;
  */
 @Repository
 public class DirectoryNodeRepositoryImpl extends ServiceImpl<DirectoryNodeMapper, DirectoryNodeDO> implements DirectoryNodeRepository {
+    private static final int MAX_TREE_NODES = 500;
 
     private final DirectoryNodeConverter converter = DirectoryNodeConverter.INSTANCE;
 
@@ -68,33 +69,20 @@ public class DirectoryNodeRepositoryImpl extends ServiceImpl<DirectoryNodeMapper
         return removeById(id);
     }
 
+    @Override
+    public boolean deleteAll(List<String> ids) {
+        return !ids.isEmpty() && baseMapper.deleteByIds(ids) == ids.size();
+    }
+
 
     @Override
-    public List<DirectoryNode> findVisibleByServiceNameAndCreator(String serviceName, String creatorId) {
-        // 查询用户可见的节点：所有文件夹 + 公共脚本 + 用户的私有脚本
-        LambdaQueryWrapper<DirectoryNodeDO> queryWrapper = new LambdaQueryWrapper<DirectoryNodeDO>()
-                .and(wrapper -> wrapper
-                        .eq(DirectoryNodeDO::getType, "folder")
-                        .eq(DirectoryNodeDO::getServiceName, serviceName)
-                        .eq(DirectoryNodeDO::getIsDeleted, 0)
-                )// 所有文件夹
-                .or(subWrapper -> subWrapper
-                        .eq(DirectoryNodeDO::getType, "script")
-                        .eq(DirectoryNodeDO::getPermissionType, "public") // 公共脚本
-                        .eq(DirectoryNodeDO::getServiceName, serviceName)
-                        .eq(DirectoryNodeDO::getIsDeleted, 0)
-                )
-                .or(subWrapper -> subWrapper
-                        .eq(DirectoryNodeDO::getType, "script")
-                        .eq(DirectoryNodeDO::getPermissionType, "private")
-                        .eq(DirectoryNodeDO::getCreatorId, creatorId) // 用户的私有脚本
-                        .eq(DirectoryNodeDO::getServiceName, serviceName)
-                        .eq(DirectoryNodeDO::getIsDeleted, 0)
-                )
-                .orderByAsc(DirectoryNodeDO::getSortOrder)
-                .orderByAsc(DirectoryNodeDO::getCreateTime);
-        List<DirectoryNodeDO> dataObjectList = list(queryWrapper);
-        return converter.toEntityList(dataObjectList);
+    public List<DirectoryNode> findServiceTree(String serviceName) {
+        List<DirectoryNode> nodes = baseMapper.selectServiceTree(serviceName, MAX_TREE_NODES + 1);
+        if (nodes.size() > MAX_TREE_NODES) {
+            throw io.github.chenyilei2016.maintain.manager.exceptions.CommonException.createReminderException(
+                    "资源树超过 500 个节点，请使用分页工具首页查找");
+        }
+        return nodes;
     }
 
     @Override

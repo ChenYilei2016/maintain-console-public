@@ -88,6 +88,13 @@ public class DirectoryNode {
      * 版本号（关联查询得到）
      */
     private Integer version;
+    /**
+     * 目录查询时批量关联，仅供后端授权筛选，不直接返回给页面。
+     */
+    private String scriptPermissions;
+    private String toolMetadata;
+    private Boolean favorite;
+    private LocalDateTime lastOpenTime;
 
     // 常量定义
     public static final String TYPE_FOLDER = "folder";

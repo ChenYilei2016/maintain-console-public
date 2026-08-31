@@ -9,6 +9,8 @@ import lombok.Data;
  */
 @Data
 public class ScriptEvalPreviewWebRequest {
+    @jakarta.validation.constraints.NotBlank
+    private String scriptId;
 
     private String params;
 

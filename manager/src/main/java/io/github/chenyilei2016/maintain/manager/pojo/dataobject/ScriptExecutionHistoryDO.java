@@ -94,6 +94,11 @@ public class ScriptExecutionHistoryDO {
      */
     @TableField("error_message")
     private String errorMessage;
+    private String environment;
+    private Integer scriptVersion;
+    private String targetsJson;
+    private String outcome;
+    private Boolean draft;
 
     /**
      * 开始执行时间

@@ -75,5 +75,12 @@ public class ScriptNodeDTO {
     private boolean canEdit;
 
     private boolean canInvoke;
+    private boolean canManage;
+    private java.util.List<String> allowedEnvironments;
+    private boolean allowAllInstances;
+    private boolean enabled;
+    private Integer version;
+    private String description;
+    private io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptToolMetadata toolMetadata;
 
 }

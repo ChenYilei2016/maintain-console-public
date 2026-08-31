@@ -11,9 +11,14 @@ import java.time.LocalDateTime;
 @Service
 public class ScriptUserPreferenceService {
     private final ScriptUserPreferenceMapper preferenceMapper;
+    private final ScriptAccessControl access;
+    private final io.github.chenyilei2016.maintain.manager.tools.ToolCatalog catalog;
 
-    public ScriptUserPreferenceService(ScriptUserPreferenceMapper preferenceMapper) {
+    public ScriptUserPreferenceService(ScriptUserPreferenceMapper preferenceMapper, ScriptAccessControl access,
+                                       io.github.chenyilei2016.maintain.manager.tools.ToolCatalog catalog) {
         this.preferenceMapper = preferenceMapper;
+        this.access = access;
+        this.catalog = catalog;
     }
 
     public void touch(String userId, String scriptId) {
@@ -36,6 +41,7 @@ public class ScriptUserPreferenceService {
     }
 
     public void favorite(String userId, String scriptId, boolean favorite) {
+        access.requireVisible(scriptId, userId);
         LocalDateTime now = LocalDateTime.now();
         int updated = preferenceMapper.updateFavorite(new ScriptUserPreferenceDO()
                 .setUserId(userId)
@@ -54,9 +60,24 @@ public class ScriptUserPreferenceService {
 
     public ScriptResourceOverviewDTO overview(String userId, String serviceName) {
         ScriptResourceOverviewDTO overview = new ScriptResourceOverviewDTO();
-        overview.setFavorites(preferenceMapper.selectFavorites(userId, serviceName));
-        overview.setRecent(preferenceMapper.selectRecent(userId, serviceName));
+        overview.setFavorites(shortcuts(catalog.page(userId, serviceName, null,
+                io.github.chenyilei2016.maintain.manager.tools.ToolCatalog.View.FAVORITES, 0)));
+        overview.setRecent(shortcuts(catalog.page(userId, serviceName, null,
+                io.github.chenyilei2016.maintain.manager.tools.ToolCatalog.View.RECENT, 0)));
         return overview;
+    }
+
+    private java.util.List<io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptShortcutDTO> shortcuts(
+            io.github.chenyilei2016.maintain.manager.tools.ToolCatalog.ToolPage page) {
+        return page.items().stream().map(item -> {
+            var shortcut = new io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptShortcutDTO();
+            shortcut.setId(item.id());
+            shortcut.setName(item.name());
+            shortcut.setServiceName(item.serviceName());
+            shortcut.setFavorite(item.favorite());
+            shortcut.setLastOpenTime(item.lastOpenTime());
+            return shortcut;
+        }).toList();
     }
 
     private void insertOrRetry(ScriptUserPreferenceDO preference, boolean touch) {
@@ -64,9 +85,9 @@ public class ScriptUserPreferenceService {
             preferenceMapper.insert(preference);
         } catch (DuplicateKeyException race) {
             if (touch) {
-                touch(preference.getUserId(), preference.getScriptId());
+                preferenceMapper.touch(preference);
             } else {
-                favorite(preference.getUserId(), preference.getScriptId(), Boolean.TRUE.equals(preference.getFavorite()));
+                preferenceMapper.updateFavorite(preference);
             }
         }
     }

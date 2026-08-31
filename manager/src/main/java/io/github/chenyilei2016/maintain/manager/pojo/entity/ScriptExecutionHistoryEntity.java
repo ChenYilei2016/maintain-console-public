@@ -29,6 +29,11 @@ public class ScriptExecutionHistoryEntity {
     private String resultPayload;
     private String status;
     private String errorMessage;
+    private String environment;
+    private Integer scriptVersion;
+    private String targetsJson;
+    private String outcome;
+    private Boolean draft;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer duration;

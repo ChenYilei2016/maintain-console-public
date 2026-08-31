@@ -41,7 +41,6 @@ public class ScriptUserPreferenceController {
     @PostMapping("/favorite")
     public AjaxResult<Boolean> favorite(@RequestBody @Valid ScriptFavoriteWebRequest request) {
         LocalLoginUser user = LoginUserContext.getUser();
-        directoryService.getScriptDetail(request.getScriptId(), user.getEmployeeNo());
         preferenceService.favorite(user.getEmployeeNo(), request.getScriptId(), request.isFavorite());
         auditLogService.record(user, request.isFavorite() ? "SCRIPT_FAVORITE" : "SCRIPT_UNFAVORITE",
                 "SCRIPT", request.getScriptId(), "SUCCESS", Map.of());

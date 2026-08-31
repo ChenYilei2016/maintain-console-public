@@ -151,6 +151,10 @@ export default function ParameterSchemaEditor({value, script, disabled, onChange
                 <label><span>参数名称 <b className="required-mark">*</b></span>
                     <input autoFocus value={editing.parameter.name} placeholder="例如 orderId、count"
                            onChange={(event) => updateDraft({name: event.target.value})}/></label>
+                <label><span>中文显示名</span><input value={editing.parameter.label || ''} placeholder="例如：订单编号"
+                                                     onChange={event => updateDraft({label: event.target.value})}/></label>
+                <label><span>参数分组</span><input value={editing.parameter.group || ''} placeholder="例如：筛选条件"
+                                                   onChange={event => updateDraft({group: event.target.value})}/></label>
                 <label><span>参数类型</span><select value={editing.parameter.type} onChange={(event) => updateDraft({
                     type: event.target.value as ParameterType, defaultValue: undefined, options: undefined,
                     min: undefined, max: undefined, pattern: undefined,
@@ -196,6 +200,8 @@ export default function ParameterSchemaEditor({value, script, disabled, onChange
                 <label><span>输入示例（可选）</span><input value={editing.parameter.example || ''}
                                                          onChange={(event) => updateDraft({example: event.target.value})}/></label>
                 <div className="parameter-flags full-width">
+                    <label><input type="checkbox" checked={Boolean(editing.parameter.advanced)}
+                                  onChange={event => updateDraft({advanced: event.target.checked})}/>放入高级参数区</label>
                     <label><input type="checkbox" checked={Boolean(editing.parameter.required)}
                                   onChange={(event) => updateDraft({required: event.target.checked})}/>必填参数</label>
                     <label><input type="checkbox" checked={Boolean(editing.parameter.sensitive)}

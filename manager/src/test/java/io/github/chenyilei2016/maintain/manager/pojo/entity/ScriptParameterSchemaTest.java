@@ -6,6 +6,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ScriptParameterSchemaTest {
+    @Test
+    void typedValuesCannotEscapeTheirGroovyExpression() {
+        ScriptParameterSchema schema = ScriptParameterSchema.parse("""
+                {"version":1,"parameters":[{"name":"value","type":"STRING"}]}
+                """);
+        for (String script : new String[]{"return '$${value}'", "return \"$${value}\"",
+                "return '''$${value}'''", "return /$${value}/", "// $${value}\nreturn 1",
+                "def prefix$${value} = 1"}) {
+            assertThrows(IllegalArgumentException.class, () -> schema.validateForScript(script), script);
+        }
+        String value = "'; throw new RuntimeException(); //\\\n${1 + 1}";
+        String resolved = schema.resolve("return $${value}",
+                com.alibaba.fastjson2.JSON.toJSONString(java.util.Map.of("value", value))).executableContent();
+        assertEquals(value, new groovy.lang.GroovyShell().evaluate(resolved));
+    }
 
     private static final String SCHEMA = """
             {

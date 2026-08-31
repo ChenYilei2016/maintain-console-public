@@ -36,7 +36,8 @@ public class ScriptInvoker {
             String targetEnvironment,
             ServiceInstance serviceInstance,
             String script,
-            ScriptParameterSchema.ResolvedScript resolvedScript
+            ScriptParameterSchema.ResolvedScript resolvedScript,
+            long timeoutMillis
     ) {
         ApiResult<InvokeScriptResultDTO> result;
         if (MyProfileUtils.isLocal(environment)) {
@@ -47,6 +48,7 @@ public class ScriptInvoker {
             ClientCallerContext context = new ClientCallerContext(serviceName);
             context.setEnv(targetEnvironment);
             context.setServiceInstance(serviceInstance);
+            context.setTimeoutMillis(timeoutMillis);
             result = clientCaller.$invokeScript(context, new InvokeScriptParamSignDTO(script));
         }
         if (result == null || !result.isSuccess()) {

@@ -21,6 +21,7 @@ public class ScriptRevisionDO {
     private String parameterSchema;
     private String permissions;
     private String description;
+    private String toolMetadata;
     @TableField("creator_id")
     private String creatorId;
     @TableField("creator_name")

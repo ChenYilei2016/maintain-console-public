@@ -28,7 +28,6 @@ export interface LoginInfo {
     employeeNo: string;
     env: string;
     availableEnvironments: EnvironmentOption[];
-    canApprove: boolean;
     aiEnabled: boolean;
 }
 
@@ -53,6 +52,13 @@ export interface DirectoryNode {
 }
 
 export interface ScriptDetail extends DirectoryNode {
+    version: number;
+    description?: string;
+    toolMetadata?: ToolMetadata;
+    canManage: boolean;
+    allowedEnvironments?: string[];
+    allowAllInstances: boolean;
+    enabled: boolean;
     content: string;
     parameterSchema?: string;
     permissions?: string;
@@ -65,6 +71,11 @@ export interface ScriptDetail extends DirectoryNode {
 }
 
 export interface ExecutionHistory {
+    environment?: string;
+    scriptVersion?: number;
+    targetsJson?: string;
+    outcome?: string;
+    draft?: boolean;
     id: string;
     scriptId: string;
     scriptName: string;
@@ -99,6 +110,9 @@ export interface ScriptExecutionResult {
 }
 
 export interface TreeNodeSaveRequest {
+    expectedVersion?: number;
+    allowedEnvironments?: string[];
+    toolMetadata?: ToolMetadata;
     nodeType: DirectoryNode['type'];
     nodeId?: string;
     nodeName: string;
@@ -122,6 +136,9 @@ export type ParameterType =
 
 export interface ParameterDefinition {
     name: string;
+    label?: string;
+    group?: string;
+    advanced?: boolean;
     type: ParameterType;
     required?: boolean;
     defaultValue?: unknown;
@@ -132,6 +149,14 @@ export interface ParameterDefinition {
     min?: number;
     max?: number;
     sensitive?: boolean;
+}
+
+export type OperationType = 'UNSPECIFIED' | 'QUERY' | 'OPERATION';
+
+export interface ToolMetadata {
+    operationType: OperationType;
+    riskNote?: string;
+    usageExample?: string;
 }
 
 export interface ParameterSchema {
@@ -181,76 +206,3 @@ export interface ScriptResourceOverview {
 }
 
 export type TargetSelectionMode = 'RANDOM' | 'SPECIFIC' | 'ALL';
-export type ExecutionTaskStatus = 'QUEUED' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'PARTIAL_SUCCESS'
-    | 'CANCELLING' | 'CANCELLED' | 'TIMED_OUT';
-
-export interface ExecutionTargetResult {
-    instance: ServiceInstance;
-    status: ExecutionTaskStatus;
-    duration?: number;
-    result?: ScriptExecutionResult;
-    errorMessage?: string;
-}
-
-export interface ExecutionTask {
-    id: string;
-    scriptId: string;
-    scriptName: string;
-    serviceName: string;
-    environment: string;
-    selectionMode: TargetSelectionMode;
-    requestedInstanceId?: string;
-    executorId: string;
-    executorName: string;
-    status: ExecutionTaskStatus;
-    targets: ExecutionTargetResult[];
-    timeoutSeconds: number;
-    cancelRequested: boolean;
-    errorMessage?: string;
-    createTime: string;
-    startTime?: string;
-    endTime?: string;
-    duration?: number;
-    approvalId?: string;
-    production: boolean;
-}
-
-export interface ExecutionTaskRequest {
-    service: string;
-    env: string;
-    scriptId: string;
-    script: string;
-    params: string;
-    parameterSchema?: string;
-    selectionMode: TargetSelectionMode;
-    instanceId?: string;
-    timeoutSeconds: number;
-    approvalId?: string;
-    productionConfirmation?: string;
-}
-
-export type ExecutionApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CONSUMED';
-
-export interface ExecutionApproval {
-    id: string;
-    scriptId: string;
-    scriptName: string;
-    serviceName: string;
-    environment: string;
-    selectionMode: TargetSelectionMode;
-    requestedInstanceId?: string;
-    requesterId: string;
-    requesterName: string;
-    status: ExecutionApprovalStatus;
-    scriptContent: string;
-    parameters?: string;
-    reason: string;
-    approverId?: string;
-    approverName?: string;
-    decisionComment?: string;
-    createTime: string;
-    expireTime: string;
-    decisionTime?: string;
-    consumedTime?: string;
-    productionConfirmation: string;
-}

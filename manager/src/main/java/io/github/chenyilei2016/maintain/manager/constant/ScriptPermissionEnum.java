@@ -11,7 +11,8 @@ public enum ScriptPermissionEnum {
 
     READ("READ", "读"),
     EDIT("EDIT", "编辑"),
-    INVOKE("INVOKE", "执行");
+    INVOKE("INVOKE", "执行"),
+    MANAGE("MANAGE", "授权管理");
 
     private final String code;
 

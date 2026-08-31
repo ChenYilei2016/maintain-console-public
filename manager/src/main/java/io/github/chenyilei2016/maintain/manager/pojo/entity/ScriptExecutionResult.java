@@ -104,6 +104,7 @@ public class ScriptExecutionResult {
             return false;
         }
         boolean truncated = rows.size() > MAX_TABLE_ROWS;
+        if (truncated) table.put("returnedRowCount", rows.size());
         truncate(rows, MAX_TABLE_ROWS);
         if (truncated) {
             table.put("truncated", true);

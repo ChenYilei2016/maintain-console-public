@@ -46,6 +46,7 @@ public class ScriptDO {
      */
     @TableField("description")
     private String description;
+    private String toolMetadata;
 
     /**
      * 版本号

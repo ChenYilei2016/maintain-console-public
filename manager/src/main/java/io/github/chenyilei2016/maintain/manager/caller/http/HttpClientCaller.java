@@ -50,6 +50,7 @@ public class HttpClientCaller implements ClientCaller {
         requestSigner.sign(invokeScriptParamDTO, ctx.getServiceInstance());
         Call<ApiResult<InvokeScriptResultDTO>> apiResultCall = httpMaintainConsoleClientApiAdapter
                 .$invokeScript(getHttpUrlFromServiceInstance(ctx.getServiceInstance()), invokeScriptParamDTO);
+        apiResultCall.timeout().timeout(ctx.getTimeoutMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
         return extractResult(apiResultCall);
     }
 

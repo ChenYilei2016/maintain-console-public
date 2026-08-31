@@ -37,7 +37,14 @@ public interface DirectoryNodeAssembler {
         dto.setServiceName(node.getServiceName());
         dto.setContent(script.getContent());
         dto.setParameterSchema(script.getParameterSchema());
+        dto.setVersion(script.getVersion());
+        dto.setDescription(script.getDescription());
+        dto.setToolMetadata(io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptToolMetadata.parse(script.getToolMetadata()));
         dto.setPermissions(script.getPermissions());
+        var grants = io.github.chenyilei2016.maintain.manager.pojo.entity.ScriptPermissionEntity.parse(script.getPermissions());
+        dto.setAllowedEnvironments(grants.getAllowedEnvironments());
+        dto.setAllowAllInstances(grants.isAllowAllInstances());
+        dto.setEnabled(grants.isEnabled());
         dto.setCreator(node.getCreatorId());
         if (node.getCreateTime() != null) {
             dto.setCreateTime(node.getCreateTime().format(DATE_TIME_FORMATTER));

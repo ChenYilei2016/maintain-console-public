@@ -33,17 +33,12 @@ public class ManagerProperties {
     @Getter
     @Setter
     public static class Execution {
-        private int taskCorePoolSize = 2;
-        private int taskMaxPoolSize = 4;
-        private int taskQueueCapacity = 50;
         private int targetCorePoolSize = 4;
         private int targetMaxPoolSize = 8;
         private int targetQueueCapacity = 100;
         private int maxTargets = 20;
         private int defaultTimeoutSeconds = 180;
         private int maxTimeoutSeconds = 900;
-        private int sseTimeoutSeconds = 1800;
-        private int sseHeartbeatMillis = 15000;
     }
 
     @Getter
@@ -56,8 +51,6 @@ public class ManagerProperties {
         private String identitySharedSecret;
         private long identityTimestampToleranceMillis = 300_000L;
         private int identityReplayCacheSize = 10_000;
-        private int approvalExpireMinutes = 30;
-        private boolean allowLegacySynchronousExecution;
     }
 
     @Getter

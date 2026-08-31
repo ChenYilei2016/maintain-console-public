@@ -5,9 +5,9 @@ import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.utils.StrUtils;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * "description": "这里可以扩展很多权限设置, 默认只有创建人有权限编辑, invokerNo:哪些工号有权限执行, 默认创建人;
@@ -22,20 +22,31 @@ import java.util.function.Function;
  */
 @Data
 public class ScriptPermissionEntity {
+    /**
+     * 旧配置缺省为 1；新配置显式授权，空名单不再代表公开。
+     */
+    private int version = 1;
+    @jakarta.validation.constraints.Size(max = 100)
+    private List<String> allowedEnvironments;
+    private boolean allowAllInstances;
+    private boolean enabled = true;
 
     /**
      * 可阅读
      */
+    @jakarta.validation.constraints.Size(max = 4096)
     private String readerNo;
 
     /**
      * 可编辑
      */
+    @jakarta.validation.constraints.Size(max = 4096)
     private String editorNo;
 
     /**
      * 可执行
      */
+    @jakarta.validation.constraints.Size(max = 4096)
     private String invokerNo;
 
     /**
@@ -45,7 +56,17 @@ public class ScriptPermissionEntity {
 
     public static String init(String operatorId) {
         ScriptPermissionEntity scriptPermissionEntity = new ScriptPermissionEntity();
+        scriptPermissionEntity.setVersion(2);
         return JSON.toJSONString(scriptPermissionEntity);
+    }
+
+    public static ScriptPermissionEntity parse(String json) {
+        ScriptPermissionEntity permission = JSON.parseObject(
+                json == null || json.isBlank() ? "{}" : json, ScriptPermissionEntity.class);
+        if (permission == null || (permission.version != 1 && permission.version != 2)) {
+            throw new IllegalArgumentException("不支持的权限配置");
+        }
+        return permission;
     }
 
     public static boolean checkPermission(
@@ -61,42 +82,25 @@ public class ScriptPermissionEntity {
         if (Objects.equals(node.getCreatorId(), operatorId)) {
             return true;
         }
-        return checkPermission(existingScript, operatorId, permission);
+        ScriptPermissionEntity grants = parse(existingScript.getPermissions());
+        return switch (permission) {
+            case MANAGE -> false;
+            case INVOKE -> grants.contains(grants.invokerNo, operatorId);
+            case EDIT -> grants.contains(grants.editorNo, operatorId);
+            case READ -> grants.contains(grants.readerNo, operatorId)
+                    || grants.contains(grants.editorNo, operatorId)
+                    || (grants.version == 1 && DirectoryNode.PERMISSION_PUBLIC.equals(node.getPermissionType())
+                    && (grants.readerNo == null || grants.readerNo.isBlank()));
+        };
     }
 
-    public static boolean checkPermission(Script existingScript, String operatorId, ScriptPermissionEnum p) {
-        String permissions = existingScript.getPermissions();
-        if (permissions == null || permissions.isBlank()) {
-            permissions = "{}";
-        }
-        ScriptPermissionEntity scriptPermissionEntity = JSON.parseObject(permissions, ScriptPermissionEntity.class);
-
-        boolean isAuth = false;
-        switch (p) {
-            case INVOKE:
-                isAuth = scriptPermissionEntity.checkAuth(scriptPermissionEntity, ScriptPermissionEntity::getInvokerNo, operatorId);
-                break;
-            case EDIT:
-                isAuth = scriptPermissionEntity.checkAuth(scriptPermissionEntity, ScriptPermissionEntity::getEditorNo, operatorId);
-                break;
-            case READ:
-                //默认都有
-                if (scriptPermissionEntity.getReaderNo() == null || scriptPermissionEntity.getReaderNo().isBlank()) {
-                    isAuth = true;
-                } else {
-                    isAuth = scriptPermissionEntity.checkAuth(scriptPermissionEntity, ScriptPermissionEntity::getReaderNo, operatorId);
-                }
-                break;
-        }
-        return isAuth;
+    private boolean contains(String employees, String operatorId) {
+        return employees != null && StrUtils.commaSplitter.splitToList(employees).contains(operatorId);
     }
 
-    private boolean checkAuth(ScriptPermissionEntity entity, Function<ScriptPermissionEntity, String> getInvokerNo, String operatorId) {
-        String apply = getInvokerNo.apply(entity);
-        if (apply == null) {
-            apply = "";
-        }
-        return StrUtils.commaSplitter.splitToList(apply).contains(operatorId);
+    public boolean allowsEnvironment(String environment, boolean legacyDevelopment) {
+        return enabled && (allowedEnvironments == null
+                ? version == 1 && legacyDevelopment : allowedEnvironments.contains(environment));
     }
 
 

@@ -17,6 +17,8 @@ interface Props {
     onPermissions: () => void;
     onExample: () => void;
     onAiAssistant: () => void;
+    onDetails: () => void;
+    onCopy: () => void;
 }
 
 export default function WorkspaceToolbar({
@@ -36,6 +38,8 @@ export default function WorkspaceToolbar({
                                              onPermissions,
                                              onExample,
                                              onAiAssistant,
+                                             onDetails,
+                                             onCopy,
                                          }: Props) {
     return (
         <header className="workbench-toolbar">
@@ -56,7 +60,10 @@ export default function WorkspaceToolbar({
                 <button type="button"
                         onClick={() => onFavorite()}>{scriptIsFavorite ? '★ 取消收藏' : '☆ 收藏脚本'}</button>
                 <button type="button" onClick={() => onRevisions()}>版本历史</button>
-                <button type="button" onClick={() => onPermissions()}>权限设置</button>
+                {script.canManage && <button type="button" onClick={() => onPermissions()}>授权与分享</button>}
+                <button type="button" onClick={onDetails}>用途与风险</button>
+                <button type="button" onClick={onCopy}>复制为新工具</button>
+                {script.canInvoke && <a className="button" href={`/tools/${script.id}`}>运行页 ↗</a>}
                 <button type="button" onClick={() => onExample()}>入门示例</button>
                 {aiEnabled && <button type="button" onClick={() => onAiAssistant()}>AI 助手</button>}
             </div>}

@@ -33,7 +33,8 @@ public class ScriptContentServiceImpl implements ScriptContentService {
 
         DirectoryNode node = directoryNodeRepository.findById(scriptId);
 
-        if (node == null) {
+        if (node == null || Integer.valueOf(1).equals(node.getIsDeleted())
+                || !DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
             throw CommonException.createReminderException("不存在的节点");
         }
 

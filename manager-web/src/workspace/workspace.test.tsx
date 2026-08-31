@@ -11,14 +11,21 @@ const noop = () => undefined;
 const parameters: ComponentProps<typeof ScriptParametersPanel> = {
     script: {
         id: 'script-1', name: '示例', type: 'script', serviceName: 'sample', content: 'return 1',
-        canRead: true, canEdit: true, canInvoke: false
+        canRead: true,
+        canEdit: true,
+        canInvoke: false,
+        canManage: true,
+        version: 1,
+        allowAllInstances: false,
+        enabled: true,
     },
     parameterSchema: '', definitions: [], parameterValues: {}, instances: [],
     target: {selectionMode: 'RANDOM', instanceId: '', timeoutSeconds: 180},
-    draftChanged: false, executing: false, hasApproval: false,
+    draftChanged: false, executing: false, userId: 'tester', allowAllInstances: false,
     parameterTab: 'values', parametersOpen: false,
     onValueChange: noop, onSchemaChange: noop, onTargetChange: noop, onTabChange: noop,
     onClose: noop, onPreview: noop, onExecute: noop, onExample: noop, onEditScript: noop,
+    onValuesChange: noop,
 };
 
 describe('工作区模块契约', () => {
@@ -31,7 +38,7 @@ describe('工作区模块契约', () => {
                                                                      production: true
                                                                  }}/>);
         expect(html).toContain('type="submit" form="execution-form" disabled=""');
-        expect(html).toContain('生产环境 · 执行需要审批与二次确认');
+        expect(html).toContain('生产环境 · 请核对目标和操作风险，确认不是审批');
     });
 
     it('配置页不提交隐藏表单，而是引导进入运行填值', () => {
@@ -48,8 +55,8 @@ describe('工作区模块契约', () => {
                                                             onNameChange={noop} onParametersToggle={noop} onSave={noop}
                                                             onHistory={noop} onRevisions={noop}
                                                             onFavorite={noop} onPermissions={noop} onExample={noop}
-                                                            onAiAssistant={noop}/>);
-        for (const label of ['收藏脚本', '版本历史', '权限设置', '入门示例', 'AI 助手']) expect(html).toContain(label);
+                                                            onAiAssistant={noop} onDetails={noop} onCopy={noop}/>);
+        for (const label of ['收藏脚本', '版本历史', '授权与分享', '入门示例', 'AI 助手']) expect(html).toContain(label);
         expect(html).not.toContain('<details');
     });
 
@@ -81,14 +88,13 @@ describe('工作区模块契约', () => {
     });
 
     it('结果收起只隐藏内容，放大后仍展示同一份结果', () => {
-        const collapsed = renderToStaticMarkup(<ExecutionResultsPanel result="保留的执行结果" executing={false}
-                                                                      resultView="collapsed" onViewChange={noop}
-                                                                      onCancel={noop}/>);
+        const execution = {error: '保留的执行结果', running: false, elapsed: 0};
+        const collapsed = renderToStaticMarkup(<ExecutionResultsPanel execution={execution}
+                                                                      resultView="collapsed" onViewChange={noop}/>);
         expect(collapsed).toContain('id="execution-results" hidden=""');
         expect(collapsed).toContain('保留的执行结果');
-        const maximized = renderToStaticMarkup(<ExecutionResultsPanel result="保留的执行结果" executing={false}
-                                                                      resultView="maximized" onViewChange={noop}
-                                                                      onCancel={noop}/>);
+        const maximized = renderToStaticMarkup(<ExecutionResultsPanel execution={execution}
+                                                                      resultView="maximized" onViewChange={noop}/>);
         expect(maximized).toContain('还原结果区');
         expect(maximized).not.toContain('hidden=""');
     });

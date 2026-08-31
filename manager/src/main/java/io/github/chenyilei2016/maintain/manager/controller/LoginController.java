@@ -37,8 +37,6 @@ public class LoginController {
         LocalLoginUser user = LoginUserContext.getUser();
         r.setEmployeeName(user.getEmployeeName());
         r.setEmployeeNo(user.getEmployeeNo());
-        r.setCanApprove(user.getRoles().contains("ADMIN") || user.getRoles().contains("APPROVER")
-                || managerProperties.getGlobalWhiteEmployeeNoList().contains(user.getEmployeeNo()));
         r.setAiEnabled(managerProperties.getAi().isEnabled());
 
         String[] activeProfiles = environment.getActiveProfiles();

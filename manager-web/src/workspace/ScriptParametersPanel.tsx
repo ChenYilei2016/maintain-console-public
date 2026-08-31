@@ -1,5 +1,6 @@
 import {useEffect, useRef} from 'react';
 import ParameterForm from '../ParameterForm';
+import ParameterPresets from '../ParameterPresets';
 import ParameterSchemaEditor from '../ParameterSchemaEditor';
 import type {EnvironmentOption, ParameterDefinition, ScriptDetail, ServiceInstance} from '../types';
 import ExecutionTargetSettings, {type ExecutionTarget} from './ExecutionTargetSettings';
@@ -20,7 +21,9 @@ interface Props {
     environment?: EnvironmentOption;
     draftChanged: boolean;
     executing: boolean;
-    hasApproval: boolean;
+    userId: string;
+    allowAllInstances: boolean;
+    onValuesChange: (values: Record<string, string>) => void;
     parameterTab: ParameterTab;
     onTabChange: (tab: ParameterTab) => void;
     parametersOpen: boolean;
@@ -44,7 +47,9 @@ export default function ScriptParametersPanel({
                                                   environment,
                                                   draftChanged,
                                                   executing,
-                                                  hasApproval,
+                                                  userId,
+                                                  allowAllInstances,
+                                                  onValuesChange,
                                                   parameterTab,
                                                   onTabChange: setParameterTab,
                                                   parametersOpen,
@@ -81,7 +86,10 @@ export default function ScriptParametersPanel({
                         onClick={() => onClose()}>×
                 </button>
             </header>
-            <ExecutionTargetSettings target={target} instances={instances} onChange={onTargetChange}/>
+            <ExecutionTargetSettings target={target} instances={instances} onChange={onTargetChange}
+                                     allowAllInstances={allowAllInstances}/>
+            <small
+                className="parameter-completion">已填写 {definitions.filter(item => parameterValues[item.name]?.trim()).length} / {definitions.length} 项</small>
             <div className="workspace-tabs" role="tablist" aria-label="参数视图"
                  onKeyDown={(event) => {
                      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
@@ -104,6 +112,9 @@ export default function ScriptParametersPanel({
                       }}>
                     <div id="panel-values" role="tabpanel" aria-labelledby="tab-values">
                         <p className="parameter-form-note">填写本次运行值，不会改写参数默认值。</p>
+                        <ParameterPresets key={script.id + environment?.value} userId={userId} scriptId={script.id}
+                                          environment={environment?.value || ''} definitions={definitions}
+                                          values={parameterValues} onChange={onValuesChange}/>
                         <ParameterForm definitions={definitions} values={parameterValues} instances={instances}
                                        onChange={onValueChange}/>
                         {!definitions.length && <button className="text-button" type="button"
@@ -119,7 +130,7 @@ export default function ScriptParametersPanel({
                 </div>
             </ParameterScrollArea>
             <footer className="parameter-panel-footer">
-                {isProduction && <div className="production-warning">生产环境 · 执行需要审批与二次确认</div>}
+                {isProduction && <div className="production-warning">生产环境 · 请核对目标和操作风险，确认不是审批</div>}
                 <small className="execution-context" title={script.serviceName}>
                     {environment?.name || '未选环境'} / {script.serviceName}
                     {draftChanged && <b> · 使用当前草稿</b>}
@@ -130,8 +141,8 @@ export default function ScriptParametersPanel({
                     }}>预览替换
                     </button>
                     <button className="run-button" type="submit" form="execution-form"
-                            disabled={!script.canInvoke || executing}>{executing ? '执行中…'
-                        : isProduction && hasApproval ? '检查审批并执行' : '▶ 执行脚本'}</button>
+                            disabled={!script.canInvoke || !script.canEdit || executing || !environment || !instances.length}>{executing ? '执行中…'
+                        : '▶ 调试当前内容'}</button>
                 </div> : <button className="run-button" type="button"
                                  onClick={() => setParameterTab('values')}>完成配置，填写运行参数 →</button>}
             </footer>

@@ -13,6 +13,7 @@ public class ScriptRevision {
     private String parameterSchema;
     private String permissions;
     private String description;
+    private String toolMetadata;
     private String creatorId;
     private String creatorName;
     private LocalDateTime createTime;

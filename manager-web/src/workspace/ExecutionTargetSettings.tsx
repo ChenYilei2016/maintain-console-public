@@ -17,10 +17,11 @@ interface Props {
     target: ExecutionTarget;
     instances: ServiceInstance[];
     onChange: (target: ExecutionTarget) => void;
+    allowAllInstances?: boolean;
 }
 
 /** 目标摘要不随参数滚动；编辑通过校验后一次性应用，取消不改变运行目标。 */
-export default function ExecutionTargetSettings({target, instances, onChange}: Props) {
+export default function ExecutionTargetSettings({target, instances, onChange, allowAllInstances = false}: Props) {
     const [draft, setDraft] = useState<ExecutionTarget>();
     const formId = useId();
     const selected = instances.find((instance) => instance.id === target.instanceId);
@@ -50,7 +51,8 @@ export default function ExecutionTargetSettings({target, instances, onChange}: P
                                                         ...draft,
                                                         selectionMode: event.target.value as TargetSelectionMode
                                                     })}>
-                    {Object.entries(SELECTION_LABELS).map(([value, label]) => <option key={value}
+                    {Object.entries(SELECTION_LABELS).filter(([value]) => value !== 'ALL' || allowAllInstances).map(([value, label]) =>
+                        <option key={value}
                                                                                       value={value}>{label}</option>)}
                 </select></label>
                 {draft.selectionMode === 'SPECIFIC' && <label><span>目标实例</span>

@@ -3,30 +3,33 @@ import type {
     AiAssistResponse,
     ApiResponse,
     DirectoryNode,
-    ExecutionApproval,
     ExecutionHistory,
-    ExecutionTask,
-    ExecutionTaskRequest,
     LoginInfo,
     PageResponse,
     RuntimeMetadata,
     ScriptDetail,
-    ScriptExecutionResult,
     ScriptResourceOverview,
     ScriptRevision,
     ServiceInstance,
     TreeNodeSaveRequest,
 } from './types';
 
-async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(path, init);
+export class ApiError extends Error {
+    constructor(message: string, readonly rejected: boolean) {
+        super(message);
+    }
+}
+
+export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(path, {cache: 'no-store', ...init});
     if (!response.ok) {
-        throw new Error(`请求失败（HTTP ${response.status}）`);
+        throw new ApiError(response.status === 401 ? '登录已失效，请重新登录后刷新此链接' : `请求失败（HTTP ${response.status}）`,
+            response.status >= 400 && response.status < 500);
     }
     return response.json() as Promise<T>;
 }
 
-async function post<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+export async function post<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
     return fetchJson<ApiResponse<T>>(path, {
         method: 'POST',
         headers: body === undefined ? undefined : {'Content-Type': 'application/json'},
@@ -34,9 +37,9 @@ async function post<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
     });
 }
 
-function unwrap<T>(response: ApiResponse<T>): T {
+export function unwrap<T>(response: ApiResponse<T>): T {
     if (!response.success) {
-        throw new Error(response.msg || '操作失败');
+        throw new ApiError(response.msg || '操作失败', true);
     }
     return response.data;
 }
@@ -78,32 +81,22 @@ export const api = {
         return unwrap(await post<string>('/manager/directory/treeNode/delete', {nodeId, forceDelete}));
     },
 
-    async previewScript(script: string, params: Record<string, unknown>, parameterSchema?: string): Promise<string> {
+    async previewScript(scriptId: string, script: string, params: Record<string, unknown>, parameterSchema?: string): Promise<string> {
         return unwrap(await post<string>('/manager/script/preview', {
             script,
+            scriptId,
             params: JSON.stringify(params),
             parameterSchema,
         }));
     },
 
-    async executeScript(request: {
-        service: string;
-        script: string;
-        env: string;
-        scriptId: string;
-        params: string;
-        parameterSchema?: string;
-    }): Promise<ScriptExecutionResult> {
-        return unwrap(await post<ScriptExecutionResult>('/manager/script/eval/v2', request));
-    },
-
-    async listInstances(serviceName: string, environment: string): Promise<ServiceInstance[]> {
-        const query = new URLSearchParams({serviceName, environment});
+    async listInstances(scriptId: string, environment: string): Promise<ServiceInstance[]> {
+        const query = new URLSearchParams({scriptId, environment});
         return unwrap(await fetchJson<ApiResponse<ServiceInstance[]>>(`/manager/service/instances?${query}`));
     },
 
-    async getRuntimeMetadata(serviceName: string, environment: string, instanceId?: string): Promise<RuntimeMetadata> {
-        const query = new URLSearchParams({serviceName, environment});
+    async getRuntimeMetadata(scriptId: string, serviceName: string, environment: string, instanceId?: string): Promise<RuntimeMetadata> {
+        const query = new URLSearchParams({scriptId, serviceName, environment});
         if (instanceId) query.set('instanceId', instanceId);
         return unwrap(await fetchJson<ApiResponse<RuntimeMetadata>>(`/manager/service/runtime-metadata?${query}`));
     },
@@ -115,75 +108,6 @@ export const api = {
 
     async setFavorite(scriptId: string, favorite: boolean): Promise<boolean> {
         return unwrap(await post<boolean>('/manager/resources/favorite', {scriptId, favorite}));
-    },
-
-    async createExecutionTask(request: ExecutionTaskRequest): Promise<ExecutionTask> {
-        return unwrap(await post<ExecutionTask>('/manager/script/tasks', request));
-    },
-
-    async createExecutionApproval(execution: ExecutionTaskRequest, reason: string): Promise<ExecutionApproval> {
-        return unwrap(await post<ExecutionApproval>('/manager/execution/approvals', {execution, reason}));
-    },
-
-    async getExecutionApproval(approvalId: string): Promise<ExecutionApproval> {
-        return unwrap(await fetchJson<ApiResponse<ExecutionApproval>>(`/manager/execution/approvals/${approvalId}`));
-    },
-
-    async listPendingApprovals(): Promise<ExecutionApproval[]> {
-        return unwrap(await fetchJson<ApiResponse<ExecutionApproval[]>>('/manager/execution/approvals/pending'));
-    },
-
-    async decideExecutionApproval(approvalId: string, approved: boolean, comment: string): Promise<ExecutionApproval> {
-        return unwrap(await post<ExecutionApproval>(`/manager/execution/approvals/${approvalId}/decision`, {
-            approved,
-            comment,
-        }));
-    },
-
-    async getExecutionTask(taskId: string): Promise<ExecutionTask> {
-        return unwrap(await fetchJson<ApiResponse<ExecutionTask>>(`/manager/script/tasks/${taskId}`));
-    },
-
-    async cancelExecutionTask(taskId: string): Promise<ExecutionTask> {
-        return unwrap(await post<ExecutionTask>(`/manager/script/tasks/${taskId}/cancel`));
-    },
-
-    watchExecutionTask(
-        taskId: string,
-        onUpdate: (task: ExecutionTask) => void,
-        onError: (error: Error) => void,
-    ): () => void {
-        let stopped = false;
-        const source = new EventSource(`/manager/script/tasks/${taskId}/events`);
-        const deliver = (task: ExecutionTask) => {
-            onUpdate(task);
-            const terminal = ['SUCCESS', 'FAILED', 'PARTIAL_SUCCESS', 'CANCELLED', 'TIMED_OUT'].includes(task.status);
-            if (terminal) {
-                stopped = true;
-                source.close();
-            }
-            return terminal;
-        };
-        const poll = async () => {
-            if (stopped) return;
-            try {
-                const task = await api.getExecutionTask(taskId);
-                if (!deliver(task)) {
-                    window.setTimeout(poll, 1000);
-                }
-            } catch (error) {
-                onError(error instanceof Error ? error : new Error('执行任务连接失败'));
-            }
-        };
-        source.onmessage = (event) => deliver(JSON.parse(event.data) as ExecutionTask);
-        source.onerror = () => {
-            source.close();
-            void poll();
-        };
-        return () => {
-            stopped = true;
-            source.close();
-        };
     },
 
     async getHistory(scriptId: string, page: number, size: number): Promise<PageResponse<ExecutionHistory[]>> {
@@ -200,7 +124,11 @@ export const api = {
         return unwrap(await fetchJson<ApiResponse<ScriptRevision[]>>(`/manager/directory/script/revisions?${query}`));
     },
 
-    async restoreScriptRevision(scriptId: string, version: number): Promise<number> {
-        return unwrap(await post<number>('/manager/directory/script/revision/restore', {scriptId, version}));
+    async restoreScriptRevision(scriptId: string, version: number, expectedVersion: number): Promise<number> {
+        return unwrap(await post<number>('/manager/directory/script/revision/restore', {
+            scriptId,
+            version,
+            expectedVersion
+        }));
     },
 };

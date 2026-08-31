@@ -26,6 +26,7 @@ export const SCRIPT_SNIPPETS = [
 const BUILT_IN_COMPLETIONS: Completion[] = [
     {label: 'ctx', type: 'variable', detail: '受控运行时上下文'},
     {label: '_log', type: 'variable', detail: '日志：info / warn / error / debug'},
+    {label: '_caller', type: 'variable', detail: '可信调用者身份，由 Manager 注入；不能用表单身份代替授权'},
     ...[
         ['toJson', 'toJson(${value})', '对象转换为 JSON 字符串'],
         ['result', 'result(${blocks})', '组合一个或多个结果区块'],
@@ -71,9 +72,17 @@ export function scriptCompletions(context: CompletionContext, parameterNames: st
             })),
         };
     }
-    const member = context.matchBefore(/(?:_log|ctx)\.\w*/);
+    const member = context.matchBefore(/(?:_caller|_log|ctx)\.\w*/);
     if (member) {
         const receiver = member.text.split('.')[0];
+        if (receiver === '_caller') return {
+            from: member.from + receiver.length + 1,
+            options: ['employeeNo', 'employeeName'].map(label => ({
+                label,
+                type: 'property',
+                detail: '服务端可信登录身份'
+            }))
+        };
         return {
             from: member.from + receiver.length + 1,
             options: receiver === '_log'

@@ -16,6 +16,13 @@ import java.util.List;
  */
 @Mapper
 public interface DirectoryNodeMapper extends BaseMapper<DirectoryNodeDO> {
+    @Select("""
+            SELECT n.*, s.permissions AS script_permissions, s.version, s.description
+            FROM mc_directory_node n LEFT JOIN mc_script s ON s.id = n.id
+            WHERE n.service_name = #{serviceName} AND n.is_deleted = 0
+            ORDER BY n.sort_order, n.create_time LIMIT #{limit}
+            """)
+    List<io.github.chenyilei2016.maintain.manager.pojo.entity.DirectoryNode> selectServiceTree(@Param("serviceName") String serviceName, @Param("limit") int limit);
 
     /**
      * 根据父节点ID查询子节点

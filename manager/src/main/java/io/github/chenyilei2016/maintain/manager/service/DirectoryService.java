@@ -51,5 +51,5 @@ public interface DirectoryService {
 
     List<ScriptRevisionDTO> listScriptRevisions(String scriptId, String employeeNo);
 
-    Integer restoreScriptRevision(String scriptId, int version, String operatorId, String operatorName);
+    Integer restoreScriptRevision(String scriptId, int version, int expectedVersion, String operatorId, String operatorName);
 }

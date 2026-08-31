@@ -21,6 +21,10 @@ public class ClientCallerContext {
     @Getter
     private String env;
 
+    @Getter
+    @Setter
+    private long timeoutMillis = 300_000;
+
     public ClientCallerContext(String serviceName) {
         this.serviceName = serviceName;
     }

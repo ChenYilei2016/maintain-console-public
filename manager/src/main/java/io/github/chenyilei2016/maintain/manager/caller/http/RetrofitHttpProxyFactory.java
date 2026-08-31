@@ -20,6 +20,18 @@ import java.util.concurrent.TimeUnit;
 public class RetrofitHttpProxyFactory {
     static OkHttpClient commonDefaultClient = new OkHttpClient.Builder()
             .addInterceptor(new OkHttpUrlSelectionInterceptor())
+            .retryOnConnectionFailure(false)
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .addInterceptor(chain -> {
+                okhttp3.Response response = chain.proceed(chain.request());
+                // 在 JSON 反序列化前限制解压后的响应，避免远端超大输出占满 Manager 内存。
+                if (response.body() != null && response.body().source().request(2 * 1024 * 1024 + 1L)) {
+                    response.close();
+                    throw new IOException("客户端响应超过 2 MiB 上限，调用结果未知");
+                }
+                return response;
+            })
             .callTimeout(300, TimeUnit.SECONDS)
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(180, TimeUnit.SECONDS)

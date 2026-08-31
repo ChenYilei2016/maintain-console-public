@@ -27,6 +27,7 @@ public class ScriptRevisionRepositoryImpl extends ServiceImpl<ScriptRevisionMapp
         revision.setParameterSchema(script.getParameterSchema());
         revision.setPermissions(script.getPermissions());
         revision.setDescription(script.getDescription());
+        revision.setToolMetadata(script.getToolMetadata());
         revision.setCreatorId(creatorId);
         revision.setCreatorName(creatorName);
         revision.setCreateTime(LocalDateTime.now());
