@@ -5,9 +5,16 @@ import DirectoryTree from './DirectoryTree';
 import ExecutionTaskPanel from './ExecutionTaskPanel';
 import Modal from './Modal';
 import ParameterForm from './ParameterForm';
+import ParameterSchemaEditor from './ParameterSchemaEditor';
 import ResultRenderer from './ResultRenderer';
-import {executionParameters, parameterDefinitions, parseParameterSchema} from './parameters';
-import {extractParameters, filterTree} from './tree';
+import {
+    executionParameters,
+    parameterDefinitions,
+    parameterSchemaIssues,
+    parameterValueText,
+    parseParameterSchema
+} from './parameters';
+import {filterTree} from './tree';
 import type {
     DirectoryNode,
     ExecutionApproval,
@@ -28,12 +35,30 @@ import type {
 
 const CodeEditor = lazy(() => import('./CodeEditor'));
 
-const DEFAULT_SCRIPT = `// 通过 _log 输出过程日志；ctx 仅能访问客户端显式开放的 Bean
-_log.info('Maintain Console script started')
-return toJson([
-    protocolVersion: 1,
-    blocks: [[type: 'text', title: '执行结果', data: 'hello maintain console']]
-])`;
+const DEFAULT_SCRIPT = [
+    '// 在“配置参数”中声明参数，在下方运行表单中填值；引用无需额外加引号',
+    'def name = $${name}',
+    'def count = $${count}',
+    '',
+    "_log.info('开始生成示例表格')",
+    "def rows = (1..count).collect { index -> [index, 'Hello, ' + name] }",
+    "return result(resultTable('问候示例', ['序号', '内容'], rows))",
+].join('\n');
+
+const DEFAULT_PARAMETER_SCHEMA = JSON.stringify({
+    version: 1, parameters: [
+        {name: 'name', type: 'STRING', required: true, defaultValue: 'Maintain Console', description: '希望向谁问好'},
+        {
+            name: 'count',
+            type: 'NUMBER',
+            required: true,
+            defaultValue: 3,
+            min: 1,
+            max: 20,
+            description: '生成多少行示例数据'
+        },
+    ]
+}, null, 2);
 
 type Notice = { type: NoticeType; message: string };
 type CreateDialog = { parent?: DirectoryNode; type: DirectoryNode['type']; name: string };
@@ -92,6 +117,10 @@ export default function App() {
     const [script, setScript] = useState<ScriptDetail>();
     const [permissions, setPermissions] = useState('{}');
     const [parameterSchema, setParameterSchema] = useState('');
+    const [editorTab, setEditorTab] = useState<'code' | 'parameters' | 'permissions'>('code');
+    const [savedDraft, setSavedDraft] = useState('');
+    const [showExample, setShowExample] = useState(false);
+    const executionForm = useRef<HTMLFormElement>(null);
     const [parameterValues, setParameterValues] = useState<Record<string, string>>({});
     const [instances, setInstances] = useState<ServiceInstance[]>([]);
     const [runtimeMetadata, setRuntimeMetadata] = useState<RuntimeMetadata>();
@@ -244,6 +273,7 @@ export default function App() {
             setScript(detail);
             setPermissions(detail.permissions || '{}');
             setParameterSchema(detail.parameterSchema || '');
+            setSavedDraft(JSON.stringify([detail.name, detail.content, detail.permissions || '{}', detail.parameterSchema || '']));
             setParameterValues({});
             setResult('等待执行脚本…');
             setExecutionTask(undefined);
@@ -256,13 +286,14 @@ export default function App() {
         }
     }, [refreshResourceOverview, service, showNotice]);
 
-    const parsedParameterSchema = useMemo(() => {
+    const schemaValidation = useMemo(() => {
         try {
-            return parseParameterSchema(parameterSchema);
-        } catch {
-            return undefined;
+            return {schema: parseParameterSchema(parameterSchema), error: ''};
+        } catch (error) {
+            return {schema: undefined, error: messageOf(error)};
         }
     }, [parameterSchema]);
+    const parsedParameterSchema = schemaValidation.schema;
     const definitions = useMemo(
         () => parameterDefinitions(script?.content || '', parsedParameterSchema),
         [parsedParameterSchema, script?.content],
@@ -275,12 +306,14 @@ export default function App() {
     }, [resourceOverview, resourceView, search]);
     const selectedEnvironment = login?.availableEnvironments.find((item) => item.value === environment);
     const isProduction = Boolean(selectedEnvironment?.production);
+    const draftChanged = Boolean(script && savedDraft !== JSON.stringify([script.name, script.content, permissions, parameterSchema]));
+    const schemaIssues = parameterSchemaIssues(script?.content || '', parsedParameterSchema);
 
     useEffect(() => {
         setParameterValues((current) => Object.fromEntries(
             definitions.map((definition) => [
                 definition.name,
-                current[definition.name] ?? (definition.defaultValue == null ? '' : String(definition.defaultValue)),
+                current[definition.name] ?? parameterValueText(definition.defaultValue),
             ]),
         ));
     }, [definitions]);
@@ -318,11 +351,8 @@ export default function App() {
         if (!parameterSchema.trim()) return '';
         try {
             const schema = parseParameterSchema(parameterSchema);
-            const placeholders = extractParameters(script?.content || '');
-            const declared = schema?.parameters.map((parameter) => parameter.name) || [];
-            if (placeholders.length !== declared.length || placeholders.some((name) => !declared.includes(name))) {
-                throw new Error('参数名称必须与脚本占位符完全一致');
-            }
+            const issues = parameterSchemaIssues(script?.content || '', schema);
+            if (issues.length) throw new Error(issues.join(' '));
             return JSON.stringify(schema);
         } catch (error) {
             showNotice(`参数 Schema 无效：${messageOf(error)}`);
@@ -374,6 +404,7 @@ export default function App() {
     };
 
     const buildExecutionRequest = (): ExecutionTaskRequest | undefined => {
+        if (!executionForm.current?.reportValidity()) return undefined;
         const current = validateScript();
         if (!current) return undefined;
         if (!current.canInvoke) {
@@ -515,6 +546,7 @@ export default function App() {
     };
 
     const openPreview = async () => {
+        if (!executionForm.current?.reportValidity()) return;
         const current = validateScript();
         if (!current) return;
         const normalizedParameterSchema = validatedParameterSchema();
@@ -580,7 +612,7 @@ export default function App() {
         if (createDialog.type === 'script') {
             request.content = DEFAULT_SCRIPT;
             request.permissions = '{}';
-            request.parameterSchema = '{"version":1,"parameters":[]}';
+            request.parameterSchema = DEFAULT_PARAMETER_SCHEMA;
             request.description = request.nodeName;
         }
         try {
@@ -633,7 +665,7 @@ export default function App() {
             const restored = JSON.parse(serialized || '{}') as Record<string, unknown>;
             setParameterValues(Object.fromEntries(definitions.map((definition) => [
                 definition.name,
-                definition.sensitive || restored[definition.name] == null ? '' : String(restored[definition.name]),
+                definition.sensitive ? '' : parameterValueText(restored[definition.name]),
             ])));
             setSelectedHistory(undefined);
             setHistoryItems(undefined);
@@ -770,7 +802,8 @@ export default function App() {
                   </span>
                                 </div>
                                 <div className="panel-actions">
-                                    <span className="modified-at">更新于 {formatTime(script.updateTime)}</span>
+                                    <span className={`draft-state ${draftChanged ? 'unsaved' : ''}`}>
+                                        {draftChanged ? '● 未保存草稿' : '✓ 已保存'}</span>
                                     <button type="button"
                                             className={scriptIsFavorite ? 'favorite-button active' : 'favorite-button'}
                                             onClick={() => void toggleFavorite()}>{scriptIsFavorite ? '★ 已收藏' : '☆ 收藏'}</button>
@@ -785,32 +818,58 @@ export default function App() {
                                 </div>
                             </div>
 
-                            <label className="field-label" htmlFor="permissions">权限配置 <span>JSON · readerNo / editorNo / invokerNo</span></label>
-                            <textarea id="permissions" className="permission-editor" rows={3} value={permissions}
-                                      disabled={!script.canEdit}
-                                      onChange={(event) => setPermissions(event.target.value)} spellCheck={false}/>
-
-                            <label className="field-label" htmlFor="parameter-schema">参数 Schema <span>JSON · 类型、默认值、校验、敏感值</span></label>
-                            <textarea id="parameter-schema" className="permission-editor" rows={5}
-                                      value={parameterSchema}
-                                      disabled={!script.canEdit}
-                                      onChange={(event) => setParameterSchema(event.target.value)} spellCheck={false}
-                                      placeholder='{"version":1,"parameters":[{"name":"id","type":"STRING","required":true}]}'/>
-
-                            <div className="code-heading">
-                                <span>Groovy 脚本</span><small>{script.content.split('\n').length} 行 · 参数占位符
-                                $${'{name}'}</small></div>
-                            <Suspense fallback={<div className="code-editor-loading">编辑器加载中…</div>}>
-                                <CodeEditor value={script.content} disabled={!script.canEdit}
-                                            parameterNames={definitions.map((definition) => definition.name)}
-                                            runtimeMetadata={runtimeMetadata}
-                                            onChange={(content) => updateScript({content})}/>
-                            </Suspense>
+                            <div className="workspace-tabs" role="tablist" aria-label="脚本配置">
+                                {([['code', '编写脚本'], ['parameters', `配置参数 · ${definitions.length}`], ['permissions', '权限设置']] as const)
+                                    .map(([tab, title]) => <button key={tab} id={`tab-${tab}`} role="tab" type="button"
+                                                                   aria-selected={editorTab === tab}
+                                                                   aria-controls={`panel-${tab}`}
+                                                                   onClick={() => setEditorTab(tab)}>{title}</button>)}
+                            </div>
+                            <div id="panel-code" role="tabpanel" aria-labelledby="tab-code"
+                                 hidden={editorTab !== 'code'}>
+                                <div className="script-guidance">
+                                    <span>{definitions.length ? `已配置 ${definitions.length} 个运行参数，在下方填值后即可预览和执行。`
+                                        : '脚本需要订单号、查询数量等输入？先配置参数，使用者即可通过表单运行。'}</span>
+                                    <button type="button" onClick={() => setEditorTab('parameters')}>配置参数 →</button>
+                                    <button type="button" onClick={() => setShowExample(true)}>入门示例</button>
+                                </div>
+                                {schemaIssues.length > 0 &&
+                                    <div className="parameter-issues" role="status">{schemaIssues.join(' ')}</div>}
+                                {schemaValidation.error && <div className="field-error" role="alert">
+                                    参数配置无效：{schemaValidation.error}，请在“配置参数 → 高级 JSON”中修正。</div>}
+                                <Suspense fallback={<div className="code-editor-loading">编辑器加载中…</div>}>
+                                    <CodeEditor key={script.id} value={script.content} disabled={!script.canEdit}
+                                                parameterNames={definitions.map((definition) => definition.name)}
+                                                runtimeMetadata={runtimeMetadata}
+                                                onChange={(content) => updateScript({content})}/>
+                                </Suspense>
+                            </div>
+                            <div id="panel-parameters" role="tabpanel" aria-labelledby="tab-parameters"
+                                 hidden={editorTab !== 'parameters'}>
+                                <ParameterSchemaEditor key={script.id} value={parameterSchema} script={script.content}
+                                                       disabled={!script.canEdit} onChange={setParameterSchema}
+                                                       onEditScript={() => setEditorTab('code')}
+                                                       onLoadExample={() => setShowExample(true)}/>
+                            </div>
+                            <div id="panel-permissions" role="tabpanel" aria-labelledby="tab-permissions"
+                                 hidden={editorTab !== 'permissions'}>
+                                <p className="schema-footnote">权限设置控制脚本的读取、编辑与执行。留空对象沿用默认权限规则。</p>
+                                <label className="field-label" htmlFor="permissions">权限配置 <span>JSON · readerNo / editorNo / invokerNo</span></label>
+                                <textarea id="permissions" className="permission-editor" rows={5} value={permissions}
+                                          disabled={!script.canEdit}
+                                          onChange={(event) => setPermissions(event.target.value)} spellCheck={false}/>
+                                <p className="schema-footnote">更新于 {formatTime(script.updateTime)}</p>
+                            </div>
                         </section>
 
-                        <section className="panel parameter-panel">
+                        <form className="panel parameter-panel" id="execution-form" ref={executionForm}
+                              onSubmit={(event) => {
+                                  event.preventDefault();
+                                  void executeScript();
+                              }}>
                             <div className="section-title"><span><i
-                                className="blue-dot"/>脚本参数</span><small>{parsedParameterSchema ? '按类型化 Schema 生成' : '旧脚本按占位符生成'}</small>
+                                className="blue-dot"/>运行配置与参数</span><small>{definitions.length} 个参数 ·
+                                本次运行值不会改写默认值</small>
                             </div>
                             <div className="execution-target-config">
                                 <label><span>执行模式</span><select value={selectionMode}
@@ -831,12 +890,12 @@ export default function App() {
                                                                        onChange={(event) => setTimeoutSeconds(Number(event.target.value))}/></label>
                                 <small>已发现 {instances.length} 个可用实例</small>
                             </div>
-                            <ParameterForm definitions={definitions} values={parameterValues}
+                            <ParameterForm definitions={definitions} values={parameterValues} instances={instances}
                                            onChange={(name, value) => setParameterValues((current) => ({
                                                ...current,
                                                [name]: value
                                            }))}/>
-                        </section>
+                        </form>
 
                         <section className="panel result-panel">
                             <div className="section-title">
@@ -846,9 +905,9 @@ export default function App() {
                                 <span className="result-actions">
                                     {executing && executionTask && <button type="button" className="cancel-button"
                                                                            onClick={() => void cancelExecution()}>取消任务</button>}
-                                    <button className="run-button" type="button"
+                                    <button className="run-button" type="submit" form="execution-form"
                                             disabled={!script.canInvoke || executing}
-                                            onClick={() => void executeScript()}>{executing ? '执行中…'
+                                    >{executing ? '执行中…'
                                         : isProduction && executionApproval ? '检查审批并执行' : '▶ 执行脚本'}</button>
                                 </span>
                             </div>
@@ -869,8 +928,13 @@ export default function App() {
                         <ol>
                             <li>选择执行环境与应用服务。</li>
                             <li>从目录树选择脚本，或在目录下新建脚本。</li>
-                            <li>使用 <code>$${'{参数名}'}</code> 声明动态参数；<code>ctx</code> 仅能获取客户端白名单中的
-                                Spring Bean。
+                            <li>打开“配置参数”，添加名称、类型、用途说明和默认值，无需手写 Schema。</li>
+                            <li>在脚本中使用 <code>{'def count = $${count}'}</code> 引用参数，不要额外加引号。
+                                也可以先写占位符，再点击“从脚本识别”。
+                            </li>
+                            <li>在运行表单填值，数字、下拉选项、是/否等会按类型显示；本次输入不改变默认值。</li>
+                            <li>点击“代码补全”或按 Ctrl + Space 查看提示；输入 <code>_log.</code> 查看日志方法。
+                                <code>ctx</code> 仅能获取客户端白名单中的 Spring Bean。
                             </li>
                             <li>预览替换后的代码，确认目标环境后执行；结果会进入执行历史。</li>
                         </ol>
@@ -879,6 +943,27 @@ export default function App() {
                     </div>
                 </Modal>
             )}
+
+            {showExample && script && <Modal title="入门示例：参数 → 表单 → 表格结果" wide
+                                             onClose={() => setShowExample(false)} footer={<>
+                <button type="button" onClick={() => setShowExample(false)}>关闭</button>
+                <button className="primary" type="button" disabled={!script.canEdit} onClick={() => {
+                    updateScript({content: DEFAULT_SCRIPT});
+                    setParameterSchema(DEFAULT_PARAMETER_SCHEMA);
+                    setParameterValues({});
+                    setEditorTab('code');
+                    setShowExample(false);
+                    showNotice('示例已载入草稿，尚未保存或执行', 'success');
+                }}>替换当前草稿为示例
+                </button>
+            </>}>
+                <div className="help-content">
+                    <p>示例声明 <code>name</code>（文本）和 <code>count</code>（1～20 的数字），下方表单会自动生成。
+                        执行只生成示例表格，不访问业务数据。</p>
+                    <pre className="preview-code">{DEFAULT_SCRIPT}</pre>
+                    <div className="safety-note">载入会替换当前未保存的脚本与参数配置；不会自动保存，也不会自动执行。</div>
+                </div>
+            </Modal>}
 
             {showAiAssistant && script && <AiAssistantModal script={script} serviceName={service}
                                                             parameterSchema={parameterSchema}

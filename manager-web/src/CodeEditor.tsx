@@ -2,14 +2,15 @@ import {
     autocompletion,
     closeBrackets,
     closeBracketsKeymap,
-    type CompletionContext,
-    completionKeymap
+    completionKeymap,
+    snippet,
+    startCompletion,
 } from '@codemirror/autocomplete';
 import {defaultKeymap, history, historyKeymap, indentWithTab} from '@codemirror/commands';
 import {bracketMatching, defaultHighlightStyle, indentOnInput, syntaxHighlighting} from '@codemirror/language';
 import {java} from '@codemirror/lang-java';
-import {type Diagnostic, linter, lintGutter, lintKeymap} from '@codemirror/lint';
-import {EditorState} from '@codemirror/state';
+import {forceLinting, linter, lintGutter, lintKeymap} from '@codemirror/lint';
+import {Compartment, EditorState} from '@codemirror/state';
 import {
     crosshairCursor,
     drawSelection,
@@ -24,88 +25,8 @@ import {
 } from '@codemirror/view';
 import {oneDark} from '@codemirror/theme-one-dark';
 import {useEffect, useRef} from 'react';
+import {SCRIPT_SNIPPETS, scriptCompletions, scriptDiagnostics} from './editorSupport';
 import type {RuntimeMetadata} from './types';
-
-const BUILT_IN_COMPLETIONS = [
-    {label: 'ctx', type: 'variable', detail: '受控运行时上下文'},
-    {label: '_log', type: 'variable', detail: '执行日志输出'},
-    {label: 'toJson', type: 'function', apply: 'toJson(value)', detail: '转换为 JSON 字符串'},
-    {label: 'result', type: 'function', apply: 'result(resultText("title", value))', detail: '组合结构化结果区块'},
-    {label: 'resultText', type: 'function', apply: 'resultText("title", value)'},
-    {label: 'resultTable', type: 'function', apply: 'resultTable("title", columns, rows)'},
-    {label: 'resultMetric', type: 'function', apply: 'resultMetric("title", values)'},
-    {label: 'resultChart', type: 'function', apply: 'resultChart("title", "line", labels, series)'},
-    {
-        label: 'resultFileContent', type: 'function',
-        apply: 'resultFileContent("title", "report.csv", content.bytes, "text/csv")',
-        detail: '生成不超过 1 MiB 的内联下载文件'
-    },
-];
-
-const RISK_PATTERNS: Array<[RegExp, string]> = [
-    [/\bSystem\.exit\s*\(/g, 'System.exit 可终止目标应用'],
-    [/\bRuntime\.getRuntime\s*\(/g, '调用 Runtime 属于高风险操作'],
-    [/\b(?:new\s+)?File\s*\(/g, '文件系统访问需要额外复核'],
-    [/\bClass\.forName\s*\(/g, '反射加载类需要额外复核'],
-    [/\bexecute(?:Update|LargeUpdate)\s*\(/g, '脚本包含数据写操作'],
-];
-
-function completionSource(parameterNames: string[], runtimeMetadata?: RuntimeMetadata) {
-    return (context: CompletionContext) => {
-        const word = context.matchBefore(/[\w$]*/);
-        if (!word || (word.from === word.to && !context.explicit)) return null;
-        return {
-            from: word.from,
-            options: [
-                ...BUILT_IN_COMPLETIONS,
-                ...parameterNames.map((name) => ({
-                    label: '$${' + name + '}',
-                    type: 'variable',
-                    apply: '$${' + name + '}',
-                    detail: '类型化脚本参数',
-                })),
-                ...(runtimeMetadata?.beans.flatMap((bean) => [
-                    {
-                        label: `ctx.getBean('${bean.name}')`,
-                        type: 'variable',
-                        apply: `ctx.getBean('${bean.name}')`,
-                        detail: bean.type,
-                    },
-                    ...bean.methods.map((method) => ({
-                        label: `${bean.name}.${method}`,
-                        type: 'method',
-                        apply: `ctx.getBean('${bean.name}').${method.replace(/\(.*/, '')}()`,
-                        detail: bean.type,
-                    })),
-                ]) || []),
-            ],
-        };
-    };
-}
-
-function scriptLinter(parameterNames: string[]) {
-    return linter((view) => {
-        const source = view.state.doc.toString();
-        const diagnostics: Diagnostic[] = [];
-        for (const [pattern, message] of RISK_PATTERNS) {
-            for (const match of source.matchAll(pattern)) {
-                diagnostics.push({from: match.index, to: match.index + match[0].length, severity: 'warning', message});
-            }
-        }
-        for (const match of source.matchAll(/\$\$\{\s*([^}]+?)\s*}/g)) {
-            const parameterName = match[1].trim();
-            if (!parameterNames.includes(parameterName)) {
-                diagnostics.push({
-                    from: match.index,
-                    to: match.index + match[0].length,
-                    severity: 'error',
-                    message: `参数 ${parameterName} 未在 Schema 中声明`,
-                });
-            }
-        }
-        return diagnostics;
-    });
-}
 
 export default function CodeEditor({
                                        value,
@@ -122,6 +43,8 @@ export default function CodeEditor({
 }) {
     const host = useRef<HTMLDivElement>(null);
     const editor = useRef<EditorView | null>(null);
+    const readOnly = useRef(new Compartment());
+    const assistance = useRef(new Compartment());
     const onChangeRef = useRef(onChange);
     onChangeRef.current = onChange;
 
@@ -136,10 +59,11 @@ export default function CodeEditor({
                     dropCursor(), EditorState.allowMultipleSelections.of(true), indentOnInput(), bracketMatching(),
                     closeBrackets(), rectangularSelection(), crosshairCursor(), highlightActiveLine(),
                     syntaxHighlighting(defaultHighlightStyle, {fallback: true}), java(), oneDark, lintGutter(),
-                    scriptLinter(parameterNames), autocompletion({override: [completionSource(parameterNames, runtimeMetadata)]}),
+                    assistance.current.of([]),
                     keymap.of([...closeBracketsKeymap, ...defaultKeymap, ...historyKeymap, ...completionKeymap,
                         ...lintKeymap, indentWithTab]),
-                    EditorState.readOnly.of(disabled), EditorView.editable.of(!disabled),
+                    readOnly.current.of([]),
+                    EditorView.cspNonce.of(document.querySelector<HTMLMetaElement>('meta[name="csp-nonce"]')?.content || ''),
                     EditorView.contentAttributes.of({'aria-label': 'Groovy 脚本内容'}),
                     EditorView.updateListener.of((update) => {
                         if (update.docChanged) onChangeRef.current(update.state.doc.toString());
@@ -152,7 +76,28 @@ export default function CodeEditor({
             view.destroy();
             editor.current = null;
         };
-    }, [disabled, parameterNames.join('\u0000'), JSON.stringify(runtimeMetadata)]);
+    }, []);
+
+    // 原位更新扩展，不重建视图；保留选择区、撤销历史和滚动位置。
+    useEffect(() => {
+        editor.current?.dispatch({
+            effects: readOnly.current.reconfigure([
+                EditorState.readOnly.of(disabled), EditorView.editable.of(!disabled),
+            ])
+        });
+    }, [disabled]);
+
+    useEffect(() => {
+        const view = editor.current;
+        if (!view) return;
+        view.dispatch({
+            effects: assistance.current.reconfigure([
+                linter((current) => scriptDiagnostics(current.state.doc.toString(), parameterNames)),
+                autocompletion({override: [(context) => scriptCompletions(context, parameterNames, runtimeMetadata)]}),
+            ])
+        });
+        forceLinting(view);
+    }, [parameterNames.join('\u0000'), runtimeMetadata]);
 
     useEffect(() => {
         const view = editor.current;
@@ -160,5 +105,38 @@ export default function CodeEditor({
         view.dispatch({changes: {from: 0, to: view.state.doc.length, insert: value}});
     }, [value]);
 
-    return <div className="code-editor" ref={host}/>;
+    return <div className="editor-workbench">
+        <div className="editor-toolbar">
+            <span>Groovy <small>· {value.split('\n').length} 行</small></span>
+            <button type="button" disabled={disabled} onClick={() => {
+                if (!editor.current) return;
+                editor.current.focus();
+                startCompletion(editor.current);
+            }}>代码补全 <kbd>Ctrl Space</kbd></button>
+        </div>
+        <div className="code-editor" ref={host}/>
+        <div className="editor-insertions">
+            <span>插入片段</span>
+            {SCRIPT_SNIPPETS.map((item) => <button key={item.label} type="button" disabled={disabled}
+                                                   onClick={() => {
+                                                       const view = editor.current;
+                                                       if (!view) return;
+                                                       const {from, to} = view.state.selection.main;
+                                                       snippet(item.template)(view, null, from, to);
+                                                       view.focus();
+                                                   }}>{item.label}</button>)}
+            {parameterNames.length > 0 && <span>参数引用</span>}
+            {parameterNames.map((name) => <button key={name} type="button" disabled={disabled}
+                                                  title="在光标处插入参数，不需要额外加引号" onClick={() => {
+                const view = editor.current;
+                if (!view) return;
+                view.dispatch(view.state.replaceSelection('$${' + name + '}'));
+                view.focus();
+            }}><code>{'$${' + name + '}'}</code></button>)}
+        </div>
+        <div className="editor-status">
+            <span>输入自动提示 · Enter 选中 · Tab 切换片段字段 · Esc 关闭</span>
+            <span>{runtimeMetadata ? `已连接 · ${runtimeMetadata.beans.length} 个可用 Bean` : '运行时提示未连接，内置补全可用'}</span>
+        </div>
+    </div>;
 }
