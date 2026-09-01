@@ -207,6 +207,20 @@ describe('工作区模块契约', () => {
         expect(html).toContain('在 末级目录 下新建');
     });
 
+    it('只有可管理的目录节点提供原生拖拽入口', () => {
+        const html = renderToStaticMarkup(<DirectoryTree searching={false} selectedFolderId="destination"
+                                                         onSelect={noop} onMove={noop} nodes={[{
+            id: 'movable', name: '可移动脚本', type: 'script', serviceName: 'sample', canRename: true
+        }, {
+            id: 'locked', name: '不可移动脚本', type: 'script', serviceName: 'sample', canRename: false
+        }]}/>);
+
+        expect(html).toContain('draggable="true"');
+        expect(html).toContain('可拖拽移动');
+        expect(html).toContain('draggable="false"');
+        expect(html).toContain('将 可移动脚本 移动到当前目录');
+    });
+
     it('结果始终可见，放大后仍展示同一份结果', () => {
         const execution = {error: '保留的执行结果', running: false, elapsed: 0};
         const open = renderToStaticMarkup(<ExecutionResultsPanel execution={execution}

@@ -2,6 +2,7 @@ package io.github.chenyilei2016.maintain.manager.service;
 
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWebRequest;
+import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeMoveWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptNodeDTO;
@@ -49,6 +50,8 @@ public interface DirectoryService {
      * @return 是否成功
      */
     boolean treeNodeDelete(TreeNodeDeleteWebRequest request, LocalLoginUser actor);
+
+    String treeNodeMove(TreeNodeMoveWebRequest request, LocalLoginUser actor);
 
     List<ScriptRevisionDTO> listScriptRevisions(String scriptId, LocalLoginUser actor);
 

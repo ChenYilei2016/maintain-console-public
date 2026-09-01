@@ -104,7 +104,19 @@ export default function WorkspaceResources({
                                     name: node.name,
                                     nodeType: node.type,
                                     forceDelete: false
-                                })}/>
+                                })} onMove={async (nodeId, parentId) => {
+            if (saving) return;
+            setSaving(true);
+            setError('');
+            try {
+                await api.moveTreeNode(nodeId, parentId);
+                await refresh();
+            } catch (failure) {
+                setError(failure instanceof Error ? failure.message : '移动失败');
+            } finally {
+                setSaving(false);
+            }
+        }}/>
         {error && <p className="resource-error" role="alert">{error}</p>}
         {dialog &&
             <Modal title={dialog.kind === 'create' ? '新建资源' : dialog.kind === 'rename' ? '重命名资源' : '删除资源'}

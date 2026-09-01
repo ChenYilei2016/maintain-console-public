@@ -6,6 +6,7 @@ import io.github.chenyilei2016.maintain.manager.constant.TreeNodeTypeEnum;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.controller.assembler.DirectoryNodeAssembler;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWebRequest;
+import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeMoveWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
@@ -162,6 +163,48 @@ public class DirectoryServiceImpl implements DirectoryService {
         }
         // 一次批量逻辑删除；源码、版本和执行历史保留，避免循环查库和破坏历史外键。
         return directoryNodeRepository.deleteAll(List.copyOf(ids));
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String treeNodeMove(TreeNodeMoveWebRequest request, LocalLoginUser actor) {
+        DirectoryNode node = directoryNodeRepository.findById(request.getNodeId());
+        if (node == null) throw CommonException.createReminderException("节点不存在");
+
+        if (DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
+            access.require(node.getId(), actor, ScriptPermissionEnum.EDIT);
+        } else if (!Objects.equals(node.getCreatorId(), actor.getEmployeeNo())) {
+            throw CommonException.createReminderException("只有创建者可以移动目录");
+        }
+
+        String parentId = StringUtils.hasText(request.getParentId()) ? request.getParentId() : null;
+        if (Objects.equals(node.getParentId(), parentId)) return node.getId();
+
+        List<DirectoryNode> serviceTree = directoryNodeRepository.findServiceTree(node.getServiceName());
+        Map<String, DirectoryNode> nodesById = serviceTree.stream()
+                .collect(Collectors.toMap(DirectoryNode::getId, item -> item));
+        DirectoryNode parent = parentId == null ? null : nodesById.get(parentId);
+        if (parentId != null && (parent == null || !DirectoryNode.TYPE_FOLDER.equals(parent.getType()))) {
+            throw CommonException.createReminderException("目标目录不存在或不属于当前服务");
+        }
+
+        if (DirectoryNode.TYPE_FOLDER.equals(node.getType())) {
+            for (DirectoryNode current = parent; current != null; current = nodesById.get(current.getParentId())) {
+                if (Objects.equals(current.getId(), node.getId())) {
+                    throw CommonException.createReminderException("不能把目录移动到自身或其子目录");
+                }
+            }
+            if (parent != null && (parent.getParentId() != null || serviceTree.stream().anyMatch(item ->
+                    DirectoryNode.TYPE_FOLDER.equals(item.getType()) && Objects.equals(item.getParentId(), node.getId())))) {
+                throw CommonException.createReminderException("移动后目录层级将超过2层");
+            }
+        }
+
+        checkNameDuplicate(node.getName(), parentId, node.getServiceName());
+        if (!directoryNodeRepository.updateParentId(node.getId(), parentId, LocalDateTime.now())) {
+            throw CommonException.createReminderException("节点已删除，移动失败");
+        }
+        return node.getId();
     }
 
     /**

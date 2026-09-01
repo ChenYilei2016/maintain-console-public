@@ -913,6 +913,24 @@ textarea:focus-visible {
     padding-right: 3px;
 }
 
+.tree-drag-hint {
+    display: block;
+    margin-top: 8px;
+    color: #738198;
+    font-size: 9px;
+}
+
+.tree-root-drop {
+    margin-top: 8px;
+    border: 1px dashed #6680ff;
+    border-radius: 7px;
+    background: #202b3f;
+    padding: 8px;
+    color: #bdc9ff;
+    font-size: 10px;
+    text-align: center;
+}
+
 .directory-tree,
 .tree-children {
     margin: 0;
@@ -944,6 +962,20 @@ textarea:focus-visible {
 
 .tree-row.selected {
     box-shadow: inset 2px 0 #6680ff;
+}
+
+.tree-row.drop-target {
+    background: #26385d;
+    box-shadow: inset 0 0 0 1px #7087ef;
+    color: #fff;
+}
+
+.tree-label[draggable="true"] {
+    cursor: grab;
+}
+
+.tree-label[draggable="true"]:active {
+    cursor: grabbing;
 }
 
 .tree-label {

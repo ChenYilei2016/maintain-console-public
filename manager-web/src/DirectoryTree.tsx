@@ -1,5 +1,7 @@
-import {useEffect, useState} from 'react';
+import {type DragEvent, useEffect, useState} from 'react';
 import type {DirectoryNode} from './types';
+
+export const DIRECTORY_NODE_DRAG_TYPE = 'application/x-maintain-console-node';
 
 interface DirectoryTreeProps {
     nodes: DirectoryNode[];
@@ -11,6 +13,8 @@ interface DirectoryTreeProps {
     onCreate?: (parent: DirectoryNode) => void;
     onRename?: (node: DirectoryNode) => void;
     onDelete?: (node: DirectoryNode) => void;
+    onMove?: (nodeId: string, parentId?: string) => void;
+    onDraggingChange?: (dragging: boolean) => void;
 }
 
 interface TreeNodeProps extends Omit<DirectoryTreeProps, 'nodes'> {
@@ -26,9 +30,12 @@ function TreeNodeRow({
                          onFolderSelect,
                          onCreate,
                          onRename,
-                         onDelete
+                         onDelete,
+                         onMove,
+                         onDraggingChange
                      }: TreeNodeProps) {
     const [expanded, setExpanded] = useState(node.level === 0);
+    const [dropActive, setDropActive] = useState(false);
     const isFolder = node.type === 'folder';
     const capabilityKnown = !isFolder && [node.canRead, node.canEdit, node.canInvoke, node.canManage]
         .some(value => typeof value === 'boolean');
@@ -38,6 +45,19 @@ function TreeNodeRow({
             : node.canManage ? '可授权' : '仅目录';
     const capabilityTitle = [node.canRead && '查看', node.canEdit && '编辑', node.canInvoke && '运行',
         node.canManage && '授权'].filter(Boolean).join('、') || '仅目录可见，无脚本访问能力';
+    const movable = Boolean(onMove) && node.canRename !== false;
+    const selectedParentId = selectedFolderId || undefined;
+    const canMoveToSelected = movable && node.id !== selectedParentId
+        && (node.parentId || undefined) !== selectedParentId;
+
+    const drop = (event: DragEvent) => {
+        if (!isFolder || !onMove) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setDropActive(false);
+        const nodeId = event.dataTransfer.getData(DIRECTORY_NODE_DRAG_TYPE);
+        if (nodeId && nodeId !== node.id) onMove(nodeId, node.id);
+    };
 
     useEffect(() => {
         if (searching) setExpanded(true);
@@ -53,9 +73,34 @@ function TreeNodeRow({
 
     return (
         <li>
-            <div className={`tree-row ${selectedId === node.id || selectedFolderId === node.id ? 'selected' : ''}`}>
+            <div
+                className={`tree-row ${selectedId === node.id || selectedFolderId === node.id ? 'selected' : ''} ${dropActive ? 'drop-target' : ''}`}
+                onDragOver={event => {
+                    if (isFolder && onMove) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        event.dataTransfer.dropEffect = 'move';
+                    }
+                }} onDragEnter={event => {
+                if (isFolder && onMove) {
+                    event.stopPropagation();
+                    setDropActive(true);
+                }
+            }}
+                onDragLeave={event => {
+                    event.stopPropagation();
+                    if (!event.currentTarget.contains(event.relatedTarget as Node)) setDropActive(false);
+                }} onDrop={drop}>
                 <button className="tree-label" type="button" onClick={activate} disabled={!isFolder && !canOpen}
-                        title={capabilityKnown ? `${node.name} · ${capabilityTitle}` : node.name}>
+                        draggable={movable} onDragStart={event => {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData(DIRECTORY_NODE_DRAG_TYPE, node.id);
+                    onDraggingChange?.(true);
+                }} onDragEnd={() => {
+                    setDropActive(false);
+                    onDraggingChange?.(false);
+                }}
+                        title={`${capabilityKnown ? `${node.name} · ${capabilityTitle}` : node.name}${movable ? ' · 可拖拽移动' : ''}`}>
           <span className={`tree-arrow ${isFolder && expanded ? 'expanded' : ''}`} aria-hidden="true">
             {isFolder ? '›' : ''}
           </span>
@@ -64,10 +109,13 @@ function TreeNodeRow({
                     {capabilityLabel && <span className={`tree-capability ${canOpen ? '' : 'locked'}`}>
                         {capabilityLabel}</span>}
                 </button>
-                {(onCreate || onRename || onDelete) && <span className="tree-actions">
+                {(onCreate || onRename || onDelete || onMove) && <span className="tree-actions">
           {onCreate && isFolder && node.canCreateChild !== false && (
               <button type="button" aria-label={`在 ${node.name} 下新建`} onClick={() => onCreate(node)}>+</button>
           )}
+                    {canMoveToSelected && <button type="button"
+                                                  aria-label={`将 ${node.name} 移动到${selectedFolderId ? '当前目录' : '根目录'}`}
+                                                  onClick={() => onMove?.(node.id, selectedParentId)}>⇢</button>}
                     {onRename && node.canRename !== false && <button type="button" aria-label={`重命名 ${node.name}`}
                                          onClick={() => onRename(node)}>✎</button>}
                     {onDelete && node.canDelete !== false &&
@@ -89,6 +137,8 @@ function TreeNodeRow({
                             onCreate={onCreate}
                             onRename={onRename}
                             onDelete={onDelete}
+                            onMove={onMove}
+                            onDraggingChange={onDraggingChange}
                         />
                     ))}
                 </ul>

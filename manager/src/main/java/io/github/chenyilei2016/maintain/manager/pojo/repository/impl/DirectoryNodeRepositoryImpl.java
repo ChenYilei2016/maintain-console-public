@@ -10,6 +10,7 @@ import io.github.chenyilei2016.maintain.manager.pojo.repository.converter.Direct
 import io.github.chenyilei2016.maintain.manager.utils.IdUtil;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -98,5 +99,10 @@ public class DirectoryNodeRepositoryImpl extends ServiceImpl<DirectoryNodeMapper
             return Collections.emptyList();
         }
         return converter.toEntityList(dataObjectList);
+    }
+
+    @Override
+    public boolean updateParentId(String id, String parentId, LocalDateTime updateTime) {
+        return baseMapper.updateParentId(id, parentId, updateTime) == 1;
     }
 }

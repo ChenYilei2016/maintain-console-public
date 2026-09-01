@@ -280,6 +280,9 @@ maintain.manager.target-environments[0].all-namespaces=false
 默认 `SPRING_CLOUD` 模式保持原单注册中心行为。多个独立 Nacos 使用 `MULTI_NACOS`，每个环境明确绑定连接、namespaceId、group
 和实例 cluster：
 
+可直接复制并按环境变量修改的完整样例见 [
+`demo/application-multi-nacos.properties`](demo/application-multi-nacos.properties)。
+
 ```properties
 maintain.manager.discovery.mode=MULTI_NACOS
 maintain.manager.discovery.max-services=500
@@ -440,6 +443,7 @@ pnpm build
 ```text
 manager/                                      # JDK 25 / Boot 4 管理端与嵌入前端
 manager-web/                                  # React + Vite + CodeMirror 6
+demo/                                         # 可复制的部署配置样例
 maintain-console-client/
 ├── maintain-console-client-common/           # Java 8 公共协议与签名
 ├── maintain-console-client-http-starter/     # HTTP 入口与验签

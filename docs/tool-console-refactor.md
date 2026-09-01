@@ -71,10 +71,10 @@ pnpm test
 pnpm build
 ```
 
-- 前端 33 项自动化测试、TypeScript 检查与 Vite 双入口构建通过；编译资源写入 `manager/src/main/resources/static/console`，打包
+- 前端 34 项自动化测试、TypeScript 检查与 Vite 双入口构建通过；编译资源写入 `manager/src/main/resources/static/console`，打包
   JAR
   的入口 hash 与该目录一致。
-- Maven Reactor 共运行 52 项（50 项通过：Manager 41、Client 公共协议 2、Groovy 支持 5、Registry 1、HTTP 1），保留的 2 项外部
+- Maven Reactor 共运行 53 项（51 项通过：Manager 42、Client 公共协议 2、Groovy 支持 5、Registry 1、HTTP 1），保留的 2 项外部
   HTTP
   手工联调测试跳过；包含作者、协作编辑者、仅运行用户、陌生用户的真实业务入口回归。
 - 权限回归覆盖创建绕过、私有发现/收藏、源码与版本拒绝、草稿/旧入口拒绝、撤销、保存冲突、恢复不改授权、历史按执行者过滤。

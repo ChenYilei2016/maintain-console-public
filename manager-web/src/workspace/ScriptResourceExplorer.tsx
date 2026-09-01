@@ -1,5 +1,5 @@
 import {type ReactNode, useMemo, useState} from 'react';
-import DirectoryTree from '../DirectoryTree';
+import DirectoryTree, {DIRECTORY_NODE_DRAG_TYPE} from '../DirectoryTree';
 import {filterTree} from '../tree';
 import type {DirectoryNode, ScriptResourceOverview} from '../types';
 
@@ -17,6 +17,7 @@ interface Props {
     onCreate?: (parent?: DirectoryNode) => void;
     onRename: (node: DirectoryNode) => void;
     onDelete: (node: DirectoryNode) => void;
+    onMove?: (nodeId: string, parentId?: string) => void;
 }
 
 /** 资源筛选和视图切换留在资源模块，加载与写操作由应用层编排。 */
@@ -34,9 +35,11 @@ export default function ScriptResourceExplorer({
                                                    onCreate,
                                                    onRename,
                                                    onDelete,
+                                                   onMove,
                                                }: Props) {
     const [search, setSearch] = useState('');
     const [view, setView] = useState<'all' | 'favorites' | 'recent'>('all');
+    const [dragging, setDragging] = useState(false);
     const visibleTree = useMemo(() => filterTree(tree, search), [search, tree]);
     const visibleShortcuts = useMemo(() => {
         const items = view === 'favorites' ? overview.favorites : overview.recent;
@@ -62,7 +65,7 @@ export default function ScriptResourceExplorer({
         resources = <DirectoryTree nodes={visibleTree} selectedId={selectedId} searching={Boolean(search.trim())}
                                    selectedFolderId={selectedFolder?.id} onFolderSelect={onFolderSelect}
                                    onSelect={(node) => onSelect(node.id)} onCreate={onCreate} onRename={onRename}
-                                   onDelete={onDelete}/>;
+                                   onDelete={onDelete} onMove={onMove} onDraggingChange={setDragging}/>;
     } else {
         resources = <p className="empty-hint">{search ? '没有匹配结果' : '暂无脚本资源'}</p>;
     }
@@ -80,6 +83,16 @@ export default function ScriptResourceExplorer({
         {selectedFolder && <div className="resource-create-context">当前位置：{selectedFolder.name}
             <button type="button" onClick={() => onFolderSelect?.()}>切回根目录</button>
         </div>}
+        {onMove && <small className="tree-drag-hint">拖动节点，或先选目标目录再点节点右侧 ⇢</small>}
+        {dragging && <div className="tree-root-drop" onDragOver={event => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }} onDrop={event => {
+            event.preventDefault();
+            const nodeId = event.dataTransfer.getData(DIRECTORY_NODE_DRAG_TYPE);
+            setDragging(false);
+            if (nodeId) onMove?.(nodeId);
+        }}>拖到这里移至根目录</div>}
         <input className="search-input" value={search} onChange={(event) => setSearch(event.target.value)}
                placeholder="搜索文件夹或脚本" aria-label="搜索目录树"/>
         <div className="resource-tabs">

@@ -2,6 +2,7 @@ package io.github.chenyilei2016.maintain.manager.pojo.repository;
 
 import io.github.chenyilei2016.maintain.manager.pojo.entity.DirectoryNode;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,4 +45,6 @@ public interface DirectoryNodeRepository {
     List<DirectoryNode> findServiceTree(String serviceName);
 
     List<DirectoryNode> findByNameAndParentIdAndServiceName(String name, String parentId, String serviceName);
+
+    boolean updateParentId(String id, String parentId, LocalDateTime updateTime);
 }

@@ -189,6 +189,42 @@ class ToolWorkflowTest {
     }
 
     @Test
+    void dragMoveKeepsPermissionsServiceAndFolderDepthBoundaries() throws Exception {
+        String sourceFolder = post("author", "/manager/directory/treeNode/save", Map.of(
+                "nodeType", "folder", "nodeName", "source-" + UUID.randomUUID(),
+                "serviceName", "maintain-console")).getString("data");
+        String targetFolder = post("author", "/manager/directory/treeNode/save", Map.of(
+                "nodeType", "folder", "nodeName", "target-" + UUID.randomUUID(),
+                "serviceName", "maintain-console")).getString("data");
+        String childFolder = post("author", "/manager/directory/treeNode/save", Map.of(
+                "nodeType", "folder", "nodeName", "child-" + UUID.randomUUID(), "parentId", sourceFolder,
+                "serviceName", "maintain-console")).getString("data");
+        String script = post("author", "/manager/directory/treeNode/save", Map.of(
+                "nodeType", "script", "nodeName", "move-" + UUID.randomUUID(), "parentId", sourceFolder,
+                "serviceName", "maintain-console", "content", CONTENT, "parameterSchema", SCHEMA,
+                "allowedEnvironments", List.of("random"))).getString("data");
+
+        assertFalse(post("stranger", "/manager/directory/treeNode/move",
+                Map.of("nodeId", script, "parentId", targetFolder)).getBooleanValue("success"));
+        assertTrue(post("author", "/manager/directory/treeNode/move",
+                Map.of("nodeId", script, "parentId", targetFolder)).getBooleanValue("success"));
+        assertEquals(targetFolder, findNode(post("author", "/manager/directory/tree?serviceName=maintain-console", Map.of())
+                .getJSONArray("data"), script).getString("parentId"));
+        JSONObject moveToRoot = new JSONObject();
+        moveToRoot.put("nodeId", script);
+        assertTrue(post("author", "/manager/directory/treeNode/move", moveToRoot).getBooleanValue("success"));
+        assertNull(findNode(post("author", "/manager/directory/tree?serviceName=maintain-console", Map.of())
+                .getJSONArray("data"), script).getString("parentId"));
+
+        assertFalse(post("author", "/manager/directory/treeNode/move",
+                Map.of("nodeId", sourceFolder, "parentId", childFolder)).getBooleanValue("success"));
+        assertFalse(post("author", "/manager/directory/treeNode/move",
+                Map.of("nodeId", sourceFolder, "parentId", targetFolder)).getBooleanValue("success"));
+        assertTrue(post("author", "/manager/directory/treeNode/move",
+                Map.of("nodeId", childFolder, "parentId", targetFolder)).getBooleanValue("success"));
+    }
+
+    @Test
     void editorsSaveWithoutManagingGrantsAndConflictsNeverOverwrite() throws Exception {
         String id = create();
         grant(id, 1);

@@ -5,7 +5,9 @@ import io.github.chenyilei2016.maintain.manager.pojo.dataobject.DirectoryNodeDO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -53,4 +55,9 @@ public interface DirectoryNodeMapper extends BaseMapper<DirectoryNodeDO> {
      */
     @Select("SELECT COUNT(*) FROM mc_directory_node WHERE parent_id = #{parentId} AND is_deleted = 0")
     int countChildrenByParentId(@Param("parentId") String parentId);
+
+    @Update("UPDATE mc_directory_node SET parent_id = #{parentId}, update_time = #{updateTime} " +
+            "WHERE id = #{id} AND is_deleted = 0")
+    int updateParentId(@Param("id") String id, @Param("parentId") String parentId,
+                       @Param("updateTime") LocalDateTime updateTime);
 }

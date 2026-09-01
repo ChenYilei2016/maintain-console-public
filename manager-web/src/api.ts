@@ -136,6 +136,10 @@ export const api = {
         return unwrap(await post<string>('/manager/directory/treeNode/delete', {nodeId, forceDelete}));
     },
 
+    async moveTreeNode(nodeId: string, parentId?: string): Promise<string> {
+        return unwrap(await post<string>('/manager/directory/treeNode/move', {nodeId, parentId}));
+    },
+
     async previewScript(scriptId: string, script: string, params: Record<string, unknown>, parameterSchema?: string): Promise<string> {
         return unwrap(await post<string>('/manager/script/preview', {
             script,

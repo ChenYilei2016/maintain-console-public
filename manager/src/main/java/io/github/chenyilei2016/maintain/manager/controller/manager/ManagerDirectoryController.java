@@ -2,10 +2,7 @@ package io.github.chenyilei2016.maintain.manager.controller.manager;
 
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
-import io.github.chenyilei2016.maintain.manager.controller.dto.GetScriptDetailWebRequest;
-import io.github.chenyilei2016.maintain.manager.controller.dto.ScriptRevisionRestoreWebRequest;
-import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWebRequest;
-import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
+import io.github.chenyilei2016.maintain.manager.controller.dto.*;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptNodeDTO;
@@ -137,5 +134,17 @@ public class ManagerDirectoryController {
         } else {
             return AjaxResult.error("删除失败");
         }
+    }
+
+    /**
+     * 移动脚本或文件夹；目标父节点为空时移动到当前服务根目录。
+     */
+    @PostMapping("/treeNode/move")
+    public AjaxResult<String> treeNodeMove(@RequestBody @Valid TreeNodeMoveWebRequest request) {
+        LocalLoginUser user = LoginUserContext.getUser();
+        String nodeId = directoryService.treeNodeMove(request, user);
+        auditLogService.record(user, "RESOURCE_MOVE", "DIRECTORY_NODE", nodeId, "SUCCESS", java.util.Map.of(
+                "parentId", request.getParentId() == null ? "ROOT" : request.getParentId()));
+        return AjaxResult.success(nodeId, "移动成功");
     }
 }
