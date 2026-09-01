@@ -8,6 +8,11 @@
 ![Frontend](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-646CFF.svg)
 </div>
 
+> 把散落在分布式应用里的运维能力，收敛成可授权、可审计、可复用的类型化脚本工具；前端已内嵌到 Manager，部署时仍然只有一个 JAR。
+
+**快速导航：
+** [界面预览](#界面预览) · [快速开始](#快速开始) · [Client 接入](#client-接入) · [多 Nacos](#多-nacos) · [安全边界](#安全边界) · [当前边界](#当前边界)
+
 ## 项目定位
 
 开发者将应用已开放的业务能力封装成 Groovy 脚本，配置表单、用途与 JSON 权限后在同一个工作台协作或运行。运营用户只看到获准的内容和操作，不需要理解代码。
@@ -18,24 +23,46 @@
 - Manager 使用 JDK 25、Spring Boot 4 和官方依赖管理。
 - Client Starter 继续生成 Java 8 字节码，旧业务应用可以分批升级。
 
+## 界面预览
+
+### 脚本工作台
+
+编辑器、类型化参数、执行目标与结果保持在同一个工作路径中；目录节点在打开前就会展示当前账号的实际能力。
+
+![Maintain Console 脚本工作台](docs/images/readme-workbench.jpg)
+
+### 结构化执行结果
+
+一次请求内展示表格、指标、图表、JSON、文件与过程日志。表格支持本次返回数据的筛选、排序、分页和安全 CSV 导出。
+
+![Maintain Console 结构化执行结果](docs/images/readme-result.jpg)
+
+### 管理与可观测
+
+管理端集中承载账号、运行概览与环境连接视图；平台角色与每个脚本的读、编、执、管权限相互独立。
+
+![Maintain Console 运行概览](docs/images/readme-overview.jpg)
+
+<details>
+<summary>查看用户与权限管理</summary>
+
+![Maintain Console 用户与权限管理](docs/images/readme-admin.jpg)
+
+</details>
+
 ## 已实现能力
 
-- React + CodeMirror 6：Groovy 高亮、括号补全、运行时 Bean/方法补全、参数补全和风险诊断。
-- 独立 `/workspace` 脚本工作台与 `/admin` 管理端；不再混用管理、开发和运行入口。
-- 全员可见脚本目录；源码、编辑、运行和授权管理完全由脚本 JSON v3 分别控制。
-- 工作台直接入口、单脚本控制台、应用内资源切换和永久可见的结果区域。
-- 独立用户名密码登录、BCrypt 凭证、首管理员启动引导、账号停用/密码重置、运行概览与环境视图。
-- 类型化参数 Schema：String、Number、Boolean、Enum、JSON、多行文本、日期时间、服务实例、校验与敏感值。
-- 中文显示名、分组与高级参数、字段校验、默认值和按用户/工具/环境隔离的个人预设。
-- 当前 HTTP 请求执行：随机/指定实例，工具显式允许时可有界执行全部实例；区分成功、失败、部分成功、未开始与结果未知。
-- 保存/运行起始版本校验、版本内容对比、恢复为新版本、当前浏览器草稿恢复与离开保护。
-- 结构化结果：text、log、json、table、metric、line/bar/pie/area/scatter chart、file、error。
-- 当前结果内筛选、排序、分页、安全 CSV 导出；执行历史与审计。无任务中心、任务轮询、SSE 或审批依赖。
-- 生产/操作类风险确认、目标范围校验。确认和“查询类”标记都不是安全隔离或只读证明。
-- RSA-SHA256 v2：keyId、timestamp、nonce、防重放和多公钥轮换；旧签名为显式迁移开关。
-- 默认不暴露完整 Spring ApplicationContext，只能访问白名单 Bean。
-- 可选独立 Groovy Worker JVM：独立堆、输出限制、超时强制终止且不暴露 Spring Bean。
-- 可选 AI 助手：生成/解释脚本、生成 Schema、风险审查；输出只能进入未保存草稿。
+| 能力域   | 当前能力                                                                  |
+|-------|-----------------------------------------------------------------------|
+| 脚本开发  | React + CodeMirror 6、Groovy 高亮、括号/参数/Bean 方法补全、风险诊断、草稿恢复与版本冲突保护       |
+| 资源组织  | 应用内目录树、搜索/收藏/最近使用、文件夹内创建、拖拽移动、打开前能力标识                                 |
+| 参数表单  | String、Number、Boolean、Enum、JSON、多行文本、日期时间、服务实例；支持分组、校验、敏感值和个人预设       |
+| 目标执行  | 随机实例、指定实例、受控全部实例；区分成功、失败、部分成功、未开始和结果未知                                |
+| 结果呈现  | text、log、json、table、metric、line/bar/pie/area/scatter chart、file、error |
+| 权限协作  | JSON v3 分别控制 READ、EDIT、INVOKE、MANAGE；分享链接不授予权限，也不会自动执行                |
+| 安全与审计 | BCrypt 会话、生产二次确认、RSA-SHA256 v2、防重放、白名单 Bean、版本/授权/执行审计                |
+| 平台管理  | 用户状态与密码管理、7/30/90 天运行概览、目标环境视图、单 Nacos 与多 Nacos                       |
+| 扩展能力  | 可选独立 Groovy Worker JVM；可选 AI 生成、解释、Schema 与风险审查，输出只进入未保存草稿            |
 
 ## 架构
 
