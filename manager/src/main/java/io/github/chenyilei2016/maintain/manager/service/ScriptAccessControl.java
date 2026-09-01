@@ -20,32 +20,37 @@ public class ScriptAccessControl {
     private final ManagerProperties properties;
 
     public boolean canCreateTools(LocalLoginUser actor) {
-        return properties.getGlobalWhiteEmployeeNoList().contains(actor.getEmployeeNo())
+        return isGlobalAdministrator(actor)
                 || properties.getDeveloperEmployeeNoList().contains(actor.getEmployeeNo())
                 || ConsoleRole.DEVELOPER.grantedTo(actor);
     }
 
-    public ScriptVO require(String scriptId, String actorId, ScriptPermissionEnum permission) {
+    public boolean isGlobalAdministrator(LocalLoginUser actor) {
+        return properties.getGlobalWhiteEmployeeNoList().contains(actor.getEmployeeNo())
+                || ConsoleRole.ADMIN.grantedTo(actor);
+    }
+
+    public ScriptVO require(String scriptId, LocalLoginUser actor, ScriptPermissionEnum permission) {
         ScriptVO script = scripts.findById(scriptId);
-        if (!allows(script, actorId, permission)) {
+        if (!allows(script, actor, permission)) {
             throw CommonException.createReminderException("没有{}权限", permission.getDesc());
         }
         return script;
     }
 
-    public boolean allows(ScriptVO script, String actorId, ScriptPermissionEnum permission) {
-        return ScriptPermissionEntity.checkPermission(script.getDirectoryNode(), script.getScript(), actorId,
+    public boolean allows(ScriptVO script, LocalLoginUser actor, ScriptPermissionEnum permission) {
+        return ScriptPermissionEntity.checkPermission(script.getDirectoryNode(), script.getScript(), actor,
                 permission, properties.getGlobalWhiteEmployeeNoList());
     }
 
-    public boolean visible(ScriptVO script, String actorId) {
-        return allows(script, actorId, ScriptPermissionEnum.READ)
-                || allows(script, actorId, ScriptPermissionEnum.INVOKE);
+    public boolean visible(ScriptVO script, LocalLoginUser actor) {
+        return allows(script, actor, ScriptPermissionEnum.READ) || allows(script, actor, ScriptPermissionEnum.INVOKE);
     }
 
-    public ScriptVO requireVisible(String scriptId, String actorId) {
+    public ScriptVO requireVisible(String scriptId, LocalLoginUser actor) {
         ScriptVO script = scripts.findById(scriptId);
-        if (!visible(script, actorId)) throw CommonException.createReminderException("无权访问此工具");
+        if (!visible(script, actor)) throw CommonException.createReminderException("无权访问此工具");
         return script;
     }
+
 }

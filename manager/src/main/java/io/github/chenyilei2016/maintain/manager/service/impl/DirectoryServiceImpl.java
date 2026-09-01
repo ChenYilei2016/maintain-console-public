@@ -66,35 +66,35 @@ public class DirectoryServiceImpl implements DirectoryService {
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public List<DirectoryNodeDTO> getDirectoryTree(String serviceName, String creator) {
-        log.info("获取目录树结构，服务名：{}，创建人：{}", serviceName, creator);
+    public List<DirectoryNodeDTO> getDirectoryTree(String serviceName, LocalLoginUser actor) {
+        log.info("获取目录树结构，服务名：{}，创建人：{}", serviceName, actor.getEmployeeNo());
 
         // 有界读取目录后，按同一份资源授权筛选，避免逐节点查库。
         List<DirectoryNode> allNodes = directoryNodeRepository.findServiceTree(serviceName)
                 .stream().filter(node -> DirectoryNode.TYPE_FOLDER.equals(node.getType())
                         || ScriptPermissionEntity.checkPermission(node, new Script().setPermissions(node.getScriptPermissions()),
-                        creator, ScriptPermissionEnum.READ, managerProperties.getGlobalWhiteEmployeeNoList())
+                        actor, ScriptPermissionEnum.READ, managerProperties.getGlobalWhiteEmployeeNoList())
                         || ScriptPermissionEntity.checkPermission(node, new Script().setPermissions(node.getScriptPermissions()),
-                        creator, ScriptPermissionEnum.INVOKE, managerProperties.getGlobalWhiteEmployeeNoList())).toList();
+                        actor, ScriptPermissionEnum.INVOKE, managerProperties.getGlobalWhiteEmployeeNoList())).toList();
 
         // 构建树形结构，只支持根目录和二级目录（最多两级）
         return buildDirectoryTreeWithMaxDepth(allNodes, 2);
     }
 
     @Override
-    public ScriptNodeDTO getScriptDetail(String scriptId, String employeeNo) {
+    public ScriptNodeDTO getScriptDetail(String scriptId, LocalLoginUser actor) {
         log.info("获取脚本详情，脚本ID：{}", scriptId);
 
         ScriptVO scriptVO = scriptContentService.findById(scriptId);
-        if (!hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ)) {
+        if (!hasPermission(scriptVO, actor, ScriptPermissionEnum.READ)) {
             throw CommonException.createReminderException("没有查看代码权限，请使用工具运行页");
         }
         ScriptNodeDTO dto = convertToScriptNodeDTO(scriptVO);
         //填充权限
-        dto.setCanRead(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ));
-        dto.setCanInvoke(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.INVOKE));
-        dto.setCanEdit(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.EDIT));
-        dto.setCanManage(hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.MANAGE));
+        dto.setCanRead(hasPermission(scriptVO, actor, ScriptPermissionEnum.READ));
+        dto.setCanInvoke(hasPermission(scriptVO, actor, ScriptPermissionEnum.INVOKE));
+        dto.setCanEdit(hasPermission(scriptVO, actor, ScriptPermissionEnum.EDIT));
+        dto.setCanManage(hasPermission(scriptVO, actor, ScriptPermissionEnum.MANAGE));
         if (!dto.isCanManage()) dto.setPermissions(null);
         return dto;
     }
@@ -123,10 +123,10 @@ public class DirectoryServiceImpl implements DirectoryService {
 
         if (TreeNodeTypeEnum.FOLDER == nodeTypeEnum) {
             // 处理文件夹
-            return handleFolderSave(request, nodeId);
+            return handleFolderSave(request, nodeId, actor);
         } else if (TreeNodeTypeEnum.SCRIPT == nodeTypeEnum) {
             // 处理脚本
-            return handleScriptSave(request, nodeId);
+            return handleScriptSave(request, nodeId, actor);
         } else {
             throw new IllegalArgumentException("不支持的节点类型：" + request.getNodeType());
         }
@@ -134,7 +134,7 @@ public class DirectoryServiceImpl implements DirectoryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean treeNodeDelete(TreeNodeDeleteWebRequest request) {
+    public boolean treeNodeDelete(TreeNodeDeleteWebRequest request, LocalLoginUser actor) {
         log.info("删除树节点，请求：{}", request);
 
         DirectoryNode node = directoryNodeRepository.findById(request.getNodeId());
@@ -142,7 +142,7 @@ public class DirectoryServiceImpl implements DirectoryService {
             throw new RuntimeException("节点不存在");
         }
 
-        boolean administrator = managerProperties.getGlobalWhiteEmployeeNoList().contains(request.getOperatorId());
+        boolean administrator = access.isGlobalAdministrator(actor);
         if (!administrator && !Objects.equals(node.getCreatorId(), request.getOperatorId())) {
             throw CommonException.createReminderException("只有创建者或管理员可以删除资源");
         }
@@ -175,7 +175,7 @@ public class DirectoryServiceImpl implements DirectoryService {
     /**
      * 处理文件夹保存（创建/更新）
      */
-    private String handleFolderSave(TreeNodeSaveWebRequest request, String nodeId) {
+    private String handleFolderSave(TreeNodeSaveWebRequest request, String nodeId, LocalLoginUser actor) {
         if (nodeId == null) {
             // 验证是否超过最大层级深度
             if (request.getParentId() != null) {
@@ -214,7 +214,9 @@ public class DirectoryServiceImpl implements DirectoryService {
             if (existingFolder == null) {
                 throw new RuntimeException("文件夹不存在");
             }
-            existingFolder.checkThrowAuth(request.getOperatorId());
+            if (!access.isGlobalAdministrator(actor) && !Objects.equals(existingFolder.getCreatorId(), actor.getEmployeeNo())) {
+                throw CommonException.createReminderException("只有创建者或管理员可以修改文件夹");
+            }
             if (!DirectoryNode.TYPE_FOLDER.equals(existingFolder.getType())) {
                 throw CommonException.createReminderException("节点类型不匹配");
             }
@@ -235,12 +237,12 @@ public class DirectoryServiceImpl implements DirectoryService {
     /**
      * 处理脚本保存（创建/更新）
      */
-    private String handleScriptSave(TreeNodeSaveWebRequest request, String nodeId) {
+    private String handleScriptSave(TreeNodeSaveWebRequest request, String nodeId, LocalLoginUser actor) {
         if (nodeId == null) {
             return doScriptCreate(request);
 
         } else {
-            doScriptUpdate(request, nodeId);
+            doScriptUpdate(request, nodeId, actor);
         }
 
         return nodeId;
@@ -290,12 +292,12 @@ public class DirectoryServiceImpl implements DirectoryService {
         return savedScriptNode.getId();
     }
 
-    private void doScriptUpdate(TreeNodeSaveWebRequest request, String nodeId) {
+    private void doScriptUpdate(TreeNodeSaveWebRequest request, String nodeId, LocalLoginUser actor) {
         ScriptVO current = scriptContentService.findById(nodeId);
         DirectoryNode node = current.getDirectoryNode();
         Script script = current.getScript();
         if (!node.getServiceName().equals(request.getServiceName())
-                || !hasPermission(current, request.getOperatorId(), ScriptPermissionEnum.EDIT)) {
+                || !hasPermission(current, actor, ScriptPermissionEnum.EDIT)) {
             throw CommonException.createReminderException("没有编辑权限或脚本所属服务不匹配");
         }
         if (!Objects.equals(request.getExpectedVersion(), script.getVersion())) {
@@ -329,9 +331,9 @@ public class DirectoryServiceImpl implements DirectoryService {
     }
 
     @Override
-    public List<ScriptRevisionDTO> listScriptRevisions(String scriptId, String employeeNo) {
+    public List<ScriptRevisionDTO> listScriptRevisions(String scriptId, LocalLoginUser actor) {
         ScriptVO scriptVO = scriptContentService.findById(scriptId);
-        if (scriptVO == null || !hasPermission(scriptVO, employeeNo, ScriptPermissionEnum.READ)) {
+        if (scriptVO == null || !hasPermission(scriptVO, actor, ScriptPermissionEnum.READ)) {
             throw CommonException.createReminderException("脚本不存在或没有读取权限");
         }
         return scriptRevisionRepository.listRecent(scriptId, 50).stream().map(ScriptRevisionDTO::from).toList();
@@ -339,9 +341,9 @@ public class DirectoryServiceImpl implements DirectoryService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Integer restoreScriptRevision(String scriptId, int version, int expectedVersion, String operatorId, String operatorName) {
+    public Integer restoreScriptRevision(String scriptId, int version, int expectedVersion, LocalLoginUser actor) {
         ScriptVO scriptVO = scriptContentService.findById(scriptId);
-        if (scriptVO == null || !hasPermission(scriptVO, operatorId, ScriptPermissionEnum.EDIT)) {
+        if (scriptVO == null || !hasPermission(scriptVO, actor, ScriptPermissionEnum.EDIT)) {
             throw CommonException.createReminderException("脚本不存在或没有编辑权限");
         }
         ScriptRevision revision = scriptRevisionRepository.findRevision(scriptId, version);
@@ -361,13 +363,13 @@ public class DirectoryServiceImpl implements DirectoryService {
         if (restored == null) {
             throw CommonException.createReminderException("恢复脚本版本冲突，请刷新后重试");
         }
-        scriptRevisionRepository.saveRevision(restored, operatorId, operatorName);
+        scriptRevisionRepository.saveRevision(restored, actor.getEmployeeNo(), actor.getEmployeeName());
         return restored.getVersion();
     }
 
-    private boolean hasPermission(ScriptVO scriptVO, String employeeNo, ScriptPermissionEnum permission) {
+    private boolean hasPermission(ScriptVO scriptVO, LocalLoginUser actor, ScriptPermissionEnum permission) {
         return ScriptPermissionEntity.checkPermission(
-                scriptVO.getDirectoryNode(), scriptVO.getScript(), employeeNo, permission,
+                scriptVO.getDirectoryNode(), scriptVO.getScript(), actor, permission,
                 managerProperties.getGlobalWhiteEmployeeNoList());
     }
 

@@ -7,6 +7,7 @@ import io.github.chenyilei2016.maintain.client.common.constants.MaintainConsoleC
 import io.github.chenyilei2016.maintain.manager.service.EnvironmentCatalogService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Profile;
@@ -25,7 +26,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * @since 2024/05/20 16:42
  */
 @Component
-@Profile("!local")
+@Profile("!local & !demo")
+@ConditionalOnProperty(prefix = "maintain.manager.discovery", name = "mode", havingValue = "SPRING_CLOUD", matchIfMissing = true)
 public class SpringCloudRegistryClientDiscovery implements MaintainConsoleRegistryClientDiscovery {
 
     /**

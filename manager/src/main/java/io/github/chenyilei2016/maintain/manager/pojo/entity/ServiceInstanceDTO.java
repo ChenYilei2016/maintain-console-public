@@ -1,6 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.pojo.entity;
 
 import io.github.chenyilei2016.maintain.client.common.constants.MaintainConsoleClientCommonConst;
+import io.github.chenyilei2016.maintain.manager.constant.ManagerConstants;
 import org.springframework.cloud.client.ServiceInstance;
 
 import java.util.Map;
@@ -19,7 +20,9 @@ public record ServiceInstanceDTO(
     private static final Set<String> SAFE_METADATA_KEYS = Set.of(
             MaintainConsoleClientCommonConst.KEY_REGISTRY_ENABLED,
             MaintainConsoleClientCommonConst.KEY_REGISTRY_VERSION,
-            MaintainConsoleClientCommonConst.KEY_NAMESPACE
+            MaintainConsoleClientCommonConst.KEY_NAMESPACE,
+            ManagerConstants.METADATA_REGISTRY_ID,
+            ManagerConstants.METADATA_NACOS_GROUP
     );
 
     public static ServiceInstanceDTO from(ServiceInstance instance) {

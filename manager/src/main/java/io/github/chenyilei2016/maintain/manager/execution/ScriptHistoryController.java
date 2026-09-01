@@ -33,13 +33,13 @@ public class ScriptHistoryController {
                                                                       @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
         var user = LoginUserContext.getUser();
         var script = scripts.findById(scriptId);
-        if (!access.visible(script, user.getEmployeeNo()))
+        if (!access.visible(script, user))
             throw CommonException.createReminderException("无权查看此工具的历史");
         int boundedPage = Math.max(1, page);
         int boundedSize = Math.max(1, Math.min(size, 50));
         QueryWrapper<ScriptExecutionHistoryDO> query = new QueryWrapper<>();
         query.eq("script_id", scriptId);
-        if (!access.allows(script, user.getEmployeeNo(), ScriptPermissionEnum.MANAGE)) {
+        if (!access.allows(script, user, ScriptPermissionEnum.MANAGE)) {
             query.eq("executor_id", user.getEmployeeNo());
         }
         query.orderByDesc("id");

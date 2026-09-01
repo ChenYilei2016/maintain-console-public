@@ -4,6 +4,7 @@ import Modal from '../Modal';
 import type {DirectoryNode, ScriptResourceOverview} from '../types';
 import ScriptResourceExplorer from './ScriptResourceExplorer';
 import {TOOL_TEMPLATES} from './templates';
+import {navigate} from '../navigation';
 
 type ResourceDialog = {
     kind: 'create' | 'rename' | 'delete'; node?: DirectoryNode; name: string;
@@ -11,8 +12,16 @@ type ResourceDialog = {
 };
 
 /** 资源的请求、筛选及变更状态集中在资源 Module，不由编辑页面代管。 */
-export default function WorkspaceResources({serviceName, scriptId, environment, revision, canCreateTools}: {
+export default function WorkspaceResources({
+                                               serviceName,
+                                               scriptId,
+                                               environment,
+                                               revision,
+                                               canCreateTools,
+                                               onScriptSelect
+                                           }: {
     serviceName: string; scriptId: string; environment: string; revision: number; canCreateTools: boolean;
+    onScriptSelect?: (id: string) => void;
 }) {
     const [tree, setTree] = useState<DirectoryNode[]>([]);
     const [overview, setOverview] = useState<ScriptResourceOverview>({favorites: [], recent: []});
@@ -37,7 +46,8 @@ export default function WorkspaceResources({serviceName, scriptId, environment, 
     }, [refresh, revision]);
     return <>
         <ScriptResourceExplorer serviceName={serviceName} tree={tree} overview={overview} loading={loading}
-                                selectedId={scriptId} onSelect={id => window.location.assign(`/workspace/${id}`)}
+                                selectedId={scriptId}
+                                onSelect={id => onScriptSelect ? onScriptSelect(id) : navigate(`/workspace/${id}`)}
                                 onCreate={canCreateTools ? parent => setDialog({
                                     kind: 'create',
                                     node: parent,
@@ -80,7 +90,7 @@ export default function WorkspaceResources({serviceName, scriptId, environment, 
                            try {
                                if (dialog.kind === 'delete') {
                                    await api.deleteTreeNode(dialog.node!.id, dialog.forceDelete);
-                                   if (dialog.node!.id === scriptId) window.location.assign('/');
+                                   if (dialog.node!.id === scriptId) navigate('/workspace');
                                } else {
                                    const template = TOOL_TEMPLATES.table;
                                    const id = await api.saveTreeNode({
@@ -96,7 +106,7 @@ export default function WorkspaceResources({serviceName, scriptId, environment, 
                                            toolMetadata: {operationType: 'QUERY' as const}
                                        } : {}),
                                    });
-                                   if (dialog.nodeType === 'script') window.location.assign(`/workspace/${id}`);
+                                   if (dialog.nodeType === 'script') navigate(`/workspace/${id}`);
                                }
                                setDialog(undefined);
                                await refresh();

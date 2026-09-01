@@ -1,14 +1,18 @@
 package io.github.chenyilei2016.maintain.manager.controller;
 
 import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
+import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
 import io.github.chenyilei2016.maintain.manager.controller.dto.res.LoginInfoWebResponse;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import io.github.chenyilei2016.maintain.manager.service.EnvironmentCatalogService;
+import io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Set;
 
 /**
  * @author chenyilei
@@ -20,13 +24,13 @@ public class LoginController {
     private final ManagerProperties managerProperties;
     private final EnvironmentCatalogService environmentCatalogService;
     private final Environment environment;
-    private final io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl access;
+    private final ScriptAccessControl access;
 
     public LoginController(
             ManagerProperties managerProperties,
             EnvironmentCatalogService environmentCatalogService,
             Environment environment,
-            io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl access
+            ScriptAccessControl access
     ) {
         this.managerProperties = managerProperties;
         this.environmentCatalogService = environmentCatalogService;
@@ -40,6 +44,9 @@ public class LoginController {
         LocalLoginUser user = LoginUserContext.getUser();
         r.setEmployeeName(user.getEmployeeName());
         r.setEmployeeNo(user.getEmployeeNo());
+        r.setUserId(user.getId());
+        r.setRoles(Set.copyOf(user.getRoles()));
+        r.setAdministrator(ConsoleRole.ADMIN.grantedTo(user));
         r.setCanCreateTools(access.canCreateTools(user));
         r.setAiEnabled(managerProperties.getAi().isEnabled());
 

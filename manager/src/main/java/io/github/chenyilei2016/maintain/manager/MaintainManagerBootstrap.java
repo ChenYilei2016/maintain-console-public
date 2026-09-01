@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Profile;
 public class MaintainManagerBootstrap {
 
     @Bean
-    @Profile("local")
+    @Profile({"local", "demo"})
     public GroovyMaintainConsoleExecutor localGroovyMaintainConsoleExecutor(MaintainConsoleGroovyProperties properties) {
         return new GroovyMaintainConsoleExecutor(properties);
     }

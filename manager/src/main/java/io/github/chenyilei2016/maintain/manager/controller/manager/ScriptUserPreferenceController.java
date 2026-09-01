@@ -31,13 +31,13 @@ public class ScriptUserPreferenceController {
 
     @GetMapping("/overview")
     public AjaxResult<ScriptResourceOverviewDTO> overview(@RequestParam @NotBlank String serviceName) {
-        return AjaxResult.success(preferenceService.overview(LoginUserContext.getUser().getEmployeeNo(), serviceName));
+        return AjaxResult.success(preferenceService.overview(LoginUserContext.getUser(), serviceName));
     }
 
     @PostMapping("/favorite")
     public AjaxResult<Boolean> favorite(@RequestBody @Valid ScriptFavoriteWebRequest request) {
         LocalLoginUser user = LoginUserContext.getUser();
-        preferenceService.favorite(user.getEmployeeNo(), request.getScriptId(), request.isFavorite());
+        preferenceService.favorite(user, request.getScriptId(), request.isFavorite());
         auditLogService.record(user, request.isFavorite() ? "SCRIPT_FAVORITE" : "SCRIPT_UNFAVORITE",
                 "SCRIPT", request.getScriptId(), "SUCCESS", Map.of());
         return AjaxResult.success(request.isFavorite());

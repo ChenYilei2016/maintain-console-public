@@ -24,12 +24,72 @@ export interface EnvironmentOption {
 }
 
 export interface LoginInfo {
+    userId: string;
     canCreateTools: boolean;
     employeeName: string;
     employeeNo: string;
     env: string;
     availableEnvironments: EnvironmentOption[];
     aiEnabled: boolean;
+    roles: string[];
+    administrator: boolean;
+}
+
+export interface AuthState {
+    authenticated: boolean;
+    provider: 'MOCK_SDK' | 'TRUSTED_HEADERS';
+    csrfToken: string;
+    accounts: Array<{ id: string; name: string; description: string }>;
+}
+
+export type ConsoleRole = 'ADMIN' | 'DEVELOPER' | 'AUDITOR';
+export type ConsoleUserStatus = 'ACTIVE' | 'DISABLED';
+
+export interface ConsoleUser {
+    id: string;
+    provider: string;
+    employeeNo: string;
+    displayName: string;
+    roles: ConsoleRole[];
+    status: ConsoleUserStatus;
+    lastLoginTime?: string;
+    createTime: string;
+}
+
+export interface EnvironmentManagementOverview {
+    mode: 'SPRING_CLOUD' | 'MULTI_NACOS';
+    environments: Array<{
+        id: string; name: string; production: boolean; registryId?: string; legacyNamespace?: string;
+        groupName?: string; instanceClusters: string[]
+    }>;
+    registries: Array<{
+        id: string; name?: string; namespaceId?: string; defaultGroup: string;
+        authenticationConfigured: boolean
+    }>;
+}
+
+export type UsageWindow = 'WEEK' | 'MONTH' | 'QUARTER';
+
+export interface UsageStatistics {
+    window: UsageWindow;
+    days: number;
+    summary: {
+        totalExecutions: number;
+        successfulExecutions: number;
+        failedExecutions: number;
+        averageDurationMillis: number;
+        activeUsers: number;
+        activeTools: number;
+    };
+    tools: Array<{
+        scriptId: string;
+        scriptName: string;
+        serviceName: string;
+        totalExecutions: number;
+        successfulExecutions: number;
+        averageDurationMillis: number;
+        lastRunTime: string;
+    }>;
 }
 
 export type AiAssistAction = 'GENERATE_SCRIPT' | 'EXPLAIN_SCRIPT' | 'GENERATE_PARAMETER_SCHEMA' | 'REVIEW_RISK';

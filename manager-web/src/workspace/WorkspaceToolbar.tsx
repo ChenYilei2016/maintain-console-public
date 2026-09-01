@@ -53,21 +53,27 @@ export default function WorkspaceToolbar({
                     {draftChanged ? '● 未保存' : '✓ 已保存'}</span>}
             </div>
             {script && <div className="panel-actions">
-                <button className="parameter-toggle" type="button" aria-expanded={parametersOpen}
-                        aria-controls="parameter-sidebar" onClick={onParametersToggle}>参数与运行
-                    · {parameterCount}</button>
-                <button className="primary" type="button" disabled={!script.canEdit || saving}
-                        onClick={() => onSave()}>{saving ? '保存中…' : '保存脚本'}</button>
-                <button type="button" onClick={() => onHistory()}>执行历史</button>
-                <button type="button"
-                        onClick={() => onFavorite()}>{scriptIsFavorite ? '★ 取消收藏' : '☆ 收藏脚本'}</button>
-                <button type="button" onClick={() => onRevisions()}>版本历史</button>
-                {script.canManage && <button type="button" onClick={() => onPermissions()}>授权与分享</button>}
-                <button type="button" onClick={onDetails}>用途与风险</button>
-                {canCreateTools && <button type="button" onClick={onCopy}>复制为新工具</button>}
-                {script.canInvoke && <a className="button" href={`/tools/${script.id}`}>运行页 ↗</a>}
-                <button type="button" onClick={() => onExample()}>入门示例</button>
-                {aiEnabled && <button type="button" onClick={() => onAiAssistant()}>AI 助手</button>}
+                <div className="toolbar-action-group primary-actions" aria-label="主要操作">
+                    <button className="parameter-toggle" type="button" aria-expanded={parametersOpen}
+                            aria-controls="parameter-sidebar" onClick={onParametersToggle}>参数与运行
+                        · {parameterCount}</button>
+                    <button className="primary" type="button" disabled={!script.canEdit || saving}
+                            onClick={() => onSave()}>{saving ? '保存中…' : '保存脚本'}</button>
+                    {script.canInvoke && <a className="button" href={`/tools/${script.id}`}>运行页 ↗</a>}
+                </div>
+                <div className="toolbar-action-group" aria-label="回溯"><span>回溯</span>
+                    <button type="button" onClick={() => onHistory()}>执行记录</button>
+                    <button type="button" onClick={() => onRevisions()}>版本</button>
+                </div>
+                <div className="toolbar-action-group" aria-label="工具设置"><span>工具设置</span>
+                    <button type="button"
+                            onClick={() => onFavorite()}>{scriptIsFavorite ? '★ 已收藏' : '☆ 收藏'}</button>
+                    <button type="button" onClick={onDetails}>说明与风险</button>
+                    {script.canManage && <button type="button" onClick={() => onPermissions()}>授权</button>}
+                    {canCreateTools && <button type="button" onClick={onCopy}>复制</button>}</div>
+                <div className="toolbar-action-group" aria-label="开发辅助"><span>开发辅助</span>
+                    <button type="button" onClick={() => onExample()}>示例</button>
+                    {aiEnabled && <button type="button" onClick={() => onAiAssistant()}>AI</button>}</div>
             </div>}
         </header>
     );

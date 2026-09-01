@@ -1,6 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.service;
 
 import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
+import io.github.chenyilei2016.maintain.manager.discovery.RegistryDiscoveryMode;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
 import io.github.chenyilei2016.maintain.manager.utils.MyProfileUtils;
 import jakarta.annotation.PostConstruct;
@@ -32,6 +33,23 @@ public class EnvironmentCatalogService {
             }
             if (!values.add(environment.getValue().toLowerCase(Locale.ROOT))) {
                 throw new IllegalStateException("目标环境 value 不能重复: " + environment.getValue());
+            }
+        }
+        if (managerProperties.getDiscovery().getMode() == RegistryDiscoveryMode.MULTI_NACOS) {
+            Set<String> registryIds = new HashSet<>();
+            for (ManagerProperties.NacosConnection connection : managerProperties.getDiscovery().getNacosConnections()) {
+                if (connection.getId() == null || connection.getId().isBlank() || !registryIds.add(connection.getId())) {
+                    throw new IllegalStateException("多 Nacos 连接 id 不能为空且不能重复");
+                }
+                if (connection.getServerAddr() == null || connection.getServerAddr().isBlank()) {
+                    throw new IllegalStateException("Nacos 连接缺少 serverAddr: " + connection.getId());
+                }
+            }
+            if (registryIds.isEmpty()) throw new IllegalStateException("MULTI_NACOS 模式至少需要一个 Nacos 连接");
+            for (ManagerProperties.TargetEnvironment environment : list()) {
+                if (!registryIds.contains(environment.getRegistryId())) {
+                    throw new IllegalStateException("环境引用了不存在的 Nacos 连接: " + environment.getValue());
+                }
             }
         }
     }

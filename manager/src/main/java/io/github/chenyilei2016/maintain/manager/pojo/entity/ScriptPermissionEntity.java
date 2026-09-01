@@ -1,7 +1,9 @@
 package io.github.chenyilei2016.maintain.manager.pojo.entity;
 
 import com.alibaba.fastjson2.JSON;
+import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.utils.StrUtils;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -65,13 +67,10 @@ public class ScriptPermissionEntity {
         return permission;
     }
 
-    public static boolean checkPermission(
-            DirectoryNode node,
-            Script existingScript,
-            String operatorId,
-            ScriptPermissionEnum permission,
-            Set<String> globalWhiteEmployeeNos
-    ) {
+    public static boolean checkPermission(DirectoryNode node, Script existingScript, LocalLoginUser actor,
+                                          ScriptPermissionEnum permission, Set<String> globalWhiteEmployeeNos) {
+        if (ConsoleRole.ADMIN.grantedTo(actor)) return true;
+        String operatorId = actor.getEmployeeNo();
         if (globalWhiteEmployeeNos.contains(operatorId)) {
             return true;
         }

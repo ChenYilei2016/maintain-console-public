@@ -71,7 +71,7 @@ public class ManagerController {
 
     @PostMapping("/manager/script/preview")
     public AjaxResult<String> preview(@RequestBody @Valid ScriptEvalPreviewWebRequest request) {
-        access.require(request.getScriptId(), LoginUserContext.getUser().getEmployeeNo(), ScriptPermissionEnum.EDIT);
+        access.require(request.getScriptId(), LoginUserContext.getUser(), ScriptPermissionEnum.EDIT);
         return AjaxResult.success(ScriptVO.resolveParamScript(
                 request.getScript(), request.getParams(), request.getParameterSchema()).executableContent());
     }

@@ -31,6 +31,30 @@ export const TOOL_TEMPLATES = {
             ]
         }, null, 2),
     },
+    dashboard: {
+        name: '指标、趋势与明细', description: '用固定示例数据展示多个结构化结果，不调用业务服务。',
+        content: [
+            "_log.info('正在组装固定示例结果')",
+            "def metrics = [成功: 18, 失败: 2, 平均耗时毫秒: 126]",
+            "def labels = ['09:00', '10:00', '11:00', '12:00']",
+            "def series = [[name: '成功数', data: [3, 5, 4, 6]], [name: '失败数', data: [0, 1, 0, 1]]]",
+            "def rows = [['demo-1', 'SUCCESS'], ['demo-2', 'FAILED']]",
+            "return result(",
+            "    resultMetric('运行摘要', metrics),",
+            "    resultChart('处理趋势', 'line', labels, series),",
+            "    resultTable('示例明细', ['编号', '状态'], rows)",
+            ")",
+        ].join('\n'),
+        schema: JSON.stringify({version: 1, parameters: []}, null, 2),
+    },
+    json: {
+        name: 'JSON 与文本', description: '展示普通对象和说明文字的返回方式。',
+        content: [
+            "def data = [status: 'READY', caller: _caller.employeeNo, items: [[id: 'demo-1', value: 42]]]",
+            "return result(resultText('说明', '这是固定示例数据'), [type: 'json', title: '对象结果', data: data])",
+        ].join('\n'),
+        schema: JSON.stringify({version: 1, parameters: []}, null, 2),
+    },
     empty: {
         name: '空白工具', description: '填写这个工具的用途、输入要求和风险。',
         content: "// _caller 来自可信登录身份；业务数据范围仍需由业务能力校验\nreturn result(resultText('结果', 'Hello, Maintain Console'))",

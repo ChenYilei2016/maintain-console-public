@@ -1,5 +1,6 @@
 package io.github.chenyilei2016.maintain.manager.service;
 
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.pojo.dataobject.ScriptUserPreferenceDO;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.ScriptResourceOverviewDTO;
 import io.github.chenyilei2016.maintain.manager.pojo.mapper.ScriptUserPreferenceMapper;
@@ -40,8 +41,9 @@ public class ScriptUserPreferenceService {
         }
     }
 
-    public void favorite(String userId, String scriptId, boolean favorite) {
-        access.requireVisible(scriptId, userId);
+    public void favorite(LocalLoginUser actor, String scriptId, boolean favorite) {
+        String userId = actor.getEmployeeNo();
+        access.requireVisible(scriptId, actor);
         LocalDateTime now = LocalDateTime.now();
         int updated = preferenceMapper.updateFavorite(new ScriptUserPreferenceDO()
                 .setUserId(userId)
@@ -58,11 +60,12 @@ public class ScriptUserPreferenceService {
         }
     }
 
-    public ScriptResourceOverviewDTO overview(String userId, String serviceName) {
+    public ScriptResourceOverviewDTO overview(LocalLoginUser actor, String serviceName) {
+        String userId = actor.getEmployeeNo();
         ScriptResourceOverviewDTO overview = new ScriptResourceOverviewDTO();
-        overview.setFavorites(shortcuts(catalog.page(userId, serviceName, null,
+        overview.setFavorites(shortcuts(catalog.page(actor, serviceName, null,
                 io.github.chenyilei2016.maintain.manager.tools.ToolCatalog.View.FAVORITES, 0)));
-        overview.setRecent(shortcuts(catalog.page(userId, serviceName, null,
+        overview.setRecent(shortcuts(catalog.page(actor, serviceName, null,
                 io.github.chenyilei2016.maintain.manager.tools.ToolCatalog.View.RECENT, 0)));
         return overview;
     }

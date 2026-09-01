@@ -50,7 +50,7 @@ public class ManagerDirectoryController {
     @PostMapping("/tree")
     public AjaxResult<List<DirectoryNodeDTO>> getDirectoryTree(@RequestParam String serviceName) {
         LocalLoginUser loginUser = LoginUserContext.getUser();
-        List<DirectoryNodeDTO> result = directoryService.getDirectoryTree(serviceName, loginUser.getEmployeeNo());
+        List<DirectoryNodeDTO> result = directoryService.getDirectoryTree(serviceName, loginUser);
         return AjaxResult.success(result);
     }
 
@@ -59,23 +59,23 @@ public class ManagerDirectoryController {
      */
     @PostMapping("/script/detail")
     public AjaxResult<ScriptNodeDTO> getScriptDetail(@RequestBody GetScriptDetailWebRequest request) {
-        String userId = LoginUserContext.getUser().getEmployeeNo();
-        ScriptNodeDTO script = directoryService.getScriptDetail(request.getScriptId(), userId);
-        preferenceService.touch(userId, request.getScriptId());
+        LocalLoginUser user = LoginUserContext.getUser();
+        ScriptNodeDTO script = directoryService.getScriptDetail(request.getScriptId(), user);
+        preferenceService.touch(user.getEmployeeNo(), request.getScriptId());
         return AjaxResult.success(script);
     }
 
     @GetMapping("/script/revisions")
     public AjaxResult<List<ScriptRevisionDTO>> getScriptRevisions(@RequestParam String scriptId) {
         return AjaxResult.success(directoryService.listScriptRevisions(
-                scriptId, LoginUserContext.getUser().getEmployeeNo()));
+                scriptId, LoginUserContext.getUser()));
     }
 
     @PostMapping("/script/revision/restore")
     public AjaxResult<Integer> restoreScriptRevision(@RequestBody @Valid ScriptRevisionRestoreWebRequest request) {
         LocalLoginUser user = LoginUserContext.getUser();
         Integer version = directoryService.restoreScriptRevision(
-                request.getScriptId(), request.getVersion(), request.getExpectedVersion(), user.getEmployeeNo(), user.getEmployeeName());
+                request.getScriptId(), request.getVersion(), request.getExpectedVersion(), user);
         auditLogService.record(user, "SCRIPT_REVISION_RESTORE", "SCRIPT", request.getScriptId(), "SUCCESS",
                 java.util.Map.of("sourceVersion", request.getVersion(), "newVersion", version));
         return AjaxResult.success(version, "已恢复为新版本");
@@ -128,7 +128,7 @@ public class ManagerDirectoryController {
 
         log.info("删除树节点: {}, 操作人: {}({})", request, loginUser.getEmployeeName(), loginUser.getEmployeeNo());
 
-        boolean success = directoryService.treeNodeDelete(request);
+        boolean success = directoryService.treeNodeDelete(request, loginUser);
         auditLogService.record(loginUser, "RESOURCE_DELETE", "DIRECTORY_NODE", request.getNodeId(),
                 success ? "SUCCESS" : "FAILED", java.util.Map.of("forceDelete", request.getForceDelete()));
 

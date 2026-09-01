@@ -24,6 +24,7 @@ class TrustedIdentityVerifierTest {
         LocalLoginUser user = verifier.verify("1001", "Chen", "operator,admin", timestamp, nonce, signature,
                 "POST", "/manager/script/tasks");
 
+        assertEquals("1001", user.getId());
         assertEquals("1001", user.getEmployeeNo());
         assertTrue(user.getRoles().contains("ADMIN"));
         assertThrows(IllegalArgumentException.class, () -> verifier.verify(

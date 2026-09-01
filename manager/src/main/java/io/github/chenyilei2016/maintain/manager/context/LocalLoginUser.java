@@ -12,6 +12,10 @@ import java.util.Set;
 @Data
 public class LocalLoginUser {
     /**
+     * Maintain Console 内部用户 ID。
+     */
+    private String id;
+    /**
      * 员工姓名
      */
     private String employeeName;
@@ -22,11 +26,4 @@ public class LocalLoginUser {
 
     private Set<String> roles = new HashSet<>();
 
-    public static LocalLoginUser mock() {
-        LocalLoginUser localLoginUser = new LocalLoginUser();
-        localLoginUser.setEmployeeName("cyl");
-        localLoginUser.setEmployeeNo("1");
-        localLoginUser.getRoles().add(io.github.chenyilei2016.maintain.manager.constant.ConsoleRole.ADMIN.name());
-        return localLoginUser;
-    }
 }

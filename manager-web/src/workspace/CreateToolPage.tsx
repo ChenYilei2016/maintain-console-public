@@ -2,6 +2,7 @@ import {useEffect, useState} from 'react';
 import {api} from '../api';
 import type {LoginInfo} from '../types';
 import {TOOL_TEMPLATES} from './templates';
+import {navigate} from '../navigation';
 import '../tools/tools.css';
 
 export default function CreateToolPage({login}: { login: LoginInfo }) {
@@ -36,9 +37,9 @@ export default function CreateToolPage({login}: { login: LoginInfo }) {
                     parameterSchema: selected.schema,
                     description: selected.description,
                     allowedEnvironments: [environment],
-                    toolMetadata: {operationType: template === 'table' ? 'QUERY' : 'UNSPECIFIED'}
+                    toolMetadata: {operationType: template === 'empty' ? 'UNSPECIFIED' : 'QUERY'}
                 });
-                window.location.assign(`/workspace/${id}`);
+                navigate(`/workspace/${id}`);
             } catch (failure) {
                 setError(failure instanceof Error ? failure.message : '创建失败');
                 setSaving(false);

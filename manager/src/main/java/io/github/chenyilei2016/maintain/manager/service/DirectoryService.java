@@ -1,5 +1,6 @@
 package io.github.chenyilei2016.maintain.manager.service;
 
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeDeleteWebRequest;
 import io.github.chenyilei2016.maintain.manager.controller.dto.TreeNodeSaveWebRequest;
 import io.github.chenyilei2016.maintain.manager.pojo.dto.DirectoryNodeDTO;
@@ -23,7 +24,7 @@ public interface DirectoryService {
      * @param creator     创建人（可选，用于过滤我的脚本）
      * @return 目录树结构
      */
-    List<DirectoryNodeDTO> getDirectoryTree(String serviceName, String creator);
+    List<DirectoryNodeDTO> getDirectoryTree(String serviceName, LocalLoginUser actor);
 
     /**
      * 获取脚本详情
@@ -31,7 +32,7 @@ public interface DirectoryService {
      * @param scriptId 脚本ID
      * @return 脚本详情
      */
-    ScriptNodeDTO getScriptDetail(String scriptId, String employeeNo);
+    ScriptNodeDTO getScriptDetail(String scriptId, LocalLoginUser actor);
 
     /**
      * 统一保存树节点（文件夹/脚本的创建和更新）
@@ -39,7 +40,7 @@ public interface DirectoryService {
      * @param request 保存请求（包含操作人信息）
      * @return 节点ID
      */
-    String treeNodeSave(TreeNodeSaveWebRequest request, io.github.chenyilei2016.maintain.manager.context.LocalLoginUser actor);
+    String treeNodeSave(TreeNodeSaveWebRequest request, LocalLoginUser actor);
 
     /**
      * 统一删除树节点（文件夹/脚本的删除）
@@ -47,9 +48,9 @@ public interface DirectoryService {
      * @param request 删除请求（包含操作人信息）
      * @return 是否成功
      */
-    boolean treeNodeDelete(TreeNodeDeleteWebRequest request);
+    boolean treeNodeDelete(TreeNodeDeleteWebRequest request, LocalLoginUser actor);
 
-    List<ScriptRevisionDTO> listScriptRevisions(String scriptId, String employeeNo);
+    List<ScriptRevisionDTO> listScriptRevisions(String scriptId, LocalLoginUser actor);
 
-    Integer restoreScriptRevision(String scriptId, int version, int expectedVersion, String operatorId, String operatorName);
+    Integer restoreScriptRevision(String scriptId, int version, int expectedVersion, LocalLoginUser actor);
 }

@@ -1,6 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.security;
 
 import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
+import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,7 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@Profile("!local")
+@Profile("!local & !demo")
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
 public class ManagerAuthenticationFilter extends OncePerRequestFilter {
     private final TrustedIdentityVerifier identityVerifier;
@@ -29,8 +30,9 @@ public class ManagerAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        return uri.equals("/") || uri.equals("/index.html") || uri.equals("/favicon.ico")
+        return uri.equals("/") || uri.equals("/index.html") || uri.equals("/favicon.ico") || uri.equals("/login")
                 || uri.equals("/workspace") || uri.startsWith("/workspace/") || uri.startsWith("/tools/")
+                || uri.startsWith("/admin")
                 || uri.startsWith("/static/") || uri.equals("/actuator/health") || uri.equals("/actuator/info");
     }
 
@@ -40,21 +42,26 @@ public class ManagerAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        LocalLoginUser user;
         try {
-            LoginUserContext.setUser(identityVerifier.verify(
+            user = identityVerifier.verify(
                     request.getHeader("X-Maintain-User-Id"),
                     request.getHeader("X-Maintain-User-Name"),
                     request.getHeader("X-Maintain-User-Roles"),
                     request.getHeader("X-Maintain-Identity-Timestamp"),
                     request.getHeader("X-Maintain-Identity-Nonce"),
                     request.getHeader("X-Maintain-Identity-Signature"),
-                    request.getMethod(), request.getRequestURI()));
-            filterChain.doFilter(request, response);
+                    request.getMethod(), request.getRequestURI());
         } catch (IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.getWriter().write("{\"success\":false,\"msg\":\"身份认证失败\",\"code\":401}");
+            return;
+        }
+        LoginUserContext.setUser(user);
+        try {
+            filterChain.doFilter(request, response);
         } finally {
             LoginUserContext.remove();
         }

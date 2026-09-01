@@ -24,7 +24,7 @@ public class ToolController {
                                                  @RequestParam(required = false) String search, @RequestParam(defaultValue = "ALL") ToolCatalog.View view,
                                                  @RequestParam(defaultValue = "0") int cursor) {
         if (search != null && search.length() > 200) throw new IllegalArgumentException("搜索文字过长");
-        return AjaxResult.success(catalog.page(LoginUserContext.getUser().getEmployeeNo(), serviceName, search, view, cursor));
+        return AjaxResult.success(catalog.page(LoginUserContext.getUser(), serviceName, search, view, cursor));
     }
 
     @GetMapping("/{id}")

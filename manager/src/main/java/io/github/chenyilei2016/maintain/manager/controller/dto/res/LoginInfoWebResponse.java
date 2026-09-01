@@ -3,6 +3,7 @@ package io.github.chenyilei2016.maintain.manager.controller.dto.res;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author chenyilei
@@ -18,6 +19,9 @@ public class LoginInfoWebResponse {
      * 员工工号
      */
     private String employeeNo;
+    private String userId;
+    private Set<String> roles;
+    private boolean administrator;
     private boolean canCreateTools;
 
 

@@ -65,7 +65,7 @@ public class ScriptExecutionService {
 
     public ExecutionReport runSaved(ExecutionRequest.RunSaved request, LocalLoginUser actor) {
         long started = System.nanoTime();
-        ScriptVO tool = access.require(request.scriptId(), actor.getEmployeeNo(), ScriptPermissionEnum.INVOKE);
+        ScriptVO tool = access.require(request.scriptId(), actor, ScriptPermissionEnum.INVOKE);
         requireVersion(tool, request.version());
         if (tool.getScript().getParameterSchema() == null || tool.getScript().getParameterSchema().isBlank()) {
             throw CommonException.createReminderException("此工具尚未配置类型化参数，请作者在工作台确认迁移后再分享运行");
@@ -76,8 +76,8 @@ public class ScriptExecutionService {
 
     public ExecutionReport debugDraft(ExecutionRequest.DebugDraft request, LocalLoginUser actor) {
         long started = System.nanoTime();
-        ScriptVO tool = access.require(request.scriptId(), actor.getEmployeeNo(), ScriptPermissionEnum.EDIT);
-        if (!access.allows(tool, actor.getEmployeeNo(), ScriptPermissionEnum.INVOKE)) {
+        ScriptVO tool = access.require(request.scriptId(), actor, ScriptPermissionEnum.EDIT);
+        if (!access.allows(tool, actor, ScriptPermissionEnum.INVOKE)) {
             throw CommonException.createReminderException("草稿调试同时需要编辑和执行权限");
         }
         requireVersion(tool, request.version());

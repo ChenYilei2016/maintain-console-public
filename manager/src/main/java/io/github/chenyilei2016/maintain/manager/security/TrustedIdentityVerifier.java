@@ -71,6 +71,7 @@ public class TrustedIdentityVerifier {
         }
 
         LocalLoginUser user = new LocalLoginUser();
+        user.setId(userId);
         user.setEmployeeNo(userId);
         user.setEmployeeName(userName);
         user.setRoles(parseRoles(roles));

@@ -2,7 +2,12 @@ import type {
     AiAssistAction,
     AiAssistResponse,
     ApiResponse,
+    AuthState,
+    ConsoleRole,
+    ConsoleUser,
+    ConsoleUserStatus,
     DirectoryNode,
+    EnvironmentManagementOverview,
     ExecutionHistory,
     LoginInfo,
     PageResponse,
@@ -12,6 +17,8 @@ import type {
     ScriptRevision,
     ServiceInstance,
     TreeNodeSaveRequest,
+    UsageStatistics,
+    UsageWindow,
 } from './types';
 
 export class ApiError extends Error {
@@ -20,8 +27,14 @@ export class ApiError extends Error {
     }
 }
 
+let csrfToken = '';
+
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(path, {cache: 'no-store', ...init});
+    const headers = new Headers(init?.headers);
+    if (csrfToken && init?.method && !['GET', 'HEAD'].includes(init.method.toUpperCase())) {
+        headers.set('X-CSRF-TOKEN', csrfToken);
+    }
+    const response = await fetch(path, {cache: 'no-store', credentials: 'same-origin', ...init, headers});
     if (!response.ok) {
         throw new ApiError(response.status === 401 ? '登录已失效，请重新登录后刷新此链接' : `请求失败（HTTP ${response.status}）`,
             response.status >= 400 && response.status < 500);
@@ -45,6 +58,39 @@ export function unwrap<T>(response: ApiResponse<T>): T {
 }
 
 export const api = {
+    async getAuthState(): Promise<AuthState> {
+        const state = unwrap(await fetchJson<ApiResponse<AuthState>>('/manager/auth/state'));
+        csrfToken = state.csrfToken;
+        return state;
+    },
+
+    async login(accountId: string, returnTo: string): Promise<string> {
+        return unwrap(await post<string>('/manager/auth/login', {accountId, returnTo}));
+    },
+
+    async logout(): Promise<void> {
+        unwrap(await post<boolean>('/manager/auth/logout'));
+        csrfToken = '';
+    },
+
+    async getUsers(page = 1, size = 20): Promise<PageResponse<ConsoleUser[]>> {
+        const query = new URLSearchParams({page: String(page), size: String(size)});
+        return fetchJson<PageResponse<ConsoleUser[]>>(`/manager/admin/users?${query}`);
+    },
+
+    async updateUser(id: string, status: ConsoleUserStatus, roles: ConsoleRole[]): Promise<void> {
+        unwrap(await post<boolean>(`/manager/admin/users/${encodeURIComponent(id)}`, {status, roles}));
+    },
+
+    async getEnvironmentOverview(): Promise<EnvironmentManagementOverview> {
+        return unwrap(await fetchJson<ApiResponse<EnvironmentManagementOverview>>('/manager/admin/environments'));
+    },
+
+    async getUsageStatistics(window: UsageWindow): Promise<UsageStatistics> {
+        const query = new URLSearchParams({window});
+        return unwrap(await fetchJson<ApiResponse<UsageStatistics>>(`/manager/admin/usage?${query}`));
+    },
+
     async getLoginInfo(): Promise<LoginInfo> {
         return unwrap(await post<LoginInfo>('/manager/login/getInfo'));
     },

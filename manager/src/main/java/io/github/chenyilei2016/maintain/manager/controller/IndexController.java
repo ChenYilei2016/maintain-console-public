@@ -18,7 +18,7 @@ public class IndexController {
     /**
      * 为 CodeMirror 的动态样式提供单次页面 nonce，HTML 不可缓存复用。
      */
-    @GetMapping(value = {"/", "/index.html", "/static/console/", "/static/console/index.html", "/tools/{id}", "/workspace", "/workspace/{id}"},
+    @GetMapping(value = {"/", "/index.html", "/static/console/", "/static/console/index.html", "/login", "/admin", "/admin/{page}", "/tools/{id}", "/workspace", "/workspace/{id}"},
             produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> index(HttpServletRequest request) throws IOException {
         String html = new ClassPathResource("static/console/index.html").getContentAsString(StandardCharsets.UTF_8);

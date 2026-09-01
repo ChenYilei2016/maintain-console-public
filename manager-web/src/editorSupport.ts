@@ -21,6 +21,12 @@ export const SCRIPT_SNIPPETS = [
         completion: 'tableResult',
         detail: '返回表格区块'
     },
+    {
+        label: '指标结果',
+        template: "return result(resultMetric('${title}', [${name}: ${value}]))",
+        completion: 'metricResult',
+        detail: '返回一组关键指标'
+    },
 ];
 
 const BUILT_IN_COMPLETIONS: Completion[] = [

@@ -48,7 +48,7 @@ describe('工作区模块契约', () => {
         expect(html).not.toContain('form="execution-form"');
     });
 
-    it('所有脚本操作直接展示，不再折叠到更多菜单', () => {
+    it('脚本操作按职责分组，常用入口保持直接可见', () => {
         const html = renderToStaticMarkup(<WorkspaceToolbar script={parameters.script} draftChanged={false}
                                                             canCreateTools
                                                             saving={false} scriptIsFavorite={false} aiEnabled
@@ -57,7 +57,9 @@ describe('工作区模块契约', () => {
                                                             onHistory={noop} onRevisions={noop}
                                                             onFavorite={noop} onPermissions={noop} onExample={noop}
                                                             onAiAssistant={noop} onDetails={noop} onCopy={noop}/>);
-        for (const label of ['收藏脚本', '版本历史', '授权与分享', '入门示例', 'AI 助手']) expect(html).toContain(label);
+        for (const label of ['主要操作', '回溯', '工具设置', '开发辅助', '收藏', '版本', '授权', '示例', 'AI']) {
+            expect(html).toContain(label);
+        }
         expect(html).not.toContain('<details');
     });
 

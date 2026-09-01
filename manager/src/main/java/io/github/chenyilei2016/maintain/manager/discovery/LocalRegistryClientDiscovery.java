@@ -16,7 +16,7 @@ import static io.github.chenyilei2016.maintain.manager.CONST.APP_NAME;
  * @since 2024/05/20 16:42
  */
 @Component
-@Profile("local")
+@Profile({"local", "demo"})
 public class LocalRegistryClientDiscovery implements MaintainConsoleRegistryClientDiscovery {
     private final EnvironmentCatalogService environmentCatalogService;
     private final Environment environment;

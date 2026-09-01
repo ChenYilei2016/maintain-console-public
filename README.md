@@ -23,6 +23,8 @@
 - React + CodeMirror 6：Groovy 高亮、括号补全、运行时 Bean/方法补全、参数补全和风险诊断。
 - 工具首页：全部、我创建的、授权给我的、收藏、最近使用、服务与名称/用途搜索。
 - 开发工作台、独立运行页、私有工具授权分享；内容保存与授权管理分离。
+- 工作台直接入口、最多 5 个脚本编辑会话、应用内资源切换和默认可见的结果区域。
+- local/demo 的 Mock SDK 登录、本地用户状态、系统会话、管理员用户、运行概览与环境视图。
 - 类型化参数 Schema：String、Number、Boolean、Enum、JSON、多行文本、日期时间、服务实例、校验与敏感值。
 - 中文显示名、分组与高级参数、字段校验、默认值和按用户/工具/环境隔离的个人预设。
 - 当前 HTTP 请求执行：随机/指定实例，工具显式允许时可有界执行全部实例；区分成功、失败、部分成功、未开始与结果未知。
@@ -98,7 +100,8 @@ pnpm build
 
 ### 开发者制作工具
 
-1. 在首页 **新建工具**，选择服务、环境和模板；默认私有。制作权限来自配置中的开发者名单、全局管理员名单，或可信身份中的
+1. 登录后进入 `/workspace`，从最近编辑或资源列表直接打开脚本；也可 **新建工具**
+   ，选择服务、环境和模板。新工具默认私有。制作权限来自配置中的开发者名单、全局管理员名单，或可信身份中的
    `DEVELOPER`，不是任意登录用户都能创建可执行代码。
 2. 右侧 **参数配置 → 添加参数**：设置技术名称、中文显示名、用途/示例、类型、默认值、分组及校验范围。
 3. 左侧使用 `def count = $${count}`。类型化参数是独立的数据表达式，不要额外加引号，也不要放入注释、字符串或标识符内部。
@@ -117,7 +120,8 @@ pnpm build
 预设保存在本浏览器，按用户、工具、环境隔离，最多 5 组；敏感参数不保存。开发草稿使用当前标签页 `sessionStorage`
 ，不缓存运行值，剔除敏感默认值/示例；代码中硬编码的密钥不应作为草稿使用。
 
-工作台采用左侧编辑器、右侧参数、底部结果的布局。右侧切换 **运行填值 / 参数配置**，执行按钮始终位于侧栏底部；结果可收起、最大化及还原。
+工作台采用左侧编辑器、右侧参数、底部结果的布局。右侧切换 **运行填值 / 参数配置**，执行按钮始终位于侧栏底部；结果默认展开，也可收起、聚焦及还原。
+资源树切换使用应用内导航；最多保留 5 个脚本编辑会话，每个会话独立保留草稿、编辑器撤销、参数、目标、运行状态和本次结果。
 资源栏可折叠，窄屏时参数通过 **参数与运行** 按钮打开抽屉；各区域独立滚动，切换布局不会重建编辑器。
 收藏、版本、权限、示例等操作直接展示在工具栏中；执行目标摘要固定在参数列表上方，点击 **目标设置** 修改并应用。
 参数区会根据实际溢出显示 **下方还有内容 / 上方还有内容 / 已到末尾**，点击下方提示可继续向下查看。
@@ -203,6 +207,28 @@ Worker 模式不会暴露 Spring Bean，适合纯计算与结构化结果脚本�
 解决“可终止”和堆上限，但不是完整沙箱；生产仍应使用非特权用户、只读文件系统、最小挂载、NetworkPolicy、CPU/内存/PID 限额。JDK 25
 下不要依赖 SecurityManager。
 
+## 登录、用户与会话
+
+`local` 或 `demo` 使用可运行的 Mock SDK 登录，固定提供：
+
+| 账号          | 能力                              |
+|-------------|---------------------------------|
+| `admin`     | 系统管理、审计查看、工具开发；仍需遵守脚本版本、参数和目标校验 |
+| `developer` | 创建、编辑和调试工具，不具备用户管理权限            |
+| `operator`  | 没有系统角色，只能使用脚本 ACL 明确授予读取或执行的工具  |
+
+登录始终执行“Mock Provider 校验 → 查询或创建本地用户 → 检查启用状态 → 建立 HttpSession”。本地已有用户不会跳过 Provider
+校验；管理员停用用户后，其已有会话在下一次受保护请求立即失效。
+Mock 登录受 CSRF 保护，会话 Cookie 为 HttpOnly、SameSite=Lax；生产默认要求 Secure。退出会话会清理此前用户的工作区草稿索引与参数预设。Mock
+Provider 不在非 local/demo 环境注册，也不会作为真实认证失败时的降级入口。
+`demo` 与 `local` 都使用本地发现和本进程 Groovy 执行器；非 local/demo 环境继续使用原有签名身份头，前端不会展示 Mock
+账号或伪造退出入口。缺少至少 32 字符的身份签名密钥时，非本地环境拒绝启动。
+
+用户表保留 `employeeNo` 作为现有脚本 ACL 的稳定主体标识，内部用户 ID 只用于会话与用户管理。系统角色管理平台能力，不能替代每个脚本的读、编、执授权。
+未来接入公司 SDK 时，在认证来源位置增加真实实现；正确流程仍为先验证外部凭证，再关联本地用户，不能因本地存在记录而跳过 SDK。
+
+管理中心的运行概览直接聚合执行历史，提供 7/30/90 天时间窗和 Top 10 工具，不维护第二份统计数据，也不会无界读取历史记录。
+
 ## Manager 生产配置
 
 ```properties
@@ -225,7 +251,8 @@ maintain.manager.execution.max-timeout-seconds=900
 - 生产流量应启用 TLS；需要更强工作负载身份时再叠加 mTLS。
 - 轮换时先向 Client 增加新公钥，再切换 Manager keyId，最后移除旧公钥。
 - `local` 使用模拟身份与本进程执行器，只用于开发，不可作为生产鉴权方式。生产应明确覆盖管理员/开发者名单，不沿用开发默认 ID。
-- 外层网关需保留 `/tools/{id}` 和 `/workspace/{id}` 的登录后返回地址；Manager 直接访问/刷新返回同一嵌入页面，不提供独立账号系统。
+- 外层网关需保留 `/tools/{id}` 和 `/workspace/{id}` 的登录后返回地址；Manager 直接访问/刷新返回同一嵌入页面。真实公司登录
+  SDK 尚未接入。
 
 目标环境不再写死在 Controller：
 
@@ -240,6 +267,42 @@ maintain.manager.target-environments[0].all-namespaces=false
 
 新入口使用 `target.environment`；旧兼容入口仍接收 `env`。服务器从环境目录解析 namespace 和生产属性，再校验工具的允许范围。
 全部实例需要工具显式允许，默认随机单实例。等待秒数默认 180，最大值受服务端配置约束；外层代理超时应匹配，否则页面可能提前报告结果未知。
+
+### 多 Nacos
+
+默认 `SPRING_CLOUD` 模式保持原单注册中心行为。多个独立 Nacos 使用 `MULTI_NACOS`，每个环境明确绑定连接、namespaceId、group
+和实例 cluster：
+
+```properties
+maintain.manager.discovery.mode=MULTI_NACOS
+maintain.manager.discovery.max-services=500
+maintain.manager.discovery.nacos-connections[0].id=test-registry
+maintain.manager.discovery.nacos-connections[0].name=测试注册中心
+maintain.manager.discovery.nacos-connections[0].server-addr=${TEST_NACOS_ADDR}
+maintain.manager.discovery.nacos-connections[0].namespace-id=${TEST_NACOS_NAMESPACE_ID}
+maintain.manager.discovery.nacos-connections[0].default-group=DEFAULT_GROUP
+maintain.manager.discovery.nacos-connections[1].id=prod-registry
+maintain.manager.discovery.nacos-connections[1].name=生产注册中心
+maintain.manager.discovery.nacos-connections[1].server-addr=${PROD_NACOS_ADDR}
+maintain.manager.discovery.nacos-connections[1].namespace-id=${PROD_NACOS_NAMESPACE_ID}
+maintain.manager.discovery.nacos-connections[1].username=${PROD_NACOS_USERNAME}
+maintain.manager.discovery.nacos-connections[1].password=${PROD_NACOS_PASSWORD}
+maintain.manager.target-environments[0].value=test
+maintain.manager.target-environments[0].name=测试环境
+maintain.manager.target-environments[0].registry-id=test-registry
+maintain.manager.target-environments[0].group-name=DEFAULT_GROUP
+maintain.manager.target-environments[1].value=prod
+maintain.manager.target-environments[1].name=生产环境
+maintain.manager.target-environments[1].registry-id=prod-registry
+maintain.manager.target-environments[1].group-name=DEFAULT_GROUP
+maintain.manager.target-environments[1].instance-clusters[0]=prod-cluster
+maintain.manager.target-environments[1].production=true
+```
+
+每个连接持有独立且受控关闭的 Nacos Client；不会把测试/生产地址拼入一个 `serverAddr`，不会在目标连接失败后自动切换其他环境。同名实例
+ID 会增加 `registryId` 前缀，缓存和执行记录继续使用明确环境。
+连接密码不会从管理接口返回。管理页当前展示脱敏配置状态；真实 Nacos 连通、实例发现和远端 Client 协议兼容仍是三个不同的验收层次。
+`MULTI_NACOS` 部署建议关闭 Spring Cloud Nacos 自动服务发现，避免额外维护一条不用于目标调用的默认发现连接。
 
 ### 权限与旧接口兼容
 
@@ -346,8 +409,9 @@ Flyway 同时维护 SQLite 与 MySQL：
 | V4 | 生产审批与审计                    |
 | V5 | 收藏与最近使用                    |
 | V6 | 工具说明元数据、历史环境/版本/实例/结果状态及索引 |
+| V7 | 本地系统用户、认证来源、状态、角色与登录时间     |
 
-升级顺序：备份数据库 → 在副本验证 Flyway V6 → 升级 Manager/Client 并验证签名 → 作者核对旧工具类型化参数与环境授权 →
+升级顺序：备份数据库 → 在副本验证 Flyway V6/V7 → 升级 Manager/Client 并验证签名 → 作者核对旧工具类型化参数与环境授权 →
 升级仍使用旧执行接口的调用方。
 V1–V5 不修改；旧任务、审批、脚本和执行历史表均保留，不做数据清空或 ACL 批量改写。旧后台任务不会在新 Manager 中恢复，旧审批不再参与运行。
 生产 MySQL 上线前需在真实副本验证迁移；本次已执行的升级回归使用独立 SQLite，不代表 MySQL 已完成运行验证。
@@ -382,6 +446,7 @@ sample-projects/
 - 没有后台续跑、轮询、恢复、自动重试或取消承诺；长任务应交给已有专用作业系统。
 - 工具目录单次扫描最多 100 个候选、返回最多 20 个可见项，可继续翻页；开发资源树上限 500 个节点。大规模目录应使用工具首页或后续服务端树分页。
 - 版本比较采用代码/参数定义并排查看，不建设分支、发布或自动合并。
+- Mock 登录只用于 local/demo；真实公司 SDK、生产多实例会话存储和真实 Nacos 联调仍需在部署环境完成。
 - 日志只随成功返回的结果收集；进程崩溃/网络中断时无法保证拿到完整远端日志。已发出操作的业务结果需要人工核对。
 - nonce 防重放缓存位于单进程；水平扩容需要共享短期存储。
 - Worker 不访问业务 Bean；隔离执行若需业务能力，应提供最小权限 RPC，不能重新暴露 ApplicationContext。

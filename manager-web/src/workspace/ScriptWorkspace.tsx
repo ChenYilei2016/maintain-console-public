@@ -28,11 +28,15 @@ import ExecutionResultsPanel from './ExecutionResultsPanel';
 import ScriptVersionsModal from './ScriptVersionsModal';
 import './workspace.css';
 import '../tools/tools.css';
+import {navigate} from '../navigation';
+import type {WorkspaceTabSummary} from './WorkspaceTabs';
 
 const CodeEditor = lazy(() => import('../CodeEditor'));
 type Dialog = 'details' | 'grants' | 'history' | 'versions' | 'example' | 'ai' | undefined;
 
-export default function ScriptWorkspace({id, login}: { id: string; login: LoginInfo }) {
+export default function ScriptWorkspace({id, login, onSummaryChange}: {
+    id: string; login: LoginInfo; onSummaryChange?: (summary: WorkspaceTabSummary) => void;
+}) {
     const editor = useScriptDraft(id, login.employeeNo);
     const {tool, draft} = editor;
     const execution = useExecution();
@@ -48,12 +52,13 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
     const [parameterTab, setParameterTab] = useState<ParameterTab>('values');
     const [parametersOpen, setParametersOpen] = useState(false);
     const [resourcesOpen, setResourcesOpen] = useState(() => window.innerWidth >= 1280);
-    const [resultView, setResultView] = useState<ResultView>('collapsed');
+    const [resultView, setResultView] = useState<ResultView>('open');
     const [dialog, setDialog] = useState<Dialog>();
     const [preview, setPreview] = useState<string>();
     const [favorite, setFavorite] = useState(false);
     const [resourceRevision, setResourceRevision] = useState(0);
     const [notice, setNotice] = useState('');
+    const [exampleTemplate, setExampleTemplate] = useState<keyof typeof TOOL_TEMPLATES>('table');
     const environments = login.availableEnvironments.filter(item => tool?.allowedEnvironments == null || tool.allowedEnvironments.includes(item.value));
     const selectedEnvironment = environments.find(item => item.value === environment);
     useEffect(() => {
@@ -108,6 +113,13 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
         setValues(current => ({...defaultParameterValues(definitions), ...safeParameterValues(definitions, current)}));
     }, [definitions, environment]);
     const issues = parameterSchemaIssues(draft?.content || '', schemaState.schema);
+    useEffect(() => {
+        if (tool && draft) {
+            onSummaryChange?.({name: draft.name, dirty: editor.dirty, running: execution.running});
+        } else if (editor.error) {
+            onSummaryChange?.({name: `${id} · 无法打开`, dirty: false, running: false});
+        }
+    }, [id, tool?.id, draft?.name, editor.dirty, editor.error, execution.running, onSummaryChange]);
     const save = async () => {
         if (await editor.save()) {
             setNotice('已保存：共享工具已更新为此版本');
@@ -141,7 +153,8 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                                                                                        canCreateTools={login.canCreateTools}
                                                                                        scriptId={id}
                                                                                        environment={environment}
-                                                                                       revision={resourceRevision}/>
+                                                                                       revision={resourceRevision}
+                                                                                       onScriptSelect={nextId => navigate(`/workspace/${nextId}`)}/>
         </aside>
         <section className="workbench-main">
             <WorkspaceToolbar script={currentScript} draftChanged={editor.dirty} saving={editor.saving}
@@ -182,7 +195,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                                           toolMetadata: tool.toolMetadata,
                                           allowedEnvironments: environment ? [environment] : []
                                       });
-                                      window.location.assign(`/workspace/${copied}`);
+                                      navigate(`/workspace/${copied}`);
                                   } catch (failure) {
                                       setNotice(failure instanceof Error ? failure.message : '复制失败');
                                   }
@@ -316,15 +329,21 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                 <p>保存会更新共享工具。SQL 参数化和调用者业务数据范围必须由脚本和受控业务能力落实，类型校验不能替代。</p>
             </div>
         </Modal>}
-        {dialog === 'example' && <Modal title="入门示例：参数 → 表单 → 表格" wide onClose={() => setDialog(undefined)}
+        {dialog === 'example' && <Modal title="示例库：代码与结构化结果" wide onClose={() => setDialog(undefined)}
                                         footer={<button disabled={!tool.canEdit} onClick={() => {
                                             editor.update({
-                                                content: TOOL_TEMPLATES.table.content,
-                                                schema: TOOL_TEMPLATES.table.schema
+                                                content: TOOL_TEMPLATES[exampleTemplate].content,
+                                                schema: TOOL_TEMPLATES[exampleTemplate].schema
                                             });
                                             setDialog(undefined);
-                                        }}>替换当前草稿，不保存</button>}><p>替换前请保留需要的草稿内容。</p>
-            <pre className="preview-code">{TOOL_TEMPLATES.table.content}</pre>
+                                        }}>应用到当前草稿，不保存</button>}>
+            <p>示例只使用固定数据；应用前请保留需要的草稿内容。</p>
+            <label className="example-selector"><span>选择示例</span><select value={exampleTemplate}
+                                                                             onChange={event => setExampleTemplate(event.target.value as keyof typeof TOOL_TEMPLATES)}>
+                {Object.entries(TOOL_TEMPLATES).map(([key, value]) => <option value={key}
+                                                                              key={key}>{value.name}</option>)}</select></label>
+            <p>{TOOL_TEMPLATES[exampleTemplate].description}</p>
+            <pre className="preview-code">{TOOL_TEMPLATES[exampleTemplate].content}</pre>
         </Modal>}
         {preview !== undefined && <Modal title="参数替换预览（开发用途）" wide onClose={() => setPreview(undefined)}>
             <pre className="preview-code">{preview}</pre>

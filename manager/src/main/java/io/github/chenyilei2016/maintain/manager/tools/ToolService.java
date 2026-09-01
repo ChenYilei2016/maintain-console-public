@@ -40,7 +40,7 @@ public class ToolService {
     private final AuditLogService audit;
 
     public ToolForm open(String scriptId, LocalLoginUser actor) {
-        var tool = access.require(scriptId, actor.getEmployeeNo(), ScriptPermissionEnum.INVOKE);
+        var tool = access.require(scriptId, actor, ScriptPermissionEnum.INVOKE);
         var grants = ScriptPermissionEntity.parse(tool.getScriptPermissions());
         if (!grants.isEnabled()) throw CommonException.createReminderException("工具已停用");
         ScriptParameterSchema schema = ScriptParameterSchema.parse(tool.getScript().getParameterSchema());
@@ -61,12 +61,12 @@ public class ToolService {
         return new ToolForm(scriptId, tool.getDirectoryNode().getName(), tool.getScript().getDescription(),
                 tool.getServiceName(), tool.getDirectoryNode().getCreatorName(), tool.getScript().getVersion(),
                 ScriptToolMetadata.parse(tool.getScript().getToolMetadata()), schema.getParameters(), choices,
-                grants.isAllowAllInstances(), access.allows(tool, actor.getEmployeeNo(), ScriptPermissionEnum.READ),
-                access.allows(tool, actor.getEmployeeNo(), ScriptPermissionEnum.EDIT), properties.getExecution().getDefaultTimeoutSeconds());
+                grants.isAllowAllInstances(), access.allows(tool, actor, ScriptPermissionEnum.READ),
+                access.allows(tool, actor, ScriptPermissionEnum.EDIT), properties.getExecution().getDefaultTimeoutSeconds());
     }
 
     public List<ServiceInstanceDTO> instances(String scriptId, String environment, LocalLoginUser actor) {
-        var tool = access.require(scriptId, actor.getEmployeeNo(), ScriptPermissionEnum.INVOKE);
+        var tool = access.require(scriptId, actor, ScriptPermissionEnum.INVOKE);
         var grants = ScriptPermissionEntity.parse(tool.getScriptPermissions());
         String canonicalEnvironment = environments.require(environment).getValue();
         if (!grants.allowsEnvironment(canonicalEnvironment, false)) {
@@ -77,7 +77,7 @@ public class ToolService {
     }
 
     public List<ServiceInstanceDTO> developmentInstances(String scriptId, String environment, LocalLoginUser actor) {
-        var tool = access.require(scriptId, actor.getEmployeeNo(), ScriptPermissionEnum.READ);
+        var tool = access.require(scriptId, actor, ScriptPermissionEnum.READ);
         var grants = ScriptPermissionEntity.parse(tool.getScriptPermissions());
         String canonicalEnvironment = environments.require(environment).getValue();
         if (!grants.allowsEnvironment(canonicalEnvironment, true)) {
@@ -88,14 +88,14 @@ public class ToolService {
     }
 
     public GrantsView grants(String scriptId, LocalLoginUser actor) {
-        var tool = access.require(scriptId, actor.getEmployeeNo(), ScriptPermissionEnum.MANAGE);
+        var tool = access.require(scriptId, actor, ScriptPermissionEnum.MANAGE);
         return new GrantsView(tool.getScript().getVersion(), tool.getDirectoryNode().getCreatorId(),
                 ScriptPermissionEntity.parse(tool.getScriptPermissions()));
     }
 
     @Transactional
     public int updateGrants(String scriptId, GrantChange request, LocalLoginUser actor) {
-        var tool = access.require(scriptId, actor.getEmployeeNo(), ScriptPermissionEnum.MANAGE);
+        var tool = access.require(scriptId, actor, ScriptPermissionEnum.MANAGE);
         if (!request.expectedVersion().equals(tool.getScript().getVersion())) {
             throw CommonException.createReminderException("授权设置已过期，请刷新后重新核对");
         }
