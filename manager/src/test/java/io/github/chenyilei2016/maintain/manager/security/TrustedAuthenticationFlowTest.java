@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(classes = MaintainManagerBootstrap.class, properties = {
         "maintain.manager.ai.enabled=false",
+        "maintain.manager.identity.mode=TRUSTED_HEADERS",
         "maintain.manager.security.identity-shared-secret=0123456789abcdef0123456789abcdef",
         "spring.cloud.nacos.discovery.enabled=false",
         "spring.cloud.nacos.config.enabled=false",
@@ -52,7 +53,7 @@ class TrustedAuthenticationFlowTest {
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
         assertTrue(state.getJSONObject("data").getBooleanValue("authenticated"));
         assertEquals("TRUSTED_HEADERS", state.getJSONObject("data").getString("provider"));
-        assertTrue(state.getJSONObject("data").getJSONArray("accounts").isEmpty());
+        org.junit.jupiter.api.Assertions.assertFalse(state.getJSONObject("data").containsKey("accounts"));
 
         JSONObject login = JSON.parseObject(mvc.perform(post("/manager/login/getInfo")
                         .headers(signed("POST", "/manager/login/getInfo", "nonce-login-0001")))
@@ -62,7 +63,7 @@ class TrustedAuthenticationFlowTest {
 
     private HttpHeaders signed(String method, String uri, String nonce) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String roles = "DEVELOPER";
+        String roles = "ADMIN";
         String payload = String.join("\n", "1001", "Chen", roles, timestamp, nonce, method, uri);
         ManagerProperties.Security security = new ManagerProperties.Security();
         security.setIdentitySharedSecret("0123456789abcdef0123456789abcdef");

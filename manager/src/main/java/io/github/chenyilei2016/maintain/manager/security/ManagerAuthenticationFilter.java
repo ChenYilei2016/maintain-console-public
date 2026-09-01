@@ -7,7 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
@@ -18,8 +18,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 @Component
-@Profile("!local & !demo")
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
+@ConditionalOnProperty(prefix = "maintain.manager.identity", name = "mode", havingValue = "TRUSTED_HEADERS")
 public class ManagerAuthenticationFilter extends OncePerRequestFilter {
     private final TrustedIdentityVerifier identityVerifier;
 

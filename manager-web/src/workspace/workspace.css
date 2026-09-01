@@ -174,6 +174,19 @@
     font-size: 12px;
 }
 
+.workbench-header .environment-access-hint {
+    border: 0;
+    background: transparent;
+    padding: 5px 0;
+    color: #536dd7;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.workbench-header span.environment-access-hint {
+    color: #8a6570;
+}
+
 .workbench .app-header-actions {
     display: flex;
     align-items: center;
@@ -320,7 +333,7 @@
     display: grid;
     min-height: 0;
     flex: 1;
-    grid-template-columns: minmax(0, 1fr) clamp(420px, 34vw, 500px);
+    grid-template-columns: minmax(0, 1fr) clamp(440px, 38vw, 560px);
     grid-template-rows: minmax(0, 1fr) 42px;
     gap: 10px;
 }
@@ -693,7 +706,7 @@
     gap: 10px;
 }
 
-.workspace-recent button, .workspace-script-list button {
+.workspace-recent button {
     border: 1px solid #dce3ed;
     border-radius: 9px;
     background: #fff;
@@ -706,20 +719,32 @@
     gap: 5px;
 }
 
-.workspace-recent small, .workspace-script-list small {
+.workspace-recent small {
     color: #8792a4;
 }
 
-.workspace-script-list > div {
-    display: grid;
-    gap: 7px;
+.workspace-directory-card {
+    border: 1px solid #dce3ed;
+    border-radius: 10px;
+    background: #fff;
+    padding: 10px;
 }
 
-.workspace-script-list button {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 10px;
+.workspace-directory-card .tree-row {
+    color: #536179;
+}
+
+.workspace-directory-card .tree-row:hover {
+    background: #f1f4f9;
+    color: #25324a;
+}
+
+.workspace-directory-card .tree-children {
+    border-left-color: #dce3ed;
+}
+
+.workspace-directory-card .node-icon.script {
+    background: #eef2ff;
 }
 
 @media (max-width: 650px) {

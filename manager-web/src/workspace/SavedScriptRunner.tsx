@@ -3,18 +3,18 @@ import ParameterForm from '../ParameterForm';
 import ParameterPresets from '../ParameterPresets';
 import {defaultParameterValues, executionParameters, safeParameterValues} from '../parameters';
 import type {LoginInfo, ServiceInstance} from '../types';
-import type {ExecutionTarget} from '../workspace/ExecutionTargetSettings';
-import ExecutionTargetSettings from '../workspace/ExecutionTargetSettings';
-import ParameterScrollArea from '../workspace/ParameterScrollArea';
+import type {ExecutionTarget} from './ExecutionTargetSettings';
+import ExecutionTargetSettings from './ExecutionTargetSettings';
+import ParameterScrollArea from './ParameterScrollArea';
 import ExecutionHistoryModal from '../execution/ExecutionHistoryModal';
 import ExecutionOutput from '../execution/ExecutionOutput';
 import {useExecution} from '../execution/useExecution';
 import {runTool} from '../execution/execution';
-import type {ToolForm} from './toolApi';
-import {OPERATION_LABELS, toolApi} from './toolApi';
-import './tools.css';
+import type {ToolForm} from '../tools/toolApi';
+import {OPERATION_LABELS, toolApi} from '../tools/toolApi';
+import '../tools/tools.css';
 
-export default function ToolRunPage({id, login}: { id: string; login: LoginInfo }) {
+export default function SavedScriptRunner({id, login}: { id: string; login: LoginInfo }) {
     const [tool, setTool] = useState<ToolForm>();
     const [environment, setEnvironment] = useState('');
     const [values, setValues] = useState<Record<string, string>>({});
@@ -67,8 +67,8 @@ export default function ToolRunPage({id, login}: { id: string; login: LoginInfo 
     }, [id, environment, refresh]);
     const selectedEnvironment = tool?.environments.find(item => item.value === environment);
     return <main className="tool-run-page">
-        <header className="tool-app-header"><a href="/">←
-            工具首页</a><span>{login.employeeName} · {login.employeeNo}</span></header>
+        <header className="tool-app-header"><a href="/workspace">←
+            脚本目录</a><span>{login.employeeName} · {login.employeeNo}</span></header>
         {!tool ? <section className="tool-unavailable"><h1>{error ? '暂时无法打开这个工具' : '正在打开工具…'}</h1>
             <p role="alert">{error || '正在检查你的访问权限'}</p>
             <button onClick={() => setRefresh(value => value + 1)}>重新检查</button>
@@ -83,12 +83,10 @@ export default function ToolRunPage({id, login}: { id: string; login: LoginInfo 
                     <button disabled={execution.running} onClick={() => setRefresh(value => value + 1)}>刷新工具版本
                     </button>
                     <button onClick={() => setShowHistory(true)}>执行历史</button>
-                    {tool.canRead &&
-                        <a className="button" href={`/workspace/${id}`}>{tool.canEdit ? '编辑工具' : '查看代码'}</a>}
                 </div>
             </section>
             <div className="run-layout">
-                <section className="run-form-panel" aria-label="工具参数">
+                <section className="run-form-panel" aria-label="脚本参数">
                     <header className="run-target-header"><label><span>执行环境</span><select
                         disabled={execution.running} value={environment} onChange={event => {
                         setEnvironment(event.target.value);
@@ -103,7 +101,7 @@ export default function ToolRunPage({id, login}: { id: string; login: LoginInfo 
                             className="parameter-completion">已填写 {tool.parameters.filter(item => values[item.name]?.trim()).length} / {tool.parameters.length} 项
                             · 标 * 为必填</small>
                     </header>
-                    <ParameterScrollArea view="run" label="工具参数列表" itemCount={tool.parameters.length}>
+                    <ParameterScrollArea view="run" label="脚本参数列表" itemCount={tool.parameters.length}>
                         <form id="tool-run-form" onSubmit={event => {
                             event.preventDefault();
                             if (!environment || !instances.length || execution.running) return;
@@ -141,7 +139,7 @@ export default function ToolRunPage({id, login}: { id: string; login: LoginInfo 
                             <p className="field-error">{environment ? '当前没有可用实例，不能发起运行。' : '请联系作者配置允许环境。'}</p>}
                         <button className="run-button" type="submit" form="tool-run-form"
                                 disabled={execution.running || !environment || !instances.length}>
-                            {execution.running ? `执行中 · ${(execution.elapsed / 1000).toFixed(1)} 秒` : '运行工具'}</button>
+                            {execution.running ? `执行中 · ${(execution.elapsed / 1000).toFixed(1)} 秒` : '运行脚本'}</button>
                         <small>运行会留下记录；断网或超时不等于远端已停止。</small>
                     </footer>
                 </section>

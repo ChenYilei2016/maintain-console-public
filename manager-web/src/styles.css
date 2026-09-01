@@ -33,7 +33,7 @@ body {
     box-shadow: 0 24px 70px rgb(31 48 80 / 12%);
 }
 
-.login-brand, .login-brand > div, .login-copy, .mock-account-list, .mock-account-list label > span {
+.login-brand, .login-brand > div, .login-copy, .login-form {
     display: grid;
     gap: 5px;
 }
@@ -77,38 +77,36 @@ body {
     font-size: 26px;
 }
 
-.mock-account-list {
-    gap: 10px;
+.login-form {
+    gap: 14px;
 }
 
-.mock-account-list label {
+.login-form label {
     display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid #dde3ed;
-    border-radius: 10px;
-    padding: 13px 15px;
-    cursor: pointer;
+    gap: 7px;
+    color: #4f5d73;
+    font-size: 12px;
+    font-weight: 650;
 }
 
-.mock-account-list label.selected {
+.login-form input {
+    width: 100%;
+    border: 1px solid #d5ddea;
+    border-radius: 9px;
+    padding: 11px 12px;
+    color: #182033;
+    font: inherit;
+    outline: none;
+}
+
+.login-form input:focus {
     border-color: #5873e8;
-    background: #f2f5ff;
-}
-
-.mock-account-list small {
-    color: #758196;
-}
-
-.mock-account-list code {
-    color: #8d96a7;
-    font-size: 10px;
+    box-shadow: 0 0 0 3px rgb(88 115 232 / 13%);
 }
 
 .login-submit {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 4px;
     border: 0;
     border-radius: 9px;
     background: #3559dd;
@@ -250,6 +248,61 @@ body {
     gap: 10px;
 }
 
+.admin-create-user {
+    display: grid;
+    max-width: 1200px;
+    margin: 26px auto 0;
+    gap: 14px;
+    border: 1px solid #d7dfec;
+    border-radius: 12px;
+    background: #fff;
+    padding: 18px;
+}
+
+.admin-create-user > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.admin-create-user > header > div, .admin-create-user label {
+    display: grid;
+    gap: 5px;
+}
+
+.admin-create-user header span, .admin-create-user label > span {
+    color: #6d7a8f;
+    font-size: 11px;
+}
+
+.admin-create-user-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.admin-create-user input {
+    min-width: 0;
+    border: 1px solid #d7deea;
+    border-radius: 7px;
+    padding: 8px;
+}
+
+.admin-create-user fieldset {
+    display: flex;
+    gap: 14px;
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-create-user legend {
+    margin-bottom: 7px;
+    color: #66758b;
+    font-size: 11px;
+}
+
 .admin-user-card {
     display: grid;
     grid-template-columns: minmax(190px, 1.4fr) 140px minmax(300px, 1fr) auto;
@@ -303,11 +356,49 @@ body {
     font-size: 11px;
 }
 
-.admin-user-card > button {
+.admin-user-actions {
+    display: grid;
+    gap: 7px;
+}
+
+.admin-user-actions button, .admin-user-actions summary {
     border: 1px solid #cdd7e7;
     border-radius: 7px;
     background: #f7f9fc;
     padding: 8px 10px;
+    color: #33415a;
+    font-size: 11px;
+    text-align: center;
+}
+
+.admin-user-actions summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.admin-user-actions summary::-webkit-details-marker {
+    display: none;
+}
+
+.admin-user-actions form {
+    display: grid;
+    gap: 7px;
+    margin-top: 7px;
+}
+
+.admin-user-actions input {
+    width: 190px;
+    border: 1px solid #d7deea;
+    border-radius: 7px;
+    padding: 8px;
+}
+
+.admin-user-card > .login-error, .admin-user-card > .admin-action-notice {
+    grid-column: 1 / -1;
+}
+
+.admin-action-notice {
+    color: #257548;
 }
 
 .admin-notice, .admin-empty {
@@ -496,6 +587,10 @@ body {
     }
 
     .admin-user-card {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-create-user-fields {
         grid-template-columns: 1fr;
     }
 

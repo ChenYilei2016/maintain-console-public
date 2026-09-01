@@ -1,13 +1,12 @@
 package io.github.chenyilei2016.maintain.manager.config;
 
 import io.github.chenyilei2016.maintain.manager.discovery.RegistryDiscoveryMode;
+import io.github.chenyilei2016.maintain.manager.identity.AuthenticationProviderType;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author chenyilei
@@ -18,19 +17,13 @@ import java.util.Set;
 @org.springframework.boot.context.properties.ConfigurationProperties(prefix = "maintain.manager")
 public class ManagerProperties {
 
-    /**
-     * 全局白名单
-     */
-    private Set<String> globalWhiteEmployeeNoList = new HashSet<>(Set.of("0", "1"));
-
-    /**
-     * 仅授予制作新工具能力，不等于全局管理员。
-     */
-    private Set<String> developerEmployeeNoList = new HashSet<>();
-
     private Execution execution = new Execution();
 
     private Security security = new Security();
+
+    private Identity identity = new Identity();
+
+    private BootstrapAdmin bootstrapAdmin = new BootstrapAdmin();
 
     private Ai ai = new Ai();
 
@@ -59,6 +52,20 @@ public class ManagerProperties {
         private String identitySharedSecret;
         private long identityTimestampToleranceMillis = 300_000L;
         private int identityReplayCacheSize = 10_000;
+    }
+
+    @Getter
+    @Setter
+    public static class Identity {
+        private AuthenticationProviderType mode = AuthenticationProviderType.LOCAL_PASSWORD;
+    }
+
+    @Getter
+    @Setter
+    public static class BootstrapAdmin {
+        private String username = "admin";
+        private String displayName = "管理员";
+        private String password;
     }
 
     @Getter

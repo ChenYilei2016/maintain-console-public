@@ -7,6 +7,12 @@ export default defineConfig({
     build: {
         outDir: '../manager/src/main/resources/static/console',
         emptyOutDir: true,
+        rollupOptions: {
+            input: {
+                workspace: new URL('./index.html', import.meta.url).pathname,
+                admin: new URL('./admin.html', import.meta.url).pathname,
+            },
+        },
     },
     server: {
         proxy: {

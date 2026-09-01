@@ -7,7 +7,6 @@ import io.github.chenyilei2016.maintain.manager.context.LoginUserContext;
 import io.github.chenyilei2016.maintain.manager.controller.dto.res.LoginInfoWebResponse;
 import io.github.chenyilei2016.maintain.manager.pojo.common.AjaxResult;
 import io.github.chenyilei2016.maintain.manager.service.EnvironmentCatalogService;
-import io.github.chenyilei2016.maintain.manager.service.ScriptAccessControl;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,18 +23,15 @@ public class LoginController {
     private final ManagerProperties managerProperties;
     private final EnvironmentCatalogService environmentCatalogService;
     private final Environment environment;
-    private final ScriptAccessControl access;
 
     public LoginController(
             ManagerProperties managerProperties,
             EnvironmentCatalogService environmentCatalogService,
-            Environment environment,
-            ScriptAccessControl access
+            Environment environment
     ) {
         this.managerProperties = managerProperties;
         this.environmentCatalogService = environmentCatalogService;
         this.environment = environment;
-        this.access = access;
     }
 
     @PostMapping("/manager/login/getInfo")
@@ -47,7 +43,6 @@ public class LoginController {
         r.setUserId(user.getId());
         r.setRoles(Set.copyOf(user.getRoles()));
         r.setAdministrator(ConsoleRole.ADMIN.grantedTo(user));
-        r.setCanCreateTools(access.canCreateTools(user));
         r.setAiEnabled(managerProperties.getAi().isEnabled());
 
         String[] activeProfiles = environment.getActiveProfiles();

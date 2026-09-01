@@ -80,7 +80,7 @@ public class DirectoryNodeRepositoryImpl extends ServiceImpl<DirectoryNodeMapper
         List<DirectoryNode> nodes = baseMapper.selectServiceTree(serviceName, MAX_TREE_NODES + 1);
         if (nodes.size() > MAX_TREE_NODES) {
             throw io.github.chenyilei2016.maintain.manager.exceptions.CommonException.createReminderException(
-                    "资源树超过 500 个节点，请使用分页工具首页查找");
+                    "资源树超过 500 个节点，需要启用服务端树分页后继续查找");
         }
         return nodes;
     }

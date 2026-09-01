@@ -4,8 +4,10 @@ import ExecutionResultsPanel from './ExecutionResultsPanel';
 import ScriptParametersPanel from './ScriptParametersPanel';
 import WorkspaceToolbar from './WorkspaceToolbar';
 import ScriptResourceExplorer from './ScriptResourceExplorer';
+import DirectoryTree from '../DirectoryTree';
 import {scrollEdges} from './ParameterScrollArea';
 import type {ComponentProps} from 'react';
+import {canOpenScriptEditor} from './ScriptWorkspace';
 
 const noop = () => undefined;
 const parameters: ComponentProps<typeof ScriptParametersPanel> = {
@@ -29,6 +31,11 @@ const parameters: ComponentProps<typeof ScriptParametersPanel> = {
 };
 
 describe('工作区模块契约', () => {
+    it('EDIT 单独授权也进入编辑器，INVOKE 单独授权进入仅运行视图', () => {
+        expect(canOpenScriptEditor({canRead: false, canEdit: true})).toBe(true);
+        expect(canOpenScriptEditor({canRead: false, canEdit: false})).toBe(false);
+    });
+
     it('运行操作绑定到表单，保留权限与生产环境提示', () => {
         const html = renderToStaticMarkup(<ScriptParametersPanel {...parameters}
                                                                  environment={{
@@ -89,14 +96,13 @@ describe('工作区模块契约', () => {
 
     it('脚本操作按职责分组，常用入口保持直接可见', () => {
         const html = renderToStaticMarkup(<WorkspaceToolbar script={parameters.script} draftChanged={false}
-                                                            canCreateTools
                                                             saving={false} scriptIsFavorite={false} aiEnabled
                                                             parameterCount={6} parametersOpen={false}
                                                             onNameChange={noop} onParametersToggle={noop} onSave={noop}
                                                             onHistory={noop} onRevisions={noop}
                                                             onFavorite={noop} onPermissions={noop} onExample={noop}
                                                             onAiAssistant={noop} onDetails={noop} onCopy={noop}/>);
-        for (const label of ['主要操作', '回溯', '工具设置', '开发辅助', '收藏', '版本', '授权', '示例', 'AI']) {
+        for (const label of ['主要操作', '回溯', '脚本设置', '开发辅助', '收藏', '版本', '授权', '示例', 'AI']) {
             expect(html).toContain(label);
         }
         expect(html).not.toContain('<details');
@@ -127,6 +133,17 @@ describe('工作区模块契约', () => {
                                                                   onDelete={noop}/>);
         expect(html).toContain('tree-row selected');
         expect(html).toContain('搜索目录树');
+    });
+
+    it('目录树同时展示文件夹和脚本名称，不用 public/private 标记冒充 ACL', () => {
+        const html = renderToStaticMarkup(<DirectoryTree searching={false} onSelect={noop} nodes={[{
+            id: 'folder-1', name: '订单运维', type: 'folder', serviceName: 'sample', level: 0, children: [{
+                ...parameters.script, parentId: 'folder-1', permissionType: 'private'
+            }]
+        }]}/>);
+        expect(html).toContain('订单运维');
+        expect(html).toContain('示例');
+        expect(html).not.toContain('私有脚本');
     });
 
     it('结果收起只隐藏内容，放大后仍展示同一份结果', () => {

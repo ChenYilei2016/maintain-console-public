@@ -64,8 +64,8 @@ export const api = {
         return state;
     },
 
-    async login(accountId: string, returnTo: string): Promise<string> {
-        return unwrap(await post<string>('/manager/auth/login', {accountId, returnTo}));
+    async login(username: string, password: string, returnTo: string): Promise<string> {
+        return unwrap(await post<string>('/manager/auth/login', {username, password, returnTo}));
     },
 
     async logout(): Promise<void> {
@@ -80,6 +80,15 @@ export const api = {
 
     async updateUser(id: string, status: ConsoleUserStatus, roles: ConsoleRole[]): Promise<void> {
         unwrap(await post<boolean>(`/manager/admin/users/${encodeURIComponent(id)}`, {status, roles}));
+    },
+
+    async createUser(username: string, displayName: string, initialPassword: string,
+                     roles: ConsoleRole[]): Promise<ConsoleUser> {
+        return unwrap(await post<ConsoleUser>('/manager/admin/users', {username, displayName, initialPassword, roles}));
+    },
+
+    async resetUserPassword(id: string, newPassword: string): Promise<void> {
+        unwrap(await post<boolean>(`/manager/admin/users/${encodeURIComponent(id)}/password`, {newPassword}));
     },
 
     async getEnvironmentOverview(): Promise<EnvironmentManagementOverview> {

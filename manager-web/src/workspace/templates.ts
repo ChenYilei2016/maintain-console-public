@@ -56,7 +56,7 @@ export const TOOL_TEMPLATES = {
         schema: JSON.stringify({version: 1, parameters: []}, null, 2),
     },
     empty: {
-        name: '空白工具', description: '填写这个工具的用途、输入要求和风险。',
+        name: '空白脚本', description: '填写这个脚本的用途、输入要求和风险。',
         content: "// _caller 来自可信登录身份；业务数据范围仍需由业务能力校验\nreturn result(resultText('结果', 'Hello, Maintain Console'))",
         schema: JSON.stringify({version: 1, parameters: []}, null, 2),
     },

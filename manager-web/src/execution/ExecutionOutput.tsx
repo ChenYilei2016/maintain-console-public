@@ -10,7 +10,7 @@ export default function ExecutionOutput({report, error, running, elapsed}: {
         <p>正在等待当前请求返回。离开页面不会终止远端操作；没有自动重试。</p></div>;
     if (error) return <div className="execution-feedback error" role="alert">{error}</div>;
     if (!report) return <div className="execution-feedback"><strong>结果将在这里展示</strong>
-        <p>填写参数并运行工具；打开页面不会自动执行。</p></div>;
+        <p>填写参数并运行脚本；打开页面不会自动执行。</p></div>;
     return <div className="execution-output">
         <header>
             <strong>{OUTCOME_LABELS[report.outcome]}</strong><span>v{report.scriptVersion} · {report.duration} ms · {report.draft ? '草稿调试' : '已保存工具'}</span>

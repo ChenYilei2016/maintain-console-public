@@ -17,10 +17,9 @@ export default function WorkspaceResources({
                                                scriptId,
                                                environment,
                                                revision,
-                                               canCreateTools,
                                                onScriptSelect
                                            }: {
-    serviceName: string; scriptId: string; environment: string; revision: number; canCreateTools: boolean;
+    serviceName: string; scriptId: string; environment: string; revision: number;
     onScriptSelect?: (id: string) => void;
 }) {
     const [tree, setTree] = useState<DirectoryNode[]>([]);
@@ -48,13 +47,13 @@ export default function WorkspaceResources({
         <ScriptResourceExplorer serviceName={serviceName} tree={tree} overview={overview} loading={loading}
                                 selectedId={scriptId}
                                 onSelect={id => onScriptSelect ? onScriptSelect(id) : navigate(`/workspace/${id}`)}
-                                onCreate={canCreateTools ? parent => setDialog({
+                                onCreate={parent => setDialog({
                                     kind: 'create',
                                     node: parent,
                                     name: '',
                                     nodeType: 'script',
                                     forceDelete: false
-                                }) : undefined}
+                                })}
                                 onRename={async node => {
                                     try {
                                         const detail = node.type === 'script' ? await api.getScriptDetail(node.id) : undefined;
@@ -126,7 +125,7 @@ export default function WorkspaceResources({
                                                                                          ...dialog,
                                                                                          nodeType: event.target.value as DirectoryNode['type']
                                                                                      })}>
-                            <option value="script">工具脚本</option>
+                            <option value="script">脚本</option>
                             <option value="folder">文件夹</option>
                         </select></label>}
                         <label><span>名称</span><input autoFocus value={dialog.name} onChange={event => setDialog({

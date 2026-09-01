@@ -39,7 +39,7 @@ public class ToolCatalog {
             // “授权给我的”不包括 v1 的默认公开阅读。
             if (view == View.SHARED) {
                 var grants = ScriptPermissionEntity.parse(node.getScriptPermissions());
-                grants.setVersion(2);
+                if (grants.getVersion() == 1) grants.setVersion(2);
                 tool.getScript().setPermissions(com.alibaba.fastjson2.JSON.toJSONString(grants));
                 if (!access.visible(tool, actor)) continue;
             }

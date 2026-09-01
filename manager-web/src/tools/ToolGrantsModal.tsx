@@ -4,7 +4,12 @@ import type {EnvironmentOption} from '../types';
 import type {ToolGrants, ToolPermissions} from './toolApi';
 import {loadGrants, saveGrants} from './toolApi';
 
-const CAPABILITIES = {readerNo: '查看代码', editorNo: '编辑脚本', invokerNo: '运行工具'} as const;
+const CAPABILITIES = {
+    readerNo: '查看代码',
+    editorNo: '编辑脚本',
+    invokerNo: '运行脚本',
+    managerNo: '管理授权'
+} as const;
 const PRESETS = {
     run: ['invokerNo'],
     readRun: ['readerNo', 'invokerNo'],
@@ -39,7 +44,7 @@ export default function ToolGrantsModal({scriptId, environments, onSaved, onClos
         <button type="button" onClick={onClose}>取消</button>
         <button className="primary" disabled={!grants || saving} onClick={async () => {
             if (!grants) return;
-            if (grants.permissions.version === 1 && !window.confirm('保存后改为显式授权：空名单不再代表公开阅读。请确认当前名单和允许环境。')) return;
+            if (grants.permissions.version < 3 && !window.confirm('保存后升级为 JSON v3 显式授权。请核对查看、编辑、运行、授权管理名单和允许环境。')) return;
             setSaving(true);
             setError('');
             try {
@@ -55,10 +60,11 @@ export default function ToolGrantsModal({scriptId, environments, onSaved, onClos
     </>}>
         {error && <p className="safety-note" role="alert">{error}</p>}
         {grants && <div className="grants-panel">
-            <p>创建者 <strong>{grants.ownerId}</strong> 与管理员负责授权。新配置中编辑包含查看源码，但不包含运行或授权管理；链接需要登录，不会自动运行。
+            <p>脚本权限完全来自当前 JSON；系统管理员不会自动获得脚本能力。创建者标识为 <strong>{grants.ownerId}</strong>，链接需要登录且不会自动运行。
             </p>
-            {grants.permissions.version === 1 &&
-                <p className="safety-note">这是旧版权限配置。公开工具的空阅读名单可能代表公开阅读，保存前请明确核对授权名单；不会批量改写其他工具。</p>}
+            {grants.permissions.version < 3 &&
+                <p className="safety-note">这是旧版权限配置。保存当前脚本时升级为 v3；不会批量改写其他脚本，也不会把系统管理员写入
+                    ACL。</p>}
             <div className="grant-add"><input aria-label="员工 ID" placeholder="输入员工 ID，不是姓名" value={employee}
                                               maxLength={80} onChange={event => setEmployee(event.target.value)}/>
                 <select aria-label="授权组合" value={preset}
@@ -100,7 +106,7 @@ export default function ToolGrantsModal({scriptId, environments, onSaved, onClos
                     </td>
                 </tr>)}</tbody>
             </table>
-            {!ids.length && <p className="inline-empty">未向其他员工授权，仅创建者和管理员可用。</p>}
+            {!ids.length && <p className="inline-empty">当前没有显式授权主体，保存前请至少保留一个授权管理员。</p>}
             <fieldset>
                 <legend>允许环境</legend>
                 {environments.map(environment => <label key={environment.value}>
@@ -115,16 +121,16 @@ export default function ToolGrantsModal({scriptId, environments, onSaved, onClos
             <label><input type="checkbox" checked={grants.permissions.allowAllInstances}
                           onChange={event => patch({allowAllInstances: event.target.checked})}/>允许在当前请求中对全部实例执行（有数量与并发上限）</label>
             <label><input type="checkbox" checked={grants.permissions.enabled}
-                          onChange={event => patch({enabled: event.target.checked})}/>工具启用；停用后拒绝新的运行，不终止已发出的操作</label>
-            <div className="share-link"><code>{window.location.origin}/tools/{scriptId}</code>
+                          onChange={event => patch({enabled: event.target.checked})}/>脚本启用；停用后拒绝新的运行，不终止已发出的操作</label>
+            <div className="share-link"><code>{window.location.origin}/workspace/{scriptId}</code>
                 <button type="button" onClick={async () => {
                     try {
-                        await navigator.clipboard.writeText(`${window.location.origin}/tools/${scriptId}`);
+                        await navigator.clipboard.writeText(`${window.location.origin}/workspace/${scriptId}`);
                         setCopied(true);
                     } catch {
                         setError('剪贴板不可用，请手动复制上面的链接');
                     }
-                }}>{copied ? '链接已复制' : '复制工具链接'}</button>
+                }}>{copied ? '链接已复制' : '复制脚本链接'}</button>
             </div>
         </div>}
     </Modal>;

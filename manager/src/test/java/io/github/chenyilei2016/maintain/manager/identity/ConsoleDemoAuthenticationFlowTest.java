@@ -33,10 +33,10 @@ class ConsoleDemoAuthenticationFlowTest {
     }
 
     @Test
-    void demoUsesMockLoginWithoutTrustedHeaderAuthentication() throws Exception {
+    void demoUsesIndependentPasswordLoginWithoutEnumeratingAccounts() throws Exception {
         JSONObject response = JSON.parseObject(mvc.perform(get("/manager/auth/state"))
                 .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-        assertEquals("MOCK_SDK", response.getJSONObject("data").getString("provider"));
-        assertEquals(3, response.getJSONObject("data").getJSONArray("accounts").size());
+        assertEquals("LOCAL_PASSWORD", response.getJSONObject("data").getString("provider"));
+        org.junit.jupiter.api.Assertions.assertFalse(response.getJSONObject("data").containsKey("accounts"));
     }
 }

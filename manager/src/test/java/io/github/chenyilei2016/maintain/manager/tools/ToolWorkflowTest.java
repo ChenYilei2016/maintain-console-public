@@ -89,9 +89,13 @@ class ToolWorkflowTest {
     @Test
     void authorSharesRunnerUsesSavedVersionAndRevocationIsImmediate() throws Exception {
         String id = create();
-        assertFalse(post("runner", "/manager/directory/treeNode/save", Map.of("nodeType", "script", "nodeName", "绕过检查",
-                "serviceName", "maintain-console", "content", "return 999")).getBooleanValue("success"), "仅执行用户不能通过新建获得任意代码执行能力");
-        assertFalse(post("runner", "/manager/directory/script/detail", Map.of("scriptId", id)).getBooleanValue("success"));
+        assertTrue(post("runner", "/manager/directory/treeNode/save", Map.of("nodeType", "script", "nodeName", "自己的脚本",
+                        "serviceName", "maintain-console", "content", "return 999")).getBooleanValue("success"),
+                "脚本创建不应依赖管理端角色，新脚本必须由 JSON ACL 保护");
+        JSONObject lockedDetail = post("runner", "/manager/directory/script/detail", Map.of("scriptId", id));
+        assertTrue(lockedDetail.getBooleanValue("success"));
+        assertEquals("", lockedDetail.getJSONObject("data").getString("content"));
+        assertFalse(lockedDetail.getJSONObject("data").getBooleanValue("canInvoke"));
         assertFalse(get("runner", "/manager/tools/" + id).getBooleanValue("success"));
         grant(id, 1);
         String form = get("runner", "/manager/tools/" + id).toJSONString();
@@ -124,6 +128,54 @@ class ToolWorkflowTest {
         assertFalse(post("runner", "/manager/tools/run", runRequest(id, 3)).getBooleanValue("success"));
         assertEquals(1, client.calls.get());
         assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM mc_script_execution_task", Integer.class));
+    }
+
+    @Test
+    void directoryIsVisibleButAdministratorCannotBypassScriptJson() throws Exception {
+        String id = create();
+        String permissions = jdbc.queryForObject("SELECT permissions FROM mc_script WHERE id = ?", String.class, id);
+        assertNotNull(permissions);
+        JSONObject grants = JSON.parseObject(permissions);
+        assertEquals(3, grants.getIntValue("version"));
+        for (String field : List.of("readerNo", "editorNo", "invokerNo", "managerNo")) {
+            assertEquals("author", grants.getString(field), field + " 必须显式包含创建者");
+        }
+
+        JSONObject strangerTree = post("stranger", "/manager/directory/tree?serviceName=maintain-console", Map.of());
+        assertTrue(strangerTree.getBooleanValue("success"));
+        assertTrue(strangerTree.toJSONString().contains(id), "目录名称对所有登录用户可见");
+        JSONObject strangerDetail = post("stranger", "/manager/directory/script/detail", Map.of("scriptId", id));
+        assertTrue(strangerDetail.getBooleanValue("success"));
+        assertEquals("", strangerDetail.getJSONObject("data").getString("content"));
+        assertFalse(strangerDetail.getJSONObject("data").getBooleanValue("canRead"));
+
+        JSONObject administratorDetail = post("administrator", "/manager/directory/script/detail", Map.of("scriptId", id));
+        assertTrue(administratorDetail.getBooleanValue("success"));
+        assertEquals("", administratorDetail.getJSONObject("data").getString("content"), "管理角色不能读取脚本源码");
+        assertFalse(administratorDetail.getJSONObject("data").getBooleanValue("canRead"));
+        assertFalse(post("administrator", "/manager/tools/run", runRequest(id, 1)).getBooleanValue("success"),
+                "管理角色不能运行脚本");
+        assertFalse(get("administrator", "/manager/tools/" + id + "/grants").getBooleanValue("success"),
+                "管理角色不能修改脚本授权");
+    }
+
+    @Test
+    void editPermissionWorksWithoutASeparateReadGrant() throws Exception {
+        String id = create();
+        assertTrue(post("author", "/manager/tools/" + id + "/grants", Map.of("expectedVersion", 1,
+                "permissions", Map.of("readerNo", "author", "editorNo", "author,editor",
+                        "invokerNo", "author,editor", "managerNo", "author",
+                        "allowedEnvironments", List.of("random"), "enabled", true))).getBooleanValue("success"));
+
+        JSONObject detail = post("editor", "/manager/directory/script/detail", Map.of("scriptId", id));
+        assertTrue(detail.getBooleanValue("success"));
+        assertEquals(CONTENT, detail.getJSONObject("data").getString("content"));
+        assertFalse(detail.getJSONObject("data").getBooleanValue("canRead"));
+        assertTrue(detail.getJSONObject("data").getBooleanValue("canEdit"));
+        assertTrue(get("editor", "/manager/service/instances?scriptId=" + id + "&environment=random")
+                .getBooleanValue("success"));
+        assertEquals("SUCCESS", post("editor", "/manager/scripts/debug", debugRequest(id, 2))
+                .getJSONObject("data").getString("outcome"));
     }
 
     @Test
@@ -249,7 +301,8 @@ class ToolWorkflowTest {
 
     private void grant(String id, int version) throws Exception {
         JSONObject response = post("author", "/manager/tools/" + id + "/grants", Map.of("expectedVersion", version,
-                "permissions", Map.of("readerNo", "editor", "editorNo", "editor", "invokerNo", "runner,editor",
+                "permissions", Map.of("readerNo", "author,editor", "editorNo", "author,editor",
+                        "invokerNo", "author,runner,editor", "managerNo", "author",
                         "allowedEnvironments", java.util.List.of("random"), "enabled", true)));
         assertTrue(response.getBooleanValue("success"), response.toJSONString());
     }
@@ -283,7 +336,7 @@ class ToolWorkflowTest {
         LocalLoginUser actor = new LocalLoginUser();
         actor.setEmployeeNo(id);
         actor.setEmployeeName("name-" + id);
-        if (id.equals("author")) actor.getRoles().add(ConsoleRole.DEVELOPER.name());
+        if (id.equals("administrator")) actor.getRoles().add(ConsoleRole.ADMIN.name());
         LoginUserContext.setUser(actor);
     }
 

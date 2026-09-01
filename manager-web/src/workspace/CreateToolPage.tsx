@@ -16,12 +16,8 @@ export default function CreateToolPage({login}: { login: LoginInfo }) {
     useEffect(() => {
         api.listServices().then(setServices).catch(failure => setError(failure.message));
     }, []);
-    if (!login.canCreateTools) return <main className="tool-home"><a href="/">← 工具首页</a>
-        <section className="tool-unavailable"><h1>当前账号没有工具制作权限</h1>
-            <p>你仍可以运行或编辑已获得相应授权的现有工具。</p></section>
-    </main>;
     return <main className="tool-home">
-        <header className="tool-app-header"><a href="/">← 工具首页</a><strong>制作新工具</strong></header>
+        <header className="tool-app-header"><a href="/workspace">← 脚本目录</a><strong>制作新脚本</strong></header>
         <form className="new-tool-form form-stack" onSubmit={async event => {
             event.preventDefault();
             if (saving) return;
@@ -44,9 +40,9 @@ export default function CreateToolPage({login}: { login: LoginInfo }) {
                 setError(failure instanceof Error ? failure.message : '创建失败');
                 setSaving(false);
             }
-        }}><h1>先做一个私有工具</h1>
+        }}><h1>先新建一个私有脚本</h1>
             <p>保存后可以配置参数与用途，再通过授权面板分享给同事。新建不会继承其他人的授权，也不会自动运行。</p>
-            <label><span>工具名称</span><input required maxLength={100} value={name}
+            <label><span>脚本名称</span><input required maxLength={100} value={name}
                                                onChange={event => setName(event.target.value)}
                                                placeholder="例如：查询订单处理状态"/></label>
             <label><span>所属应用</span><select required value={service}

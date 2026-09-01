@@ -19,7 +19,6 @@ interface Props {
     onAiAssistant: () => void;
     onDetails: () => void;
     onCopy: () => void;
-    canCreateTools: boolean;
 }
 
 export default function WorkspaceToolbar({
@@ -41,7 +40,6 @@ export default function WorkspaceToolbar({
                                              onAiAssistant,
                                              onDetails,
                                              onCopy,
-                                             canCreateTools,
                                          }: Props) {
     return (
         <header className="workbench-toolbar">
@@ -59,18 +57,18 @@ export default function WorkspaceToolbar({
                         · {parameterCount}</button>
                     <button className="primary" type="button" disabled={!script.canEdit || saving}
                             onClick={() => onSave()}>{saving ? '保存中…' : '保存脚本'}</button>
-                    {script.canInvoke && <a className="button" href={`/tools/${script.id}`}>运行页 ↗</a>}
                 </div>
                 <div className="toolbar-action-group" aria-label="回溯"><span>回溯</span>
                     <button type="button" onClick={() => onHistory()}>执行记录</button>
                     <button type="button" onClick={() => onRevisions()}>版本</button>
                 </div>
-                <div className="toolbar-action-group" aria-label="工具设置"><span>工具设置</span>
+                <div className="toolbar-action-group" aria-label="脚本设置"><span>脚本设置</span>
                     <button type="button"
                             onClick={() => onFavorite()}>{scriptIsFavorite ? '★ 已收藏' : '☆ 收藏'}</button>
                     <button type="button" onClick={onDetails}>说明与风险</button>
                     {script.canManage && <button type="button" onClick={() => onPermissions()}>授权</button>}
-                    {canCreateTools && <button type="button" onClick={onCopy}>复制</button>}</div>
+                    <button type="button" onClick={onCopy}>复制</button>
+                </div>
                 <div className="toolbar-action-group" aria-label="开发辅助"><span>开发辅助</span>
                     <button type="button" onClick={() => onExample()}>示例</button>
                     {aiEnabled && <button type="button" onClick={() => onAiAssistant()}>AI</button>}</div>

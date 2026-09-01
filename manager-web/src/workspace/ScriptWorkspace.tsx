@@ -10,7 +10,7 @@ import {
     parseParameterSchema,
     safeParameterValues
 } from '../parameters';
-import type {LoginInfo, RuntimeMetadata, ServiceInstance} from '../types';
+import type {LoginInfo, RuntimeMetadata, ScriptDetail, ServiceInstance} from '../types';
 import {useExecution} from '../execution/useExecution';
 import {debugDraft, runTool} from '../execution/execution';
 import ExecutionHistoryModal from '../execution/ExecutionHistoryModal';
@@ -32,7 +32,10 @@ import {navigate} from '../navigation';
 import type {WorkspaceTabSummary} from './WorkspaceTabs';
 
 const CodeEditor = lazy(() => import('../CodeEditor'));
+const SavedScriptRunner = lazy(() => import('./SavedScriptRunner'));
 type Dialog = 'details' | 'grants' | 'history' | 'versions' | 'example' | 'ai' | undefined;
+
+export const canOpenScriptEditor = (script: Pick<ScriptDetail, 'canRead' | 'canEdit'>) => script.canRead || script.canEdit;
 
 export default function ScriptWorkspace({id, login, onSummaryChange}: {
     id: string; login: LoginInfo; onSummaryChange?: (summary: WorkspaceTabSummary) => void;
@@ -122,35 +125,56 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
     }, [id, tool?.id, draft?.name, editor.dirty, editor.error, execution.running, onSummaryChange]);
     const save = async () => {
         if (await editor.save()) {
-            setNotice('已保存：共享工具已更新为此版本');
+            setNotice('已保存：共享脚本已更新为此版本');
             setResourceRevision(value => value + 1);
         }
     };
-    if (!tool || !draft) return <main className="tool-home"><a href="/">← 工具首页</a>
+    const openGrants = () => {
+        if (editor.dirty) setNotice('请先保存或处理当前草稿，再修改授权，避免混淆版本');
+        else setDialog('grants');
+    };
+    if (!tool || !draft) return <main className="tool-home"><a href="/workspace">← 脚本目录</a>
         <section className="tool-unavailable">
-            <h1>{editor.error ? '无法打开开发工作台' : '正在加载工具…'}</h1><p role="alert">{editor.error}</p><a
-            className="button" href={`/tools/${id}`}>前往运行页</a></section>
+            <h1>{editor.error ? '无法打开脚本工作台' : '正在加载脚本…'}</h1><p role="alert">{editor.error}</p></section>
     </main>;
+    if (!canOpenScriptEditor(tool)) return tool.canInvoke
+        ? <Suspense fallback={<div className="app-loading">正在加载运行表单…</div>}>
+            <SavedScriptRunner id={id} login={login}/>
+        </Suspense>
+        : <main className="tool-home"><a href="/workspace">← 脚本目录</a>
+            <section className="tool-unavailable"><h1>{tool.name}</h1>
+                <p role="alert">目录名称全员可见，但当前账号没有查看或运行此脚本的权限。</p></section>
+        </main>;
     const currentScript = {...tool, name: draft.name, content: draft.content};
     return <main className={'workbench ' + (resourcesOpen ? '' : 'resources-collapsed')}>
         <header className="workbench-header">
             <button className="icon-button" aria-label={resourcesOpen ? '收起资源栏' : '展开资源栏'}
                     onClick={() => setResourcesOpen(!resourcesOpen)}>☰
             </button>
-            <a className="app-name" href="/">工具首页</a><span className="workspace-service">{tool.serviceName}</span>
+            <a className="app-name" href="/workspace">脚本工作台</a><span
+            className="workspace-service">{tool.serviceName}</span>
             <div className="context-selectors"><label><span>调试环境</span><select aria-label="调试环境"
                                                                                    value={environment}
                                                                                    disabled={execution.running}
                                                                                    onChange={event => setEnvironment(event.target.value)}>
-                {!environments.length && <option value="">未授权环境</option>}{environments.map(item => <option
-                key={item.value} value={item.value}>{item.name}</option>)}</select></label></div>
+                {!environments.length && <option value="">没有已授权环境</option>}
+                {login.availableEnvironments.map(item => {
+                    const allowed = environments.some(environment => environment.value === item.value);
+                    return <option key={item.value} value={item.value} disabled={!allowed}>
+                        {item.name}{allowed ? '' : ' · 未授权'}
+                    </option>;
+                })}</select></label>
+                {login.availableEnvironments.length > environments.length && (tool.canManage
+                    ? <button className="environment-access-hint" type="button" onClick={openGrants}>
+                        开启更多环境
+                    </button>
+                    : <span className="environment-access-hint">部分环境未授权</span>)}</div>
             {selectedEnvironment?.production && <span className="production-badge">生产环境</span>}
             <div className="app-header-actions"><small>{login.employeeName} · v{tool.version}</small></div>
         </header>
         {resourcesOpen &&
             <button className="resource-backdrop" aria-label="关闭资源栏" onClick={() => setResourcesOpen(false)}/>}
         <aside className="workbench-sidebar" id="resource-sidebar"><WorkspaceResources serviceName={tool.serviceName}
-                                                                                       canCreateTools={login.canCreateTools}
                                                                                        scriptId={id}
                                                                                        environment={environment}
                                                                                        revision={resourceRevision}
@@ -158,7 +182,6 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
         </aside>
         <section className="workbench-main">
             <WorkspaceToolbar script={currentScript} draftChanged={editor.dirty} saving={editor.saving}
-                              canCreateTools={login.canCreateTools}
                               scriptIsFavorite={favorite}
                               aiEnabled={login.aiEnabled && tool.canEdit} parameterCount={definitions.length}
                               parametersOpen={parametersOpen}
@@ -177,9 +200,7 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                                       setNotice(String(failure));
                                   }
                               }}
-                              onPermissions={() => {
-                                  if (editor.dirty) setNotice('请先保存或处理当前草稿，再修改授权，避免混淆版本'); else setDialog('grants');
-                              }}
+                              onPermissions={openGrants}
                               onExample={() => setDialog('example')} onAiAssistant={() => setDialog('ai')}
                               onDetails={() => setDialog('details')}
                               onCopy={async () => {
@@ -306,7 +327,7 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                               onClose={() => setDialog(undefined)}/>}
         {dialog === 'details' && <Modal title="用途与风险说明" onClose={() => setDialog(undefined)} footer={<button
             onClick={() => setDialog(undefined)}>返回工作台，稍后保存</button>}>
-            <div className="form-stack"><label><span>工具用途</span><textarea disabled={!tool.canEdit} rows={3}
+            <div className="form-stack"><label><span>脚本用途</span><textarea disabled={!tool.canEdit} rows={3}
                                                                               value={draft.description}
                                                                               onChange={event => editor.update({description: event.target.value})}/></label>
                 <label><span>操作类型（不是只读保证）</span><select disabled={!tool.canEdit}
@@ -334,7 +355,7 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                                                                     riskNote: event.target.value
                                                                 }
                                                             })}/></label>
-                <p>保存会更新共享工具。SQL 参数化和调用者业务数据范围必须由脚本和受控业务能力落实，类型校验不能替代。</p>
+                <p>保存会更新共享脚本。SQL 参数化和调用者业务数据范围必须由脚本和受控业务能力落实，类型校验不能替代。</p>
             </div>
         </Modal>}
         {dialog === 'example' && <Modal title="示例库：代码与结构化结果" wide onClose={() => setDialog(undefined)}

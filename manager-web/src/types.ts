@@ -25,7 +25,6 @@ export interface EnvironmentOption {
 
 export interface LoginInfo {
     userId: string;
-    canCreateTools: boolean;
     employeeName: string;
     employeeNo: string;
     env: string;
@@ -37,12 +36,11 @@ export interface LoginInfo {
 
 export interface AuthState {
     authenticated: boolean;
-    provider: 'MOCK_SDK' | 'TRUSTED_HEADERS';
+    provider: 'LOCAL_PASSWORD' | 'TRUSTED_HEADERS';
     csrfToken: string;
-    accounts: Array<{ id: string; name: string; description: string }>;
 }
 
-export type ConsoleRole = 'ADMIN' | 'DEVELOPER' | 'AUDITOR';
+export type ConsoleRole = 'ADMIN';
 export type ConsoleUserStatus = 'ACTIVE' | 'DISABLED';
 
 export interface ConsoleUser {

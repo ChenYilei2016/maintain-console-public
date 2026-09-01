@@ -16,7 +16,8 @@ class ConsoleSecurityHeadersTest {
         MockMvc mvc = MockMvcBuilders.standaloneSetup(new IndexController())
                 .addFilters(new SecurityHeadersFilter()).build();
         String previousNonce = null;
-        for (String path : new String[]{"/", "/index.html", "/static/console/index.html", "/static/console/", "/workspace", "/workspace/123", "/tools/123"}) {
+        for (String path : new String[]{"/index.html", "/static/console/index.html", "/static/console/",
+                "/workspace", "/workspace/123", "/admin", "/admin/users", "/static/console/admin.html"}) {
             var response = mvc.perform(get(path)).andReturn().getResponse();
             assertEquals(200, response.getStatus());
             String policy = response.getHeader("Content-Security-Policy");
@@ -30,5 +31,16 @@ class ConsoleSecurityHeadersTest {
             assertFalse(policy.contains("unsafe-inline"));
             previousNonce = nonce;
         }
+        var home = mvc.perform(get("/")).andReturn().getResponse();
+        assertEquals(302, home.getStatus());
+        assertEquals("/workspace", home.getRedirectedUrl());
+        var legacyTool = mvc.perform(get("/tools/123")).andReturn().getResponse();
+        assertEquals(302, legacyTool.getStatus());
+        assertEquals("/workspace/123", legacyTool.getRedirectedUrl());
+
+        String adminHtml = mvc.perform(get("/admin")).andReturn().getResponse().getContentAsString();
+        String workspaceHtml = mvc.perform(get("/workspace")).andReturn().getResponse().getContentAsString();
+        assertTrue(adminHtml.contains("Maintain Console 管理端"));
+        assertFalse(adminHtml.equals(workspaceHtml), "管理端与脚本工作台必须使用不同 HTML/React 入口");
     }
 }

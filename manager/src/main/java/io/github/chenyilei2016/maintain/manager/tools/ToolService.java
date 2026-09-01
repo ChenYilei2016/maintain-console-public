@@ -77,7 +77,7 @@ public class ToolService {
     }
 
     public List<ServiceInstanceDTO> developmentInstances(String scriptId, String environment, LocalLoginUser actor) {
-        var tool = access.require(scriptId, actor, ScriptPermissionEnum.READ);
+        var tool = access.requireAny(scriptId, actor, ScriptPermissionEnum.READ, ScriptPermissionEnum.EDIT);
         var grants = ScriptPermissionEntity.parse(tool.getScriptPermissions());
         String canonicalEnvironment = environments.require(environment).getValue();
         if (!grants.allowsEnvironment(canonicalEnvironment, true)) {
@@ -100,7 +100,12 @@ public class ToolService {
             throw CommonException.createReminderException("授权设置已过期，请刷新后重新核对");
         }
         ScriptPermissionEntity grants = request.permissions();
-        grants.setVersion(2);
+        ScriptPermissionEntity existing = ScriptPermissionEntity.parse(tool.getScriptPermissions());
+        grants.setVersion(3);
+        if (grants.getManagerNo() == null || grants.getManagerNo().isBlank()) {
+            grants.setManagerNo(existing.getVersion() == 3 && existing.getManagerNo() != null
+                    ? existing.getManagerNo() : tool.getDirectoryNode().getCreatorId());
+        }
         if (grants.getAllowedEnvironments() == null) throw new IllegalArgumentException("请明确设置允许环境");
         grants.setAllowedEnvironments(grants.getAllowedEnvironments().stream()
                 .map(value -> environments.require(value).getValue()).distinct().toList());

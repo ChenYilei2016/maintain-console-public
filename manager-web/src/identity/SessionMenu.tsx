@@ -8,6 +8,7 @@ export default function SessionMenu({login, logoutSupported, onLogout}: {
         <summary aria-label={`当前账号：${login.employeeName}`}>{login.employeeName.slice(0, 1)}</summary>
         <div className="session-popover" aria-label="当前登录用户">
             <span><strong>{login.employeeName}</strong><small>{login.employeeNo}</small></span>
+            <a href="/workspace">工作台</a>
             {login.administrator && <a href="/admin">管理</a>}
             {logoutSupported ? <button onClick={async () => {
                 await api.logout();

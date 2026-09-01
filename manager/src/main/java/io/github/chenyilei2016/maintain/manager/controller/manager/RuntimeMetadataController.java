@@ -52,7 +52,8 @@ public class RuntimeMetadataController {
             @RequestParam @NotBlank String scriptId,
             @RequestParam(required = false) String instanceId
     ) {
-        var tool = access.require(scriptId, LoginUserContext.getUser(), ScriptPermissionEnum.READ);
+        var tool = access.requireAny(scriptId, LoginUserContext.getUser(),
+                ScriptPermissionEnum.READ, ScriptPermissionEnum.EDIT);
         var grants = ScriptPermissionEntity.parse(tool.getScriptPermissions());
         if (!serviceName.equals(tool.getServiceName()) || !grants.allowsEnvironment(environments.require(environment).getValue(), true)) {
             throw new IllegalArgumentException("目标不在此脚本允许范围内");

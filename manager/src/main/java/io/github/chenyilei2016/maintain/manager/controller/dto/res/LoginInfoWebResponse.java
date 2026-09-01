@@ -22,9 +22,6 @@ public class LoginInfoWebResponse {
     private String userId;
     private Set<String> roles;
     private boolean administrator;
-    private boolean canCreateTools;
-
-
     private String env;
 
     /**

@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
 import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
@@ -25,11 +24,9 @@ import java.util.Map;
 public class AuditLogService {
     private static final int MAX_DETAILS_LENGTH = 16 * 1024;
     private final AuditLogMapper auditLogMapper;
-    private final ManagerProperties managerProperties;
 
-    public AuditLogService(AuditLogMapper auditLogMapper, ManagerProperties managerProperties) {
+    public AuditLogService(AuditLogMapper auditLogMapper) {
         this.auditLogMapper = auditLogMapper;
-        this.managerProperties = managerProperties;
     }
 
     public IPage<AuditLogDO> page(
@@ -40,8 +37,7 @@ public class AuditLogService {
             String action,
             String targetId
     ) {
-        if (!ConsoleRole.ADMIN.grantedTo(user) && !ConsoleRole.AUDITOR.grantedTo(user)
-                && !managerProperties.getGlobalWhiteEmployeeNoList().contains(user.getEmployeeNo())) {
+        if (!ConsoleRole.ADMIN.grantedTo(user)) {
             throw CommonException.createReminderException("当前用户没有审计日志查看权限");
         }
         int boundedSize = Math.max(1, Math.min(size, 100));

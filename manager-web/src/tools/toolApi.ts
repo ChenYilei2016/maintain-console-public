@@ -67,6 +67,7 @@ export interface ToolPermissions {
     readerNo?: string;
     editorNo?: string;
     invokerNo?: string;
+    managerNo?: string;
     allowedEnvironments?: string[];
     allowAllInstances: boolean;
     enabled: boolean;

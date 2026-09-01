@@ -1,7 +1,5 @@
 package io.github.chenyilei2016.maintain.manager.service;
 
-import io.github.chenyilei2016.maintain.manager.config.ManagerProperties;
-import io.github.chenyilei2016.maintain.manager.constant.ConsoleRole;
 import io.github.chenyilei2016.maintain.manager.constant.ScriptPermissionEnum;
 import io.github.chenyilei2016.maintain.manager.context.LocalLoginUser;
 import io.github.chenyilei2016.maintain.manager.exceptions.CommonException;
@@ -17,18 +15,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ScriptAccessControl {
     private final ScriptContentService scripts;
-    private final ManagerProperties properties;
-
-    public boolean canCreateTools(LocalLoginUser actor) {
-        return isGlobalAdministrator(actor)
-                || properties.getDeveloperEmployeeNoList().contains(actor.getEmployeeNo())
-                || ConsoleRole.DEVELOPER.grantedTo(actor);
-    }
-
-    public boolean isGlobalAdministrator(LocalLoginUser actor) {
-        return properties.getGlobalWhiteEmployeeNoList().contains(actor.getEmployeeNo())
-                || ConsoleRole.ADMIN.grantedTo(actor);
-    }
 
     public ScriptVO require(String scriptId, LocalLoginUser actor, ScriptPermissionEnum permission) {
         ScriptVO script = scripts.findById(scriptId);
@@ -38,9 +24,16 @@ public class ScriptAccessControl {
         return script;
     }
 
+    public ScriptVO requireAny(String scriptId, LocalLoginUser actor, ScriptPermissionEnum... permissions) {
+        ScriptVO script = scripts.findById(scriptId);
+        if (java.util.Arrays.stream(permissions).noneMatch(permission -> allows(script, actor, permission))) {
+            throw CommonException.createReminderException("没有所需的脚本权限");
+        }
+        return script;
+    }
+
     public boolean allows(ScriptVO script, LocalLoginUser actor, ScriptPermissionEnum permission) {
-        return ScriptPermissionEntity.checkPermission(script.getDirectoryNode(), script.getScript(), actor,
-                permission, properties.getGlobalWhiteEmployeeNoList());
+        return ScriptPermissionEntity.checkPermission(script.getDirectoryNode(), script.getScript(), actor, permission);
     }
 
     public boolean visible(ScriptVO script, LocalLoginUser actor) {
