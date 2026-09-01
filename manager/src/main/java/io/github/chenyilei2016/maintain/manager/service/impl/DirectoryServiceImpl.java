@@ -68,7 +68,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         List<DirectoryNode> allNodes = directoryNodeRepository.findServiceTree(serviceName);
 
         // 构建树形结构，只支持根目录和二级目录（最多两级）
-        return buildDirectoryTreeWithMaxDepth(allNodes, 2);
+        return buildDirectoryTreeWithMaxDepth(allNodes, 2, actor);
     }
 
     @Override
@@ -377,7 +377,8 @@ public class DirectoryServiceImpl implements DirectoryService {
     /**
      * 构建目录树结构（限制最大深度）
      */
-    private List<DirectoryNodeDTO> buildDirectoryTreeWithMaxDepth(List<DirectoryNode> nodes, int maxDepth) {
+    private List<DirectoryNodeDTO> buildDirectoryTreeWithMaxDepth(List<DirectoryNode> nodes, int maxDepth,
+                                                                  LocalLoginUser actor) {
         if (nodes == null || nodes.isEmpty()) {
             return new ArrayList<>();
         }
@@ -394,9 +395,9 @@ public class DirectoryServiceImpl implements DirectoryService {
         // 构建树形结构
         return rootNodes.stream()
                 .map(node -> {
-                    DirectoryNodeDTO dto = convertToDirectoryNodeDTO(node);
+                    DirectoryNodeDTO dto = convertToDirectoryNodeDTO(node, actor);
                     dto.setLevel(0);  // 设置根节点层级为0
-                    setChildrenWithMaxDepth(dto, parentNodeMap, 1, maxDepth);
+                    setChildrenWithMaxDepth(dto, parentNodeMap, 1, maxDepth, actor);
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -405,7 +406,8 @@ public class DirectoryServiceImpl implements DirectoryService {
     /**
      * 递归设置子节点（限制最大深度）
      */
-    private void setChildrenWithMaxDepth(DirectoryNodeDTO parent, Map<String, List<DirectoryNode>> parentNodeMap, int currentDepth, int maxDepth) {
+    private void setChildrenWithMaxDepth(DirectoryNodeDTO parent, Map<String, List<DirectoryNode>> parentNodeMap,
+                                         int currentDepth, int maxDepth, LocalLoginUser actor) {
         //这里是大于号, 因为第二层下的内容还需要展示
         if (currentDepth > maxDepth) {
             return; // 达到最大深度，停止递归
@@ -415,7 +417,7 @@ public class DirectoryServiceImpl implements DirectoryService {
         if (children != null && !children.isEmpty()) {
             List<DirectoryNodeDTO> childDTOs = children.stream()
                     .map(node -> {
-                        DirectoryNodeDTO dto = convertToDirectoryNodeDTO(node);
+                        DirectoryNodeDTO dto = convertToDirectoryNodeDTO(node, actor);
                         dto.setLevel(currentDepth);  // 设置子节点的层级
                         return dto;
                     })
@@ -424,7 +426,8 @@ public class DirectoryServiceImpl implements DirectoryService {
             parent.setChildren(childDTOs);
 
             // 递归设置子节点的子节点
-            childDTOs.forEach(child -> setChildrenWithMaxDepth(child, parentNodeMap, currentDepth + 1, maxDepth));
+            childDTOs.forEach(child -> setChildrenWithMaxDepth(child, parentNodeMap,
+                    currentDepth + 1, maxDepth, actor));
         }
     }
 
@@ -447,7 +450,27 @@ public class DirectoryServiceImpl implements DirectoryService {
         return dto;
     }
 
-    private DirectoryNodeDTO convertToDirectoryNodeDTO(DirectoryNode node) {
-        return DirectoryNodeAssembler.INSTANCE.convert2DirectoryNodeDTO(node);
+    private DirectoryNodeDTO convertToDirectoryNodeDTO(DirectoryNode node, LocalLoginUser actor) {
+        DirectoryNodeDTO dto = DirectoryNodeAssembler.INSTANCE.convert2DirectoryNodeDTO(node);
+        dto.setCreator(StringUtils.hasText(node.getCreatorName()) ? node.getCreatorName() : node.getCreatorId());
+        if (!DirectoryNode.TYPE_SCRIPT.equals(node.getType())) {
+            boolean owner = Objects.equals(node.getCreatorId(), actor.getEmployeeNo());
+            dto.setCanCreateChild(true);
+            dto.setCanRename(owner);
+            dto.setCanDelete(owner);
+            return dto;
+        }
+        try {
+            ScriptPermissionEntity grants = ScriptPermissionEntity.parse(node.getScriptPermissions());
+            dto.setCanRead(grants.allows(node, actor, ScriptPermissionEnum.READ));
+            dto.setCanEdit(grants.allows(node, actor, ScriptPermissionEnum.EDIT));
+            dto.setCanInvoke(grants.allows(node, actor, ScriptPermissionEnum.INVOKE));
+            dto.setCanManage(grants.allows(node, actor, ScriptPermissionEnum.MANAGE));
+            dto.setCanRename(dto.isCanEdit());
+            dto.setCanDelete(dto.isCanManage());
+        } catch (RuntimeException invalidPermissions) {
+            log.warn("目录脚本权限配置无效，按无权限展示, scriptId:{}", node.getId());
+        }
+        return dto;
     }
 }

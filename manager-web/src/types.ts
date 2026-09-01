@@ -108,6 +108,14 @@ export interface DirectoryNode {
     children?: DirectoryNode[];
     permissionType?: 'public' | 'private';
     level?: number;
+    creator?: string;
+    canRead?: boolean;
+    canEdit?: boolean;
+    canInvoke?: boolean;
+    canManage?: boolean;
+    canCreateChild?: boolean;
+    canRename?: boolean;
+    canDelete?: boolean;
 }
 
 export interface ScriptDetail extends DirectoryNode {

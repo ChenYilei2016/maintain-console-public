@@ -50,5 +50,11 @@ export function useExecution() {
             if (mounted.current) setRunning(false);
         }
     };
-    return {report, error, running, elapsed, execute};
+    const reject = (message: string) => {
+        if (inFlight.current) return;
+        setReport(undefined);
+        setError(`未发起执行：${message}`);
+        setElapsed(0);
+    };
+    return {report, error, running, elapsed, execute, reject};
 }

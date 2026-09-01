@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {api} from '../api';
 import Modal from '../Modal';
 import type {DirectoryNode, ScriptResourceOverview} from '../types';
@@ -19,19 +19,43 @@ export default function WorkspaceResources({
                                                revision,
                                                onScriptSelect
                                            }: {
-    serviceName: string; scriptId: string; environment: string; revision: number;
+    serviceName: string; scriptId?: string; environment: string; revision: number;
     onScriptSelect?: (id: string) => void;
 }) {
+    const [services, setServices] = useState<string[]>([]);
+    const [activeService, setActiveService] = useState(serviceName);
     const [tree, setTree] = useState<DirectoryNode[]>([]);
     const [overview, setOverview] = useState<ScriptResourceOverview>({favorites: [], recent: []});
+    const [selectedFolderId, setSelectedFolderId] = useState('');
     const [dialog, setDialog] = useState<ResourceDialog>();
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    useEffect(() => {
+        api.listServices().then(items => {
+            setServices(items);
+            setActiveService(current => current || items[0] || '');
+        }).catch(failure => setError(failure.message));
+    }, []);
+    useEffect(() => {
+        if (serviceName) setActiveService(serviceName);
+    }, [serviceName]);
+    const selectedFolder = useMemo(() => {
+        const find = (nodes: DirectoryNode[]): DirectoryNode | undefined => {
+            for (const node of nodes) {
+                if (node.id === selectedFolderId && node.type === 'folder') return node;
+                const child = find(node.children || []);
+                if (child) return child;
+            }
+        };
+        return selectedFolderId ? find(tree) : undefined;
+    }, [selectedFolderId, tree]);
     const refresh = useCallback(async () => {
+        if (!activeService) return;
         setLoading(true);
+        setError('');
         try {
-            const [nodes, shortcuts] = await Promise.all([api.getDirectoryTree(serviceName), api.getResourceOverview(serviceName)]);
+            const [nodes, shortcuts] = await Promise.all([api.getDirectoryTree(activeService), api.getResourceOverview(activeService)]);
             setTree(nodes);
             setOverview(shortcuts);
         } catch (failure) {
@@ -39,13 +63,18 @@ export default function WorkspaceResources({
         } finally {
             setLoading(false);
         }
-    }, [serviceName]);
+    }, [activeService]);
     useEffect(() => {
         void refresh();
     }, [refresh, revision]);
     return <>
-        <ScriptResourceExplorer serviceName={serviceName} tree={tree} overview={overview} loading={loading}
-                                selectedId={scriptId}
+        <ScriptResourceExplorer serviceName={activeService} services={services} tree={tree} overview={overview}
+                                loading={loading} selectedId={scriptId} selectedFolder={selectedFolder}
+                                onServiceChange={nextService => {
+                                    setActiveService(nextService);
+                                    setSelectedFolderId('');
+                                    setError('');
+                                }} onFolderSelect={folder => setSelectedFolderId(folder?.id || '')}
                                 onSelect={id => onScriptSelect ? onScriptSelect(id) : navigate(`/workspace/${id}`)}
                                 onCreate={parent => setDialog({
                                     kind: 'create',
@@ -89,11 +118,14 @@ export default function WorkspaceResources({
                            try {
                                if (dialog.kind === 'delete') {
                                    await api.deleteTreeNode(dialog.node!.id, dialog.forceDelete);
+                                   if (dialog.node!.id === selectedFolderId) setSelectedFolderId('');
                                    if (dialog.node!.id === scriptId) navigate('/workspace');
                                } else {
                                    const template = TOOL_TEMPLATES.table;
                                    const id = await api.saveTreeNode({
-                                       nodeType: dialog.nodeType, nodeName: dialog.name.trim(), serviceName,
+                                       nodeType: dialog.nodeType,
+                                       nodeName: dialog.name.trim(),
+                                       serviceName: activeService,
                                        nodeId: dialog.kind === 'rename' ? dialog.node!.id : undefined,
                                        parentId: dialog.kind === 'create' ? dialog.node?.id : undefined,
                                        expectedVersion: dialog.expectedVersion,
@@ -120,13 +152,16 @@ export default function WorkspaceResources({
                         <input type="checkbox" checked={dialog.forceDelete}
                                onChange={event => setDialog({...dialog, forceDelete: event.target.checked})}/>包含目录内的资源（仍逐项校验管理权限）</label>}</> :
                     <div className="form-stack">
+                        {dialog.kind === 'create' && <p className="resource-create-location">创建位置：{activeService}
+                            {dialog.node ? ` / ${dialog.node.name}` : ' / 根目录'}</p>}
                         {dialog.kind === 'create' && <label><span>类型</span><select value={dialog.nodeType}
                                                                                      onChange={event => setDialog({
                                                                                          ...dialog,
                                                                                          nodeType: event.target.value as DirectoryNode['type']
                                                                                      })}>
                             <option value="script">脚本</option>
-                            <option value="folder">文件夹</option>
+                            <option value="folder" disabled={Boolean(dialog.node?.parentId)}>文件夹
+                                {dialog.node?.parentId ? '（已达目录层级上限）' : ''}</option>
                         </select></label>}
                         <label><span>名称</span><input autoFocus value={dialog.name} onChange={event => setDialog({
                             ...dialog,

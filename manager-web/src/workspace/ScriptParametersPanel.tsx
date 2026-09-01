@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useEffect, useId, useRef} from 'react';
 import ParameterForm from '../ParameterForm';
 import ParameterPresets from '../ParameterPresets';
 import ParameterSchemaEditor from '../ParameterSchemaEditor';
@@ -61,6 +61,7 @@ export default function ScriptParametersPanel({
                                               }: Props) {
     const panel = useRef<HTMLElement>(null);
     const executionForm = useRef<HTMLFormElement>(null);
+    const executionFormId = useId();
     const isProduction = Boolean(environment?.production);
     let permissionMessage = '';
     let runButtonLabel = '▶ 调试当前内容';
@@ -114,7 +115,7 @@ export default function ScriptParametersPanel({
             </div>
             <ParameterScrollArea key={script.id} view={parameterTab} itemCount={definitions.length}
                                  label={parameterTab === 'values' ? '运行参数列表' : '参数配置列表'}>
-                <form id="execution-form" ref={executionForm} hidden={parameterTab !== 'values'}
+                <form id={executionFormId} ref={executionForm} hidden={parameterTab !== 'values'}
                       onSubmit={(event) => {
                           event.preventDefault();
                           onExecute();
@@ -151,8 +152,8 @@ export default function ScriptParametersPanel({
                         if (executionForm.current?.reportValidity()) onPreview();
                     }}>预览替换
                     </button>
-                    <button className="run-button" type="submit" form="execution-form"
-                            disabled={!script.canInvoke || executing || !environment || !instances.length}>
+                    <button className="run-button" type="submit" form={executionFormId}
+                            disabled={executing} title="快捷键：Ctrl / ⌘ + Enter">
                         {executing ? '执行中…' : runButtonLabel}
                     </button>
                 </div> : <button className="run-button" type="button"

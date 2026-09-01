@@ -29,17 +29,28 @@ import ScriptVersionsModal from './ScriptVersionsModal';
 import './workspace.css';
 import '../tools/tools.css';
 import {navigate} from '../navigation';
-import type {WorkspaceTabSummary} from './WorkspaceTabs';
+import ExecutionConfirmation from './ExecutionConfirmation';
 
 const CodeEditor = lazy(() => import('../CodeEditor'));
 const SavedScriptRunner = lazy(() => import('./SavedScriptRunner'));
-type Dialog = 'details' | 'grants' | 'history' | 'versions' | 'example' | 'ai' | undefined;
+type Dialog = 'execute' | 'details' | 'grants' | 'history' | 'versions' | 'example' | 'ai' | undefined;
 
 export const canOpenScriptEditor = (script: Pick<ScriptDetail, 'canRead' | 'canEdit'>) => script.canRead || script.canEdit;
 
-export default function ScriptWorkspace({id, login, onSummaryChange}: {
-    id: string; login: LoginInfo; onSummaryChange?: (summary: WorkspaceTabSummary) => void;
+export function ScriptPermissionFallback({name, canManage, onManage}: {
+    name: string; canManage: boolean; onManage: () => void;
 }) {
+    return <main className="tool-home"><a href="/workspace">← 脚本目录</a>
+        <section className="tool-unavailable"><h1>{name}</h1>
+            {canManage ? <>
+                <p>当前账号只有授权管理能力，不能查看源码或运行脚本。</p>
+                <button className="primary" type="button" onClick={onManage}>管理授权</button>
+            </> : <p role="alert">目录名称全员可见，但当前账号没有查看、运行或授权管理能力。</p>}
+        </section>
+    </main>;
+}
+
+export default function ScriptWorkspace({id, login}: { id: string; login: LoginInfo }) {
     const editor = useScriptDraft(id, login.employeeNo);
     const {tool, draft} = editor;
     const execution = useExecution();
@@ -116,13 +127,6 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
         setValues(current => ({...defaultParameterValues(definitions), ...safeParameterValues(definitions, current)}));
     }, [definitions, environment]);
     const issues = parameterSchemaIssues(draft?.content || '', schemaState.schema);
-    useEffect(() => {
-        if (tool && draft) {
-            onSummaryChange?.({name: draft.name, dirty: editor.dirty, running: execution.running});
-        } else if (editor.error) {
-            onSummaryChange?.({name: `${id} · 无法打开`, dirty: false, running: false});
-        }
-    }, [id, tool?.id, draft?.name, editor.dirty, editor.error, execution.running, onSummaryChange]);
     const save = async () => {
         if (await editor.save()) {
             setNotice('已保存：共享脚本已更新为此版本');
@@ -133,18 +137,118 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
         if (editor.dirty) setNotice('请先保存或处理当前草稿，再修改授权，避免混淆版本');
         else setDialog('grants');
     };
+    const selectScript = (nextId: string) => {
+        if (nextId === id) return;
+        if (editor.dirty && !window.confirm('当前脚本有未保存草稿，切换后草稿会保留在此浏览器。确认切换？')) return;
+        if (execution.running && !window.confirm('当前请求仍在等待结果；切换页面不会终止远端操作。仍要切换？')) return;
+        navigate(`/workspace/${nextId}`);
+    };
+    const rejectExecution = (message: string) => {
+        setResultView('open');
+        setNotice(`未发起执行：${message}`);
+        execution.reject(message);
+    };
+    const startExecution = () => {
+        if (!tool || !draft) return;
+        setResultView('open');
+        setParametersOpen(false);
+        setNotice('');
+        const request = {
+            scriptId: id,
+            version: tool.version,
+            parameters: executionParameters(definitions, values, Boolean(schemaState.schema)),
+            target: {...target, environment},
+            riskConfirmed: true
+        };
+        void execution.execute(() => tool.canEdit ? debugDraft({
+            ...request,
+            content: draft.content,
+            parameterSchema: draft.schema,
+        }) : runTool(request));
+    };
+    const executeCurrent = () => {
+        if (!tool || !draft || execution.running) return;
+        if (!tool.canInvoke) {
+            rejectExecution('当前无运行权限，请联系脚本负责人授权');
+            return;
+        }
+        if (!environment) {
+            rejectExecution('当前脚本没有可运行环境，请先在授权中配置允许环境');
+            return;
+        }
+        if (!instances.length) {
+            rejectExecution('当前环境没有可用实例');
+            return;
+        }
+        if (schemaState.error || issues.length) {
+            rejectExecution(schemaState.error || issues.join(' '));
+            return;
+        }
+        if (target.selectionMode === 'SPECIFIC' && !target.instanceId) {
+            rejectExecution('请先在目标设置中选择实例');
+            return;
+        }
+        if (selectedEnvironment?.production || draft.metadata.operationType !== 'QUERY') {
+            setResultView('open');
+            setNotice('等待二次确认：尚未发起执行');
+            setDialog('execute');
+            return;
+        }
+        startExecution();
+    };
+    useEffect(() => {
+        const shortcut = (event: KeyboardEvent) => {
+            if (!(event.metaKey || event.ctrlKey) || event.altKey || dialog) return;
+            if (event.key.toLowerCase() === 's') {
+                event.preventDefault();
+                if (tool?.canEdit && !editor.saving) void save();
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                executeCurrent();
+            } else if (event.key.toLowerCase() === 'p') {
+                event.preventDefault();
+                setResourcesOpen(true);
+                window.requestAnimationFrame(() => document.querySelector<HTMLInputElement>(
+                    '.workbench-sidebar [aria-label="搜索目录树"]')?.focus({preventScroll: true}));
+            }
+        };
+        window.addEventListener('keydown', shortcut);
+        return () => window.removeEventListener('keydown', shortcut);
+    });
     if (!tool || !draft) return <main className="tool-home"><a href="/workspace">← 脚本目录</a>
         <section className="tool-unavailable">
             <h1>{editor.error ? '无法打开脚本工作台' : '正在加载脚本…'}</h1><p role="alert">{editor.error}</p></section>
     </main>;
     if (!canOpenScriptEditor(tool)) return tool.canInvoke
-        ? <Suspense fallback={<div className="app-loading">正在加载运行表单…</div>}>
-            <SavedScriptRunner id={id} login={login}/>
-        </Suspense>
-        : <main className="tool-home"><a href="/workspace">← 脚本目录</a>
-            <section className="tool-unavailable"><h1>{tool.name}</h1>
-                <p role="alert">目录名称全员可见，但当前账号没有查看或运行此脚本的权限。</p></section>
-        </main>;
+        ? <main className={'workbench ' + (resourcesOpen ? '' : 'resources-collapsed')}>
+            <header className="workbench-header">
+                <button className="icon-button" aria-label={resourcesOpen ? '收起资源栏' : '展开资源栏'}
+                        onClick={() => setResourcesOpen(!resourcesOpen)}>☰
+                </button>
+                <a className="app-name" href="/workspace">脚本工作台</a>
+                <span className="workspace-service">{tool.serviceName}</span>
+                <div className="app-header-actions"><small>{login.employeeName} · 运行已保存 v{tool.version}</small>
+                </div>
+            </header>
+            {resourcesOpen && <button className="resource-backdrop" aria-label="关闭资源栏"
+                                      onClick={() => setResourcesOpen(false)}/>}
+            <aside className="workbench-sidebar"><WorkspaceResources serviceName={tool.serviceName} scriptId={id}
+                                                                     environment="" revision={resourceRevision}
+                                                                     onScriptSelect={selectScript}/></aside>
+            <section className="workbench-main saved-runner-workspace">
+                <Suspense fallback={<div className="app-loading">正在加载运行表单…</div>}>
+                    <SavedScriptRunner id={id} login={login} execution={execution}/>
+                </Suspense>
+            </section>
+        </main>
+        : <>
+            <ScriptPermissionFallback name={tool.name} canManage={tool.canManage}
+                                      onManage={() => setDialog('grants')}/>
+            {dialog === 'grants' && <ToolGrantsModal scriptId={id} environments={login.availableEnvironments}
+                                                     onClose={() => setDialog(undefined)} onSaved={() => {
+                void editor.reload();
+                setResourceRevision(value => value + 1);
+            }}/>}</>;
     const currentScript = {...tool, name: draft.name, content: draft.content};
     return <main className={'workbench ' + (resourcesOpen ? '' : 'resources-collapsed')}>
         <header className="workbench-header">
@@ -178,7 +282,7 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                                                                                        scriptId={id}
                                                                                        environment={environment}
                                                                                        revision={resourceRevision}
-                                                                                       onScriptSelect={nextId => navigate(`/workspace/${nextId}`)}/>
+                                                                                       onScriptSelect={selectScript}/>
         </aside>
         <section className="workbench-main">
             <WorkspaceToolbar script={currentScript} draftChanged={editor.dirty} saving={editor.saving}
@@ -224,7 +328,7 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
             {(notice || editor.error) && <div className="workspace-notice" role="status">{editor.error || notice}
                 <button onClick={() => setNotice('')}>收起</button>
             </div>}
-            {editor.recovery && <div className="workspace-notice">此标签页有可恢复草稿（基于 v{editor.recovery.version}）；运行值与敏感默认值未缓存。
+            {editor.recovery && <div className="workspace-notice">当前浏览器有可恢复草稿（基于 v{editor.recovery.version}）；运行值与敏感默认值未缓存。
                 <button onClick={() => {
                     if (window.confirm(`缓存基于 v${editor.recovery!.version}，服务器当前为 v${tool.version}。恢复会替换当前编辑内容，但不会保存；请在版本对比中核对差异，敏感默认值需要重新填写。`)) editor.recover();
                 }}>恢复草稿</button>
@@ -267,43 +371,29 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                                            } catch (failure) {
                                                setNotice(failure instanceof Error ? failure.message : '预览失败');
                                            }
-                                       }} onExecute={() => {
-                    if (!tool.canInvoke) {
-                        setNotice('当前无运行权限，请联系工具负责人授权');
-                        return;
-                    }
-                    if (schemaState.error || issues.length) {
-                        setNotice(schemaState.error || issues.join(' '));
-                        return;
-                    }
-                    if (target.selectionMode === 'SPECIFIC' && !target.instanceId) {
-                        setNotice('请先选择实例');
-                        return;
-                    }
-                    const executionLabel = tool.canEdit ? '调试当前内容' : `运行已保存版本 v${tool.version}`;
-                    if ((selectedEnvironment?.production || draft.metadata.operationType !== 'QUERY') && !window.confirm(
-                        `${executionLabel}：${draft.name}\n环境：${selectedEnvironment?.name}\n${draft.metadata.riskNote || '请确认业务影响范围'}\n不自动重试；二次确认不是审批。`)) return;
-                    setResultView('open');
-                    setParametersOpen(false);
-                    const request = {
-                        scriptId: id,
-                        version: tool.version,
-                        parameters: executionParameters(definitions, values, Boolean(schemaState.schema)),
-                        target: {...target, environment},
-                        riskConfirmed: true
-                    };
-                    void execution.execute(() => tool.canEdit ? debugDraft({
-                        ...request,
-                        content: draft.content,
-                        parameterSchema: draft.schema,
-                    }) : runTool(request));
-                }} onExample={() => setDialog('example')} onEditScript={() => {
+                                       }} onExecute={executeCurrent} onExample={() => setDialog('example')}
+                                       onEditScript={() => {
                     setParametersOpen(false);
                     document.querySelector<HTMLElement>('[aria-label="Groovy 脚本内容"]')?.focus({preventScroll: true});
                 }}/>
                 <ExecutionResultsPanel execution={execution} resultView={resultView} onViewChange={setResultView}/>
             </div>
         </section>
+        {dialog === 'execute' && (
+            <ExecutionConfirmation scriptName={draft.name}
+                                   environment={selectedEnvironment?.name || environment}
+                                   target={target.selectionMode === 'ALL' ? '全部实例'
+                                       : target.instanceId || '随机单实例'} version={tool.version}
+                                   riskNote={draft.metadata.riskNote || ''}
+                                   confirmLabel={tool.canEdit ? '确认并调试' : '确认并运行'}
+                                   onCancel={() => {
+                                       setDialog(undefined);
+                                       rejectExecution('已取消风险确认');
+                                   }} onConfirm={() => {
+                setDialog(undefined);
+                startExecution();
+            }}/>
+        )}
         {dialog === 'grants' && <ToolGrantsModal scriptId={id} environments={login.availableEnvironments}
                                                  onClose={() => setDialog(undefined)} onSaved={() => {
             void editor.reload();

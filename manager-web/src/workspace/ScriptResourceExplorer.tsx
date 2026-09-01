@@ -5,11 +5,15 @@ import type {DirectoryNode, ScriptResourceOverview} from '../types';
 
 interface Props {
     serviceName: string;
+    services?: string[];
     tree: DirectoryNode[];
     overview: ScriptResourceOverview;
     loading: boolean;
     selectedId?: string;
+    selectedFolder?: DirectoryNode;
     onSelect: (scriptId: string) => void;
+    onServiceChange?: (serviceName: string) => void;
+    onFolderSelect?: (folder?: DirectoryNode) => void;
     onCreate?: (parent?: DirectoryNode) => void;
     onRename: (node: DirectoryNode) => void;
     onDelete: (node: DirectoryNode) => void;
@@ -18,11 +22,15 @@ interface Props {
 /** 资源筛选和视图切换留在资源模块，加载与写操作由应用层编排。 */
 export default function ScriptResourceExplorer({
                                                    serviceName,
+                                                   services = [],
                                                    tree,
                                                    overview,
                                                    loading,
                                                    selectedId,
+                                                   selectedFolder,
                                                    onSelect,
+                                                   onServiceChange,
+                                                   onFolderSelect,
                                                    onCreate,
                                                    onRename,
                                                    onDelete,
@@ -52,6 +60,7 @@ export default function ScriptResourceExplorer({
         </div> : <p className="empty-hint">暂无{view === 'favorites' ? '收藏' : '最近使用'}脚本</p>;
     } else if (visibleTree.length) {
         resources = <DirectoryTree nodes={visibleTree} selectedId={selectedId} searching={Boolean(search.trim())}
+                                   selectedFolderId={selectedFolder?.id} onFolderSelect={onFolderSelect}
                                    onSelect={(node) => onSelect(node.id)} onCreate={onCreate} onRename={onRename}
                                    onDelete={onDelete}/>;
     } else {
@@ -60,9 +69,17 @@ export default function ScriptResourceExplorer({
 
     return <section className="explorer">
         <div className="explorer-heading">
-            <span><small>脚本资源</small><strong>{serviceName || '未选择服务'}</strong></span>
-            {onCreate && <button type="button" disabled={!serviceName} onClick={() => onCreate()}>+ 新建</button>}
+            <label><small>脚本资源</small>{onServiceChange ? <select aria-label="资源应用服务" value={serviceName}
+                                                                     onChange={event => onServiceChange(event.target.value)}>
+                    {services.map(item => <option key={item}>{item}</option>)}</select>
+                : <strong>{serviceName || '未选择服务'}</strong>}</label>
+            {onCreate && <button type="button" disabled={!serviceName}
+                                 title={selectedFolder ? `在 ${selectedFolder.name} 下新建` : '在根目录新建'}
+                                 onClick={() => onCreate(selectedFolder)}>+ 新建</button>}
         </div>
+        {selectedFolder && <div className="resource-create-context">当前位置：{selectedFolder.name}
+            <button type="button" onClick={() => onFolderSelect?.()}>切回根目录</button>
+        </div>}
         <input className="search-input" value={search} onChange={(event) => setSearch(event.target.value)}
                placeholder="搜索文件夹或脚本" aria-label="搜索目录树"/>
         <div className="resource-tabs">

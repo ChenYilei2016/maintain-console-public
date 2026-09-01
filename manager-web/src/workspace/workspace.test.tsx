@@ -7,7 +7,8 @@ import ScriptResourceExplorer from './ScriptResourceExplorer';
 import DirectoryTree from '../DirectoryTree';
 import {scrollEdges} from './ParameterScrollArea';
 import type {ComponentProps} from 'react';
-import {canOpenScriptEditor} from './ScriptWorkspace';
+import {canOpenScriptEditor, ScriptPermissionFallback} from './ScriptWorkspace';
+import ExecutionConfirmation from './ExecutionConfirmation';
 
 const noop = () => undefined;
 const parameters: ComponentProps<typeof ScriptParametersPanel> = {
@@ -44,8 +45,23 @@ describe('工作区模块契约', () => {
                                                                      icon: '',
                                                                      production: true
                                                                  }}/>);
-        expect(html).toContain('type="submit" form="execution-form" disabled=""');
+        const formId = html.match(/<form id="([^"]+)"/)?.[1];
+        expect(formId).toBeTruthy();
+        expect(html).toContain(`type="submit" form="${formId}"`);
+        expect(html).not.toContain(`type="submit" form="${formId}" disabled=""`);
         expect(html).toContain('生产环境 · 请核对目标和操作风险，确认不是审批');
+    });
+
+    it('多个控制台的运行按钮只提交各自表单', () => {
+        const html = renderToStaticMarkup(<>
+            <ScriptParametersPanel {...parameters}/>
+            <ScriptParametersPanel {...parameters} script={{...parameters.script, id: 'script-2'}}/>
+        </>);
+        const formIds = [...html.matchAll(/<form id="([^"]+)"/g)].map(match => match[1]);
+        const buttonTargets = [...html.matchAll(/type="submit" form="([^"]+)"/g)].map(match => match[1]);
+
+        expect(new Set(formIds).size).toBe(2);
+        expect(buttonTargets).toEqual(formIds);
     });
 
     it('只有运行权限时明确运行保存版本，不伪装成草稿调试', () => {
@@ -73,8 +89,10 @@ describe('工作区模块契约', () => {
         expect(html).toContain('当前无编辑权限');
         expect(html).toContain('运行已保存版本');
         expect(html).not.toContain('调试当前内容');
-        expect(html).toContain('type="submit" form="execution-form"');
-        expect(html).not.toContain('type="submit" form="execution-form" disabled=""');
+        const formId = html.match(/<form id="([^"]+)"/)?.[1];
+        expect(formId).toBeTruthy();
+        expect(html).toContain(`type="submit" form="${formId}"`);
+        expect(html).not.toContain(`type="submit" form="${formId}" disabled=""`);
     });
 
     it('缺少运行权限时直接说明原因', () => {
@@ -85,13 +103,18 @@ describe('工作区模块契约', () => {
                                                                      canInvoke: false
                                                                  }}/>);
         expect(html).toContain('当前无运行权限');
+        const formId = html.match(/<form id="([^"]+)"/)?.[1];
+        expect(html).toContain(`type="submit" form="${formId}"`);
+        expect(html).not.toContain(`type="submit" form="${formId}" disabled=""`);
     });
 
     it('配置页不提交隐藏表单，而是引导进入运行填值', () => {
         const html = renderToStaticMarkup(<ScriptParametersPanel {...parameters} parameterTab="schema"/>);
-        expect(html).toContain('id="execution-form" hidden=""');
+        const formId = html.match(/<form id="([^"]+)"/)?.[1];
+        expect(formId).toBeTruthy();
+        expect(html).toContain(`id="${formId}" hidden=""`);
         expect(html).toContain('完成配置，填写运行参数');
-        expect(html).not.toContain('form="execution-form"');
+        expect(html).not.toContain(`form="${formId}"`);
     });
 
     it('脚本操作按职责分组，常用入口保持直接可见', () => {
@@ -146,15 +169,65 @@ describe('工作区模块契约', () => {
         expect(html).not.toContain('私有脚本');
     });
 
-    it('结果收起只隐藏内容，放大后仍展示同一份结果', () => {
+    it('目录在点击前展示脚本能力，无任何能力的脚本不可盲点', () => {
+        const html = renderToStaticMarkup(<DirectoryTree searching={false} onSelect={noop} nodes={[{
+            ...parameters.script,
+            id: 'locked',
+            name: '锁定脚本',
+            canRead: false,
+            canEdit: false,
+            canInvoke: false,
+            canManage: false
+        }, {
+            ...parameters.script,
+            id: 'debuggable',
+            name: '可调试脚本',
+            canRead: true,
+            canEdit: true,
+            canInvoke: true,
+            canManage: true
+        }]}/>);
+        expect(html).toContain('仅目录');
+        expect(html).toContain('可调试');
+        expect(html).toContain('disabled=""');
+    });
+
+    it('只有授权管理能力时保留可操作入口，不把可授权脚本变成死路', () => {
+        const html = renderToStaticMarkup(<ScriptPermissionFallback name="待授权脚本" canManage onManage={noop}/>);
+
+        expect(html).toContain('只有授权管理能力');
+        expect(html).toContain('管理授权');
+        expect(html).not.toContain('没有查看、运行或授权管理能力');
+    });
+
+    it('末级目录仍能新建脚本', () => {
+        const html = renderToStaticMarkup(<DirectoryTree searching={false} onSelect={noop} onCreate={noop} nodes={[{
+            id: 'leaf-folder', name: '末级目录', type: 'folder', serviceName: 'sample', level: 2
+        }]}/>);
+        expect(html).toContain('在 末级目录 下新建');
+    });
+
+    it('结果始终可见，放大后仍展示同一份结果', () => {
         const execution = {error: '保留的执行结果', running: false, elapsed: 0};
-        const collapsed = renderToStaticMarkup(<ExecutionResultsPanel execution={execution}
-                                                                      resultView="collapsed" onViewChange={noop}/>);
-        expect(collapsed).toContain('id="execution-results" hidden=""');
-        expect(collapsed).toContain('保留的执行结果');
+        const open = renderToStaticMarkup(<ExecutionResultsPanel execution={execution}
+                                                                 resultView="open" onViewChange={noop}/>);
+        expect(open).not.toContain('id="execution-results" hidden=""');
+        expect(open).toContain('保留的执行结果');
+        expect(open).not.toContain('收起结果');
         const maximized = renderToStaticMarkup(<ExecutionResultsPanel execution={execution}
                                                                       resultView="maximized" onViewChange={noop}/>);
         expect(maximized).toContain('还原结果区');
         expect(maximized).not.toContain('hidden=""');
+    });
+
+    it('风险确认明确说明尚未执行，并给出不含糊的确认动作', () => {
+        const html = renderToStaticMarkup(<ExecutionConfirmation scriptName="生产排障" environment="生产环境"
+                                                                 target="随机单实例" version={3}
+                                                                 riskNote="可能修改订单状态"
+                                                                 onCancel={noop} onConfirm={noop}/>);
+        expect(html).toContain('尚未发起执行');
+        expect(html).toContain('取消执行');
+        expect(html).toContain('确认并调试');
+        expect(html).toContain('可能修改订单状态');
     });
 });

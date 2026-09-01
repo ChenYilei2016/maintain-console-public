@@ -1,6 +1,7 @@
 package io.github.chenyilei2016.maintain.manager.tools;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import io.github.chenyilei2016.maintain.client.common.console.IMaintainConsoleExecutor;
 import io.github.chenyilei2016.maintain.client.common.dto.*;
@@ -144,6 +145,15 @@ class ToolWorkflowTest {
         JSONObject strangerTree = post("stranger", "/manager/directory/tree?serviceName=maintain-console", Map.of());
         assertTrue(strangerTree.getBooleanValue("success"));
         assertTrue(strangerTree.toJSONString().contains(id), "目录名称对所有登录用户可见");
+        JSONObject strangerNode = findNode(strangerTree.getJSONArray("data"), id);
+        for (String capability : List.of("canRead", "canEdit", "canInvoke", "canManage")) {
+            assertFalse(strangerNode.getBooleanValue(capability), "无权限用户的目录能力提示必须为 false");
+        }
+        JSONObject authorNode = findNode(post("author", "/manager/directory/tree?serviceName=maintain-console", Map.of())
+                .getJSONArray("data"), id);
+        for (String capability : List.of("canRead", "canEdit", "canInvoke", "canManage")) {
+            assertTrue(authorNode.getBooleanValue(capability), "目录应直接展示当前用户的脚本能力: " + capability);
+        }
         JSONObject strangerDetail = post("stranger", "/manager/directory/script/detail", Map.of("scriptId", id));
         assertTrue(strangerDetail.getBooleanValue("success"));
         assertEquals("", strangerDetail.getJSONObject("data").getString("content"));
@@ -325,6 +335,19 @@ class ToolWorkflowTest {
         identity(actor);
         return JSON.parseObject(mvc.perform(MockMvcRequestBuilders.post(path).contentType("application/json")
                 .content(JSON.toJSONString(body))).andReturn().getResponse().getContentAsString());
+    }
+
+    private JSONObject findNode(JSONArray nodes, String id) {
+        for (Object value : nodes) {
+            JSONObject node = (JSONObject) value;
+            if (id.equals(node.getString("id"))) return node;
+            JSONArray children = node.getJSONArray("children");
+            if (children != null) {
+                JSONObject found = findNode(children, id);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private JSONObject get(String actor, String path) throws Exception {

@@ -76,4 +76,15 @@ public class DirectoryNodeDTO {
      */
     private Integer level;
 
+    /**
+     * 当前登录用户的能力摘要；不包含权限 JSON 或授权主体。
+     */
+    private boolean canRead;
+    private boolean canEdit;
+    private boolean canInvoke;
+    private boolean canManage;
+    private boolean canCreateChild;
+    private boolean canRename;
+    private boolean canDelete;
+
 }

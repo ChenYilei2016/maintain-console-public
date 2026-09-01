@@ -776,10 +776,21 @@ textarea:focus-visible {
     padding: 0 6px 13px;
 }
 
-.explorer-heading > span {
+.explorer-heading > span,
+.explorer-heading > label {
     display: grid;
     min-width: 0;
     gap: 3px;
+}
+
+.explorer-heading select {
+    max-width: 150px;
+    border: 0;
+    background: transparent;
+    color: #e7ebf3;
+    outline: none;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .explorer-heading small {
@@ -950,10 +961,32 @@ textarea:focus-visible {
 }
 
 .tree-name {
+    min-width: 0;
+    flex: 1;
     overflow: hidden;
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.tree-capability {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: #203c35;
+    padding: 2px 5px;
+    color: #8ce2b7;
+    font-size: 9px;
+    white-space: nowrap;
+}
+
+.tree-capability.locked {
+    background: #2c3341;
+    color: #8b96aa;
+}
+
+.tree-label:disabled {
+    cursor: not-allowed;
+    opacity: 0.72;
 }
 
 .tree-arrow {
@@ -1029,7 +1062,8 @@ textarea:focus-visible {
 }
 
 .tree-row:hover .tree-actions,
-.tree-row:focus-within .tree-actions {
+.tree-row:focus-within .tree-actions,
+.tree-row.selected .tree-actions {
     display: flex;
 }
 

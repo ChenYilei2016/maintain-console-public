@@ -77,19 +77,22 @@ public class ScriptPermissionEntity {
 
     public static boolean checkPermission(DirectoryNode node, Script existingScript, LocalLoginUser actor,
                                           ScriptPermissionEnum permission) {
+        return parse(existingScript.getPermissions()).allows(node, actor, permission);
+    }
+
+    public boolean allows(DirectoryNode node, LocalLoginUser actor, ScriptPermissionEnum permission) {
         String operatorId = actor.getEmployeeNo();
-        ScriptPermissionEntity grants = parse(existingScript.getPermissions());
-        if (grants.version < 3 && Objects.equals(node.getCreatorId(), operatorId)) {
+        if (version < 3 && Objects.equals(node.getCreatorId(), operatorId)) {
             return true;
         }
         return switch (permission) {
-            case MANAGE -> grants.version == 3 && grants.contains(grants.managerNo, operatorId);
-            case INVOKE -> grants.contains(grants.invokerNo, operatorId);
-            case EDIT -> grants.contains(grants.editorNo, operatorId);
-            case READ -> grants.contains(grants.readerNo, operatorId)
-                    || (grants.version < 3 && grants.contains(grants.editorNo, operatorId))
-                    || (grants.version == 1 && DirectoryNode.PERMISSION_PUBLIC.equals(node.getPermissionType())
-                    && (grants.readerNo == null || grants.readerNo.isBlank()));
+            case MANAGE -> version == 3 && contains(managerNo, operatorId);
+            case INVOKE -> contains(invokerNo, operatorId);
+            case EDIT -> contains(editorNo, operatorId);
+            case READ -> contains(readerNo, operatorId)
+                    || (version < 3 && contains(editorNo, operatorId))
+                    || (version == 1 && DirectoryNode.PERMISSION_PUBLIC.equals(node.getPermissionType())
+                    && (readerNo == null || readerNo.isBlank()));
         };
     }
 

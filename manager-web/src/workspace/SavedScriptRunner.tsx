@@ -8,13 +8,16 @@ import ExecutionTargetSettings from './ExecutionTargetSettings';
 import ParameterScrollArea from './ParameterScrollArea';
 import ExecutionHistoryModal from '../execution/ExecutionHistoryModal';
 import ExecutionOutput from '../execution/ExecutionOutput';
-import {useExecution} from '../execution/useExecution';
+import type {useExecution} from '../execution/useExecution';
 import {runTool} from '../execution/execution';
 import type {ToolForm} from '../tools/toolApi';
 import {OPERATION_LABELS, toolApi} from '../tools/toolApi';
+import ExecutionConfirmation from './ExecutionConfirmation';
 import '../tools/tools.css';
 
-export default function SavedScriptRunner({id, login}: { id: string; login: LoginInfo }) {
+export default function SavedScriptRunner({id, login, execution}: {
+    id: string; login: LoginInfo; execution: ReturnType<typeof useExecution>;
+}) {
     const [tool, setTool] = useState<ToolForm>();
     const [environment, setEnvironment] = useState('');
     const [values, setValues] = useState<Record<string, string>>({});
@@ -26,8 +29,8 @@ export default function SavedScriptRunner({id, login}: { id: string; login: Logi
     });
     const [error, setError] = useState('');
     const [showHistory, setShowHistory] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
     const [refresh, setRefresh] = useState(0);
-    const execution = useExecution();
     useEffect(() => {
         let active = true;
         setError('');
@@ -66,9 +69,17 @@ export default function SavedScriptRunner({id, login}: { id: string; login: Logi
         };
     }, [id, environment, refresh]);
     const selectedEnvironment = tool?.environments.find(item => item.value === environment);
-    return <main className="tool-run-page">
-        <header className="tool-app-header"><a href="/workspace">←
-            脚本目录</a><span>{login.employeeName} · {login.employeeNo}</span></header>
+    const startExecution = () => {
+        if (!tool) return;
+        void execution.execute(() => runTool({
+            scriptId: id,
+            version: tool.version,
+            parameters: executionParameters(tool.parameters, values, true),
+            target: {...target, environment},
+            riskConfirmed: true
+        }));
+    };
+    return <section className="tool-run-page saved-script-runner">
         {!tool ? <section className="tool-unavailable"><h1>{error ? '暂时无法打开这个工具' : '正在打开工具…'}</h1>
             <p role="alert">{error || '正在检查你的访问权限'}</p>
             <button onClick={() => setRefresh(value => value + 1)}>重新检查</button>
@@ -110,14 +121,11 @@ export default function SavedScriptRunner({id, login}: { id: string; login: Logi
                                 return;
                             }
                             const confirmationNeeded = selectedEnvironment?.production || tool.metadata.operationType !== 'QUERY';
-                            if (confirmationNeeded && !window.confirm(`确认运行「${tool.name}」？\n环境：${selectedEnvironment?.name}\n目标：${target.selectionMode === 'ALL' ? '全部实例' : target.instanceId || '随机单实例'}\n${tool.metadata.riskNote || '脚本可能修改业务数据，请确认影响范围。'}\n二次确认不是审批或安全隔离，操作不会自动重试。`)) return;
-                            void execution.execute(() => runTool({
-                                scriptId: id,
-                                version: tool.version,
-                                parameters: executionParameters(tool.parameters, values, true),
-                                target: {...target, environment},
-                                riskConfirmed: true
-                            }));
+                            if (confirmationNeeded) {
+                                setShowConfirmation(true);
+                                return;
+                            }
+                            startExecution();
                         }}>
                             {tool.metadata.usageExample &&
                                 <p className="tool-usage">使用示例：{tool.metadata.usageExample}</p>}
@@ -150,6 +158,19 @@ export default function SavedScriptRunner({id, login}: { id: string; login: Logi
                                                    onRestore={restored => setValues({
                                                        ...defaultParameterValues(tool.parameters), ...safeParameterValues(tool.parameters, restored),
                                                    })}/>}
+            {showConfirmation && <ExecutionConfirmation scriptName={tool.name}
+                                                        environment={selectedEnvironment?.name || environment}
+                                                        target={target.selectionMode === 'ALL' ? '全部实例'
+                                                            : target.instanceId || '随机单实例'} version={tool.version}
+                                                        riskNote={tool.metadata.riskNote || ''}
+                                                        confirmLabel="确认并运行"
+                                                        onCancel={() => {
+                                                            setShowConfirmation(false);
+                                                            execution.reject('已取消风险确认');
+                                                        }} onConfirm={() => {
+                setShowConfirmation(false);
+                startExecution();
+            }}/>}
         </>}
-    </main>;
+    </section>;
 }
