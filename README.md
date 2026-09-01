@@ -87,6 +87,10 @@ MAINTAIN_SQLITE_URL=jdbc:sqlite:/absolute/path/maintain-manager.sqlite \
 java -jar manager/target/manager-1.0-SNAPSHOT.jar --spring.profiles.active=local
 ```
 
+`local` / `demo` 还提供 **生产环境（SQLite 模拟）**。它只用于验证生产标识、风险确认和权限流程：
+执行目标仍是当前 Manager 进程，业务数据仍写入上述 SQLite，不会连接真实生产注册中心或生产数据库。
+工具必须在 **授权** 中显式勾选该环境后才可运行。
+
 ### 前端开发
 
 ```bash

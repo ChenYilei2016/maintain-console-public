@@ -50,7 +50,7 @@ export default function WorkspaceToolbar({
                                  onChange={(event) => onNameChange(event.target.value)}
                                  aria-label="脚本名称"/> : <h1>脚本工作台</h1>}
                 {script && <span className={'draft-state ' + (draftChanged ? 'unsaved' : '')}>
-                    {draftChanged ? '● 未保存' : '✓ 已保存'}</span>}
+                    {!script.canEdit ? '只读 · 运行保存版本' : draftChanged ? '● 未保存' : '✓ 已保存'}</span>}
             </div>
             {script && <div className="panel-actions">
                 <div className="toolbar-action-group primary-actions" aria-label="主要操作">

@@ -12,7 +12,7 @@ import {
 } from '../parameters';
 import type {LoginInfo, RuntimeMetadata, ServiceInstance} from '../types';
 import {useExecution} from '../execution/useExecution';
-import {debugDraft} from '../execution/execution';
+import {debugDraft, runTool} from '../execution/execution';
 import ExecutionHistoryModal from '../execution/ExecutionHistoryModal';
 import ToolGrantsModal from '../tools/ToolGrantsModal';
 import {OPERATION_LABELS} from '../tools/toolApi';
@@ -247,6 +247,10 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                                                setNotice(failure instanceof Error ? failure.message : '预览失败');
                                            }
                                        }} onExecute={() => {
+                    if (!tool.canInvoke) {
+                        setNotice('当前无运行权限，请联系工具负责人授权');
+                        return;
+                    }
                     if (schemaState.error || issues.length) {
                         setNotice(schemaState.error || issues.join(' '));
                         return;
@@ -255,19 +259,23 @@ export default function ScriptWorkspace({id, login, onSummaryChange}: {
                         setNotice('请先选择实例');
                         return;
                     }
+                    const executionLabel = tool.canEdit ? '调试当前内容' : `运行已保存版本 v${tool.version}`;
                     if ((selectedEnvironment?.production || draft.metadata.operationType !== 'QUERY') && !window.confirm(
-                        `调试未保存内容：${draft.name}\n环境：${selectedEnvironment?.name}\n${draft.metadata.riskNote || '请确认业务影响范围'}\n不自动保存、不自动重试；二次确认不是审批。`)) return;
+                        `${executionLabel}：${draft.name}\n环境：${selectedEnvironment?.name}\n${draft.metadata.riskNote || '请确认业务影响范围'}\n不自动重试；二次确认不是审批。`)) return;
                     setResultView('open');
                     setParametersOpen(false);
-                    void execution.execute(() => debugDraft({
+                    const request = {
                         scriptId: id,
                         version: tool.version,
-                        content: draft.content,
-                        parameterSchema: draft.schema,
                         parameters: executionParameters(definitions, values, Boolean(schemaState.schema)),
                         target: {...target, environment},
                         riskConfirmed: true
-                    }));
+                    };
+                    void execution.execute(() => tool.canEdit ? debugDraft({
+                        ...request,
+                        content: draft.content,
+                        parameterSchema: draft.schema,
+                    }) : runTool(request));
                 }} onExample={() => setDialog('example')} onEditScript={() => {
                     setParametersOpen(false);
                     document.querySelector<HTMLElement>('[aria-label="Groovy 脚本内容"]')?.focus({preventScroll: true});

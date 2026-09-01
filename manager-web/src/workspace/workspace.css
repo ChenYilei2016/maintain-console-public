@@ -83,6 +83,16 @@
     flex: 1;
 }
 
+.workspace-tab-pages {
+    display: flex;
+    overflow: hidden;
+}
+
+.workspace-tab-page {
+    height: 100%;
+    overflow: hidden;
+}
+
 .workspace-tab-page > .workbench {
     height: 100%;
 }
@@ -482,6 +492,16 @@
 .workbench-parameters .production-warning {
     margin-bottom: 9px;
     white-space: normal;
+}
+
+.workbench-parameters .execution-permission-note {
+    margin-bottom: 9px;
+    border-left: 3px solid #7c8ca5;
+    background: #f1f4f8;
+    padding: 7px 9px;
+    color: #53637a;
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 .workbench-parameters .parameter-help > summary,

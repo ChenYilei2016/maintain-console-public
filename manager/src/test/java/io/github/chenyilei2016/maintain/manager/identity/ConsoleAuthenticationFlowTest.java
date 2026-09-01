@@ -52,6 +52,11 @@ class ConsoleAuthenticationFlowTest {
         assertEquals("developer", developerInfo.getJSONObject("data").getString("employeeNo"));
         assertTrue(developerInfo.getJSONObject("data").getBooleanValue("canCreateTools"));
         assertFalse(developerInfo.getJSONObject("data").getBooleanValue("administrator"));
+        assertTrue(developerInfo.getJSONObject("data").getJSONArray("availableEnvironments").stream()
+                        .map(JSONObject.class::cast)
+                        .anyMatch(environment -> "prod".equals(environment.getString("value"))
+                                && environment.getBooleanValue("production")),
+                "local 应提供使用 SQLite 和本进程执行器的生产风险模拟环境");
         assertFalse(getJson(developer, "/manager/admin/users").getBooleanValue("success"));
         assertFalse(getJson(developer, "/manager/admin/usage").getBooleanValue("success"));
         JSONObject created = postJson(developer, "/manager/directory/treeNode/save", Map.of(

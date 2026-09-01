@@ -41,6 +41,45 @@ describe('工作区模块契约', () => {
         expect(html).toContain('生产环境 · 请核对目标和操作风险，确认不是审批');
     });
 
+    it('只有运行权限时明确运行保存版本，不伪装成草稿调试', () => {
+        const html = renderToStaticMarkup(<ScriptParametersPanel {...parameters}
+                                                                 script={{
+                                                                     ...parameters.script,
+                                                                     canEdit: false,
+                                                                     canInvoke: true
+                                                                 }}
+                                                                 instances={[{
+                                                                     id: 'instance-1',
+                                                                     serviceId: 'sample',
+                                                                     host: '127.0.0.1',
+                                                                     port: 8080,
+                                                                     secure: false,
+                                                                     uri: 'http://127.0.0.1:8080',
+                                                                     metadata: {}
+                                                                 }]}
+                                                                 environment={{
+                                                                     value: 'test',
+                                                                     name: '测试',
+                                                                     icon: '',
+                                                                     production: false
+                                                                 }}/>);
+        expect(html).toContain('当前无编辑权限');
+        expect(html).toContain('运行已保存版本');
+        expect(html).not.toContain('调试当前内容');
+        expect(html).toContain('type="submit" form="execution-form"');
+        expect(html).not.toContain('type="submit" form="execution-form" disabled=""');
+    });
+
+    it('缺少运行权限时直接说明原因', () => {
+        const html = renderToStaticMarkup(<ScriptParametersPanel {...parameters}
+                                                                 script={{
+                                                                     ...parameters.script,
+                                                                     canEdit: true,
+                                                                     canInvoke: false
+                                                                 }}/>);
+        expect(html).toContain('当前无运行权限');
+    });
+
     it('配置页不提交隐藏表单，而是引导进入运行填值', () => {
         const html = renderToStaticMarkup(<ScriptParametersPanel {...parameters} parameterTab="schema"/>);
         expect(html).toContain('id="execution-form" hidden=""');

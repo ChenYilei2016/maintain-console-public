@@ -5279,3 +5279,1036 @@ java.lang.IllegalArgumentException: 登录返回地址不安全
 2026-09-01 10:44:44.564 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-3 - Shutdown completed.
 2026-09-01 10:44:44.566 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-4 - Shutdown initiated...
 2026-09-01 10:44:44.566 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-4 - Shutdown completed.
+2026-09-01 11:31:00.853 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarting.54] - Starting ConsoleAuthenticationFlowTest using Java 25.0.3 with PID 69909 (started by yileichen in /Users/yileichen/Desktop/ownCode/maintain-console-public/manager)
+2026-09-01 11:31:00.855 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at SpringApplication.java.logStartupProfileInfo.658] - The following 1 profile is active: "local"
+2026-09-01 11:31:00.992 [ INFO  ] [background-preinit] [ o.h.v.i.u.Version ] [at Version.java.<clinit>.18] - HV000001: Hibernate Validator 9.0.1.Final
+2026-09-01 11:31:02.553 [ INFO  ] [main] [ o.s.c.c.s.GenericScope ] [at GenericScope.java.setSerializationId.280] - BeanFactory id=0d2c4510-1ea4-3579-b00d-57218b325bd3
+2026-09-01 11:31:03.378 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.109] - HikariPool-1 - Starting...
+2026-09-01 11:31:03.629 [ INFO  ] [main] [ c.z.h.p.HikariPool ] [at HikariPool.java.checkFailFast.580] - HikariPool-1 - Added connection org.sqlite.jdbc4.JDBC4Connection@301e5d23
+2026-09-01 11:31:03.631 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.122] - HikariPool-1 - Start completed.
+2026-09-01 11:31:03.641 [ INFO  ] [main] [ o.f.c.FlywayExecutor ] [at Slf4jLog.java.info.41] - Database: jdbc:sqlite:/var/folders/4h/9vc12_b56cvcrybc2v7nbv9c0000gn/T/maintain-auth-5ecb9412-24a5-45b6-8f54-0e1f1407537c.sqlite (SQLite 3.45)
+2026-09-01 11:31:03.666 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Schema history table "main"."flyway_schema_history" does not exist yet
+2026-09-01 11:31:03.667 [ INFO  ] [main] [ o.f.c.i.c.DbValidate ] [at Slf4jLog.java.info.41] - Successfully validated 7 migrations (execution time 00:00.009s)
+2026-09-01 11:31:03.669 [ INFO  ] [main] [ o.f.c.Flyway ] [at Slf4jLog.java.info.41] - All configured schemas are empty; baseline operation skipped. A baseline or migration script with a lower version than the baseline version may execute if available. Check the Schemas parameter if this is not intended.
+2026-09-01 11:31:03.670 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Creating Schema History table "main"."flyway_schema_history" ...
+2026-09-01 11:31:03.682 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Current version of schema "main": << Empty Schema >>
+2026-09-01 11:31:03.687 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "1 - baseline"
+2026-09-01 11:31:03.696 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "2 - script protocol"
+2026-09-01 11:31:03.703 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "3 - execution task"
+2026-09-01 11:31:03.707 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "4 - security and approval"
+2026-09-01 11:31:03.709 [ INFO  ] [main] [ o.f.c.i.s.DefaultSqlScriptExecutor ] [at Slf4jLog.java.info.41] - +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CASE WHEN quick_check GLOB 'CHECK*' THEN raise(ABORT,'CHECK constraint failed') WHEN quick_check GLOB 'non-* value in*' THEN raise(ABORT,'type mismatch on DEFAULT') ELSE raise(ABORT,'NOT NULL constraint failed') END |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| No rows returned                                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+2026-09-01 11:31:03.713 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "5 - resource preferences"
+2026-09-01 11:31:03.721 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "6 - shared tools"
+2026-09-01 11:31:03.727 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "7 - console users"
+2026-09-01 11:31:03.731 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Successfully applied 7 migrations to schema "main", now at version v7 (execution time 00:00.011s)
+2026-09-01 11:31:04.465 [ INFO  ] [main] [ c.b.m.e.s.MybatisPlusApplicationContextAware ] [at MybatisPlusApplicationContextAware.java.setApplicationContext.43] - Register ApplicationContext instances org.springframework.web.context.support.GenericWebApplicationContext@6ecdbab8
+2026-09-01 11:31:04.692 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:31:04.692 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:31:04.697 [ INFO  ] [main] [ o.s.b.a.e.w.EndpointLinksResolver ] [at EndpointLinksResolver.java.<init>.60] - Exposing 2 endpoints beneath base path '/actuator'
+2026-09-01 11:31:04.702 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 10 ms
+2026-09-01 11:31:04.768 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarted.60] - Started ConsoleAuthenticationFlowTest in 4.185 seconds (process running for 4.859)
+2026-09-01 11:31:27.029 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-1 - Shutdown initiated...
+2026-09-01 11:31:27.031 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-1 - Shutdown completed.
+2026-09-01 11:33:50.254 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarting.54] - Starting ConsoleAuthenticationFlowTest using Java 25.0.3 with PID 70280 (started by yileichen in /Users/yileichen/Desktop/ownCode/maintain-console-public/manager)
+2026-09-01 11:33:50.256 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at SpringApplication.java.logStartupProfileInfo.658] - The following 1 profile is active: "local"
+2026-09-01 11:33:50.707 [ INFO  ] [background-preinit] [ o.h.v.i.u.Version ] [at Version.java.<clinit>.18] - HV000001: Hibernate Validator 9.0.1.Final
+2026-09-01 11:33:52.499 [ INFO  ] [main] [ o.s.c.c.s.GenericScope ] [at GenericScope.java.setSerializationId.280] - BeanFactory id=0d2c4510-1ea4-3579-b00d-57218b325bd3
+2026-09-01 11:33:53.247 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.109] - HikariPool-1 - Starting...
+2026-09-01 11:33:54.754 [ INFO  ] [main] [ c.z.h.p.HikariPool ] [at HikariPool.java.checkFailFast.580] - HikariPool-1 - Added connection org.sqlite.jdbc4.JDBC4Connection@723c5f86
+2026-09-01 11:33:54.757 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.122] - HikariPool-1 - Start completed.
+2026-09-01 11:33:54.774 [ INFO  ] [main] [ o.f.c.FlywayExecutor ] [at Slf4jLog.java.info.41] - Database: jdbc:sqlite:/var/folders/4h/9vc12_b56cvcrybc2v7nbv9c0000gn/T/maintain-auth-d1d201ac-1035-4dd8-bab0-a13c3b7b7fee.sqlite (SQLite 3.45)
+2026-09-01 11:33:54.808 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Schema history table "main"."flyway_schema_history" does not exist yet
+2026-09-01 11:33:54.810 [ INFO  ] [main] [ o.f.c.i.c.DbValidate ] [at Slf4jLog.java.info.41] - Successfully validated 7 migrations (execution time 00:00.014s)
+2026-09-01 11:33:54.812 [ INFO  ] [main] [ o.f.c.Flyway ] [at Slf4jLog.java.info.41] - All configured schemas are empty; baseline operation skipped. A baseline or migration script with a lower version than the baseline version may execute if available. Check the Schemas parameter if this is not intended.
+2026-09-01 11:33:54.813 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Creating Schema History table "main"."flyway_schema_history" ...
+2026-09-01 11:33:54.825 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Current version of schema "main": << Empty Schema >>
+2026-09-01 11:33:54.832 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "1 - baseline"
+2026-09-01 11:33:54.841 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "2 - script protocol"
+2026-09-01 11:33:54.845 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "3 - execution task"
+2026-09-01 11:33:54.856 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "4 - security and approval"
+2026-09-01 11:33:54.858 [ INFO  ] [main] [ o.f.c.i.s.DefaultSqlScriptExecutor ] [at Slf4jLog.java.info.41] - +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CASE WHEN quick_check GLOB 'CHECK*' THEN raise(ABORT,'CHECK constraint failed') WHEN quick_check GLOB 'non-* value in*' THEN raise(ABORT,'type mismatch on DEFAULT') ELSE raise(ABORT,'NOT NULL constraint failed') END |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| No rows returned                                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+2026-09-01 11:33:54.861 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "5 - resource preferences"
+2026-09-01 11:33:54.864 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "6 - shared tools"
+2026-09-01 11:33:54.870 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "7 - console users"
+2026-09-01 11:33:54.875 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Successfully applied 7 migrations to schema "main", now at version v7 (execution time 00:00.010s)
+2026-09-01 11:33:55.632 [ INFO  ] [main] [ c.b.m.e.s.MybatisPlusApplicationContextAware ] [at MybatisPlusApplicationContextAware.java.setApplicationContext.43] - Register ApplicationContext instances org.springframework.web.context.support.GenericWebApplicationContext@6ecdbab8
+2026-09-01 11:33:55.799 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:33:55.800 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:33:55.804 [ INFO  ] [main] [ o.s.b.a.e.w.EndpointLinksResolver ] [at EndpointLinksResolver.java.<init>.60] - Exposing 2 endpoints beneath base path '/actuator'
+2026-09-01 11:33:55.810 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 10 ms
+2026-09-01 11:33:55.895 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarted.60] - Started ConsoleAuthenticationFlowTest in 5.916 seconds (process running for 6.56)
+2026-09-01 11:34:18.378 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:登录链路工具, service:maintain-console, 操作人:演示开发者(developer)
+2026-09-01 11:34:18.392 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:登录链路工具, service:maintain-console
+2026-09-01 11:34:18.476 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094629896938139649，名称：登录链路工具，创建人：演示开发者
+2026-09-01 11:34:18.578 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.getScriptDetail.86] - 获取脚本详情，脚本ID：2094629896938139649
+2026-09-01 11:34:18.600 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:2094629896938139649, name:登录链路工具, service:maintain-console, 操作人:演示管理员(admin)
+2026-09-01 11:34:18.601 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:2094629896938139649, name:登录链路工具, service:maintain-console
+2026-09-01 11:34:18.705 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.getScriptDetail.86] - 获取脚本详情，脚本ID：2094629896938139649
+2026-09-01 11:34:19.498 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:越权脚本, service:maintain-console, 操作人:演示使用者(operator)
+2026-09-01 11:34:19.504 [ WARN  ] [main] [ i.g.c.m.m.c.WebGlobalExceptionHandler ] [at WebGlobalExceptionHandler.java.illegalArgumentException.81] - IllegalArgumentException 异常
+java.lang.IllegalArgumentException: 不支持的演示账号
+	at io.github.chenyilei2016.maintain.manager.identity.MockLoginAccount.lambda$require$1(MockLoginAccount.java:39)
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403)
+	at io.github.chenyilei2016.maintain.manager.identity.MockLoginAccount.require(MockLoginAccount.java:39)
+	at io.github.chenyilei2016.maintain.manager.identity.MockLoginProvider.authenticate(MockLoginProvider.java:13)
+	at io.github.chenyilei2016.maintain.manager.controller.AuthenticationController.login(AuthenticationController.java:46)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.github.chenyilei2016.maintain.manager.security.SecurityHeadersFilter.doFilterInternal(SecurityHeadersFilter.java:40)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:199)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.postJson(ConsoleAuthenticationFlowTest.java:141)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.mockAccountsUseRealSessionUserStatusCsrfAndServerPermissions(ConsoleAuthenticationFlowTest.java:109)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-09-01 11:34:19.514 [ WARN  ] [main] [ i.g.c.m.m.c.WebGlobalExceptionHandler ] [at WebGlobalExceptionHandler.java.illegalArgumentException.81] - IllegalArgumentException 异常
+java.lang.IllegalArgumentException: 登录返回地址不安全
+	at io.github.chenyilei2016.maintain.manager.controller.AuthenticationController.safeReturnTo(AuthenticationController.java:68)
+	at io.github.chenyilei2016.maintain.manager.controller.AuthenticationController.login(AuthenticationController.java:51)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.github.chenyilei2016.maintain.manager.security.SecurityHeadersFilter.doFilterInternal(SecurityHeadersFilter.java:40)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:199)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.postJson(ConsoleAuthenticationFlowTest.java:141)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.mockAccountsUseRealSessionUserStatusCsrfAndServerPermissions(ConsoleAuthenticationFlowTest.java:111)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-09-01 11:34:19.696 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-1 - Shutdown initiated...
+2026-09-01 11:34:19.701 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-1 - Shutdown completed.
+2026-09-01 11:40:43.901 [ INFO  ] [main] [ i.g.c.m.m.t.ToolWorkflowTest ] [at StartupInfoLogger.java.logStarting.54] - Starting ToolWorkflowTest using Java 25.0.3 with PID 72436 (started by yileichen in /Users/yileichen/Desktop/ownCode/maintain-console-public/manager)
+2026-09-01 11:40:43.903 [ INFO  ] [main] [ i.g.c.m.m.t.ToolWorkflowTest ] [at SpringApplication.java.logStartupProfileInfo.658] - The following 1 profile is active: "local"
+2026-09-01 11:40:44.031 [ INFO  ] [background-preinit] [ o.h.v.i.u.Version ] [at Version.java.<clinit>.18] - HV000001: Hibernate Validator 9.0.1.Final
+2026-09-01 11:40:44.746 [ INFO  ] [main] [ o.s.c.c.s.GenericScope ] [at GenericScope.java.setSerializationId.280] - BeanFactory id=eaff6084-0964-3969-b95d-c61b27d01b0d
+2026-09-01 11:40:45.197 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.109] - HikariPool-1 - Starting...
+2026-09-01 11:40:45.204 [ INFO  ] [main] [ c.z.h.p.HikariPool ] [at HikariPool.java.checkFailFast.580] - HikariPool-1 - Added connection org.sqlite.jdbc4.JDBC4Connection@7fd32c56
+2026-09-01 11:40:45.206 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.122] - HikariPool-1 - Start completed.
+2026-09-01 11:40:45.210 [ INFO  ] [main] [ o.f.c.FlywayExecutor ] [at Slf4jLog.java.info.41] - Database: jdbc:sqlite:/var/folders/4h/9vc12_b56cvcrybc2v7nbv9c0000gn/T/maintain-tools-ece4e4aa-505b-4f3a-8a52-05c1952140ab.sqlite (SQLite 3.45)
+2026-09-01 11:40:45.216 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Schema history table "main"."flyway_schema_history" does not exist yet
+2026-09-01 11:40:45.217 [ INFO  ] [main] [ o.f.c.i.c.DbValidate ] [at Slf4jLog.java.info.41] - Successfully validated 7 migrations (execution time 00:00.002s)
+2026-09-01 11:40:45.217 [ INFO  ] [main] [ o.f.c.Flyway ] [at Slf4jLog.java.info.41] - All configured schemas are empty; baseline operation skipped. A baseline or migration script with a lower version than the baseline version may execute if available. Check the Schemas parameter if this is not intended.
+2026-09-01 11:40:45.217 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Creating Schema History table "main"."flyway_schema_history" ...
+2026-09-01 11:40:45.220 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Current version of schema "main": << Empty Schema >>
+2026-09-01 11:40:45.222 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "1 - baseline"
+2026-09-01 11:40:45.225 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "2 - script protocol"
+2026-09-01 11:40:45.228 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "3 - execution task"
+2026-09-01 11:40:45.230 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "4 - security and approval"
+2026-09-01 11:40:45.231 [ INFO  ] [main] [ o.f.c.i.s.DefaultSqlScriptExecutor ] [at Slf4jLog.java.info.41] - +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CASE WHEN quick_check GLOB 'CHECK*' THEN raise(ABORT,'CHECK constraint failed') WHEN quick_check GLOB 'non-* value in*' THEN raise(ABORT,'type mismatch on DEFAULT') ELSE raise(ABORT,'NOT NULL constraint failed') END |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| No rows returned                                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+2026-09-01 11:40:45.233 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "5 - resource preferences"
+2026-09-01 11:40:45.235 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "6 - shared tools"
+2026-09-01 11:40:45.238 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "7 - console users"
+2026-09-01 11:40:45.240 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Successfully applied 7 migrations to schema "main", now at version v7 (execution time 00:00.004s)
+2026-09-01 11:40:45.882 [ INFO  ] [main] [ c.b.m.e.s.MybatisPlusApplicationContextAware ] [at MybatisPlusApplicationContextAware.java.setApplicationContext.43] - Register ApplicationContext instances org.springframework.web.context.support.GenericWebApplicationContext@cfd1075
+2026-09-01 11:40:46.068 [ INFO  ] [main] [ o.s.b.a.e.w.EndpointLinksResolver ] [at EndpointLinksResolver.java.<init>.60] - Exposing 2 endpoints beneath base path '/actuator'
+2026-09-01 11:40:46.112 [ INFO  ] [main] [ i.g.c.m.m.t.ToolWorkflowTest ] [at StartupInfoLogger.java.logStarted.60] - Started ToolWorkflowTest in 3.457 seconds (process running for 5.261)
+2026-09-01 11:40:46.879 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:46.882 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:46.902 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 19 ms
+2026-09-01 11:40:47.300 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:legacy, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:47.325 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:legacy, service:maintain-console
+2026-09-01 11:40:47.494 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631528606326786，名称：legacy，创建人：name-author
+2026-09-01 11:40:48.118 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:2094631528606326786, name:migrated, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:48.119 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:2094631528606326786, name:migrated, service:maintain-console
+2026-09-01 11:40:48.243 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:48.243 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:48.244 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 1 ms
+2026-09-01 11:40:48.245 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:tool-9f593446-671a-4f69-9221-cf249c278f4e, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:48.245 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:tool-9f593446-671a-4f69-9221-cf249c278f4e, service:maintain-console
+2026-09-01 11:40:48.248 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631531953381377，名称：tool-9f593446-671a-4f69-9221-cf249c278f4e，创建人：name-author
+2026-09-01 11:40:48.398 [ WARN  ] [main] [ i.g.c.m.m.c.WebGlobalExceptionHandler ] [at WebGlobalExceptionHandler.java.methodArgumentNotValidExceptionHandler.158] - 请求参数校验失败, fields:[version]
+2026-09-01 11:40:48.402 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:48.405 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:48.406 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 0 ms
+2026-09-01 11:40:48.408 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:tool-c698bb4f-ccde-4c27-99ac-b29e3b1fb1a8, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:48.409 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:tool-c698bb4f-ccde-4c27-99ac-b29e3b1fb1a8, service:maintain-console
+2026-09-01 11:40:48.412 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631532637052929，名称：tool-c698bb4f-ccde-4c27-99ac-b29e3b1fb1a8，创建人：name-author
+2026-09-01 11:40:48.433 [ WARN  ] [maintain-invoke-2] [ i.g.c.m.m.e.ScriptExecutionService ] [at ScriptExecutionService.java.lambda$execute$0.151] - 调用结果未知, scriptId:2094631532637052929, instanceId:test-0, exception:IllegalStateException
+2026-09-01 11:40:48.443 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:48.443 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:48.444 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 1 ms
+2026-09-01 11:40:48.445 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:tool-4da70788-83e0-4b26-a595-9ff59f911596, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:48.446 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:tool-4da70788-83e0-4b26-a595-9ff59f911596, service:maintain-console
+2026-09-01 11:40:48.452 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631532783853570，名称：tool-4da70788-83e0-4b26-a595-9ff59f911596，创建人：name-author
+2026-09-01 11:40:48.460 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:绕过检查, service:maintain-console, 操作人:name-runner(runner)
+2026-09-01 11:40:48.466 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.getScriptDetail.86] - 获取脚本详情，脚本ID：2094631532783853570
+2026-09-01 11:40:48.618 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:48.620 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:48.625 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 3 ms
+2026-09-01 11:40:48.628 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:tool-c5f4312b-d5e7-48ff-a4c1-c4e0cd34a7b7, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:48.629 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:tool-c5f4312b-d5e7-48ff-a4c1-c4e0cd34a7b7, service:maintain-console
+2026-09-01 11:40:48.636 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631533568188417，名称：tool-c5f4312b-d5e7-48ff-a4c1-c4e0cd34a7b7，创建人：name-author
+2026-09-01 11:40:48.694 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:48.695 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:48.697 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 1 ms
+2026-09-01 11:40:48.698 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:tool-efb57471-3366-4484-a025-40d6f715752b, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:48.699 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:tool-efb57471-3366-4484-a025-40d6f715752b, service:maintain-console
+2026-09-01 11:40:48.706 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631533849206786，名称：tool-efb57471-3366-4484-a025-40d6f715752b，创建人：name-author
+2026-09-01 11:40:49.788 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:49.790 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:49.792 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 2 ms
+2026-09-01 11:40:49.795 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:tool-e2f3030c-1b4d-402e-9476-e0b685e54d66, service:maintain-console, 操作人:name-author(author)
+2026-09-01 11:40:49.796 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:tool-e2f3030c-1b4d-402e-9476-e0b685e54d66, service:maintain-console
+2026-09-01 11:40:49.803 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631538462941186，名称：tool-e2f3030c-1b4d-402e-9476-e0b685e54d66，创建人：name-author
+2026-09-01 11:40:49.815 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:2094631538462941186, name:2094631538462941186, service:maintain-console, 操作人:name-editor(editor)
+2026-09-01 11:40:49.816 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:2094631538462941186, name:2094631538462941186, service:maintain-console
+2026-09-01 11:40:49.823 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:2094631538462941186, name:2094631538462941186, service:maintain-console, 操作人:name-editor(editor)
+2026-09-01 11:40:49.824 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:2094631538462941186, name:2094631538462941186, service:maintain-console
+2026-09-01 11:40:49.829 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:2094631538462941186, name:2094631538462941186, service:maintain-console, 操作人:name-editor(editor)
+2026-09-01 11:40:49.830 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:2094631538462941186, name:2094631538462941186, service:maintain-console
+2026-09-01 11:40:50.036 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarting.54] - Starting ConsoleAuthenticationFlowTest using Java 25.0.3 with PID 72436 (started by yileichen in /Users/yileichen/Desktop/ownCode/maintain-console-public/manager)
+2026-09-01 11:40:50.036 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at SpringApplication.java.logStartupProfileInfo.658] - The following 1 profile is active: "local"
+2026-09-01 11:40:50.392 [ INFO  ] [main] [ o.s.c.c.s.GenericScope ] [at GenericScope.java.setSerializationId.280] - BeanFactory id=0d2c4510-1ea4-3579-b00d-57218b325bd3
+2026-09-01 11:40:50.463 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.109] - HikariPool-2 - Starting...
+2026-09-01 11:40:50.464 [ INFO  ] [main] [ c.z.h.p.HikariPool ] [at HikariPool.java.checkFailFast.580] - HikariPool-2 - Added connection org.sqlite.jdbc4.JDBC4Connection@40977fab
+2026-09-01 11:40:50.465 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.122] - HikariPool-2 - Start completed.
+2026-09-01 11:40:50.465 [ INFO  ] [main] [ o.f.c.FlywayExecutor ] [at Slf4jLog.java.info.41] - Database: jdbc:sqlite:/var/folders/4h/9vc12_b56cvcrybc2v7nbv9c0000gn/T/maintain-auth-ca4c4683-0d88-4704-a4bb-75cb70ced6bb.sqlite (SQLite 3.45)
+2026-09-01 11:40:50.467 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Schema history table "main"."flyway_schema_history" does not exist yet
+2026-09-01 11:40:50.468 [ INFO  ] [main] [ o.f.c.i.c.DbValidate ] [at Slf4jLog.java.info.41] - Successfully validated 7 migrations (execution time 00:00.001s)
+2026-09-01 11:40:50.468 [ INFO  ] [main] [ o.f.c.Flyway ] [at Slf4jLog.java.info.41] - All configured schemas are empty; baseline operation skipped. A baseline or migration script with a lower version than the baseline version may execute if available. Check the Schemas parameter if this is not intended.
+2026-09-01 11:40:50.468 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Creating Schema History table "main"."flyway_schema_history" ...
+2026-09-01 11:40:50.470 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Current version of schema "main": << Empty Schema >>
+2026-09-01 11:40:50.472 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "1 - baseline"
+2026-09-01 11:40:50.476 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "2 - script protocol"
+2026-09-01 11:40:50.486 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "3 - execution task"
+2026-09-01 11:40:50.495 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "4 - security and approval"
+2026-09-01 11:40:50.496 [ INFO  ] [main] [ o.f.c.i.s.DefaultSqlScriptExecutor ] [at Slf4jLog.java.info.41] - +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CASE WHEN quick_check GLOB 'CHECK*' THEN raise(ABORT,'CHECK constraint failed') WHEN quick_check GLOB 'non-* value in*' THEN raise(ABORT,'type mismatch on DEFAULT') ELSE raise(ABORT,'NOT NULL constraint failed') END |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| No rows returned                                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+2026-09-01 11:40:50.499 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "5 - resource preferences"
+2026-09-01 11:40:50.501 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "6 - shared tools"
+2026-09-01 11:40:50.511 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "7 - console users"
+2026-09-01 11:40:50.513 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Successfully applied 7 migrations to schema "main", now at version v7 (execution time 00:00.012s)
+2026-09-01 11:40:50.698 [ INFO  ] [main] [ c.b.m.e.s.MybatisPlusApplicationContextAware ] [at MybatisPlusApplicationContextAware.java.setApplicationContext.43] - Register ApplicationContext instances org.springframework.web.context.support.GenericWebApplicationContext@c82f6bd
+2026-09-01 11:40:50.756 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:50.756 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:50.759 [ INFO  ] [main] [ o.s.b.a.e.w.EndpointLinksResolver ] [at EndpointLinksResolver.java.<init>.60] - Exposing 2 endpoints beneath base path '/actuator'
+2026-09-01 11:40:50.761 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 4 ms
+2026-09-01 11:40:50.788 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarted.60] - Started ConsoleAuthenticationFlowTest in 0.787 seconds (process running for 9.938)
+2026-09-01 11:40:50.849 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:登录链路工具, service:maintain-console, 操作人:演示开发者(developer)
+2026-09-01 11:40:50.850 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:null, name:登录链路工具, service:maintain-console
+2026-09-01 11:40:50.853 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.doScriptCreate.289] - 创建脚本成功，ID：2094631542879543298，名称：登录链路工具，创建人：演示开发者
+2026-09-01 11:40:50.886 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.getScriptDetail.86] - 获取脚本详情，脚本ID：2094631542879543298
+2026-09-01 11:40:50.893 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:2094631542879543298, name:登录链路工具, service:maintain-console, 操作人:演示管理员(admin)
+2026-09-01 11:40:50.894 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.treeNodeSave.110] - 保存树节点, type:script, id:2094631542879543298, name:登录链路工具, service:maintain-console
+2026-09-01 11:40:50.917 [ INFO  ] [main] [ i.g.c.m.m.s.i.DirectoryServiceImpl ] [at DirectoryServiceImpl.java.getScriptDetail.86] - 获取脚本详情，脚本ID：2094631542879543298
+2026-09-01 11:40:51.003 [ INFO  ] [main] [ i.g.c.m.m.c.m.ManagerDirectoryController ] [at ManagerDirectoryController.java.treeNodeSave.100] - 保存树节点, type:script, id:null, name:越权脚本, service:maintain-console, 操作人:演示使用者(operator)
+2026-09-01 11:40:51.015 [ WARN  ] [main] [ i.g.c.m.m.c.WebGlobalExceptionHandler ] [at WebGlobalExceptionHandler.java.illegalArgumentException.81] - IllegalArgumentException 异常
+java.lang.IllegalArgumentException: 不支持的演示账号
+	at io.github.chenyilei2016.maintain.manager.identity.MockLoginAccount.lambda$require$1(MockLoginAccount.java:39)
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403)
+	at io.github.chenyilei2016.maintain.manager.identity.MockLoginAccount.require(MockLoginAccount.java:39)
+	at io.github.chenyilei2016.maintain.manager.identity.MockLoginProvider.authenticate(MockLoginProvider.java:13)
+	at io.github.chenyilei2016.maintain.manager.controller.AuthenticationController.login(AuthenticationController.java:46)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.github.chenyilei2016.maintain.manager.security.SecurityHeadersFilter.doFilterInternal(SecurityHeadersFilter.java:40)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:199)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.postJson(ConsoleAuthenticationFlowTest.java:141)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.mockAccountsUseRealSessionUserStatusCsrfAndServerPermissions(ConsoleAuthenticationFlowTest.java:109)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-09-01 11:40:51.022 [ WARN  ] [main] [ i.g.c.m.m.c.WebGlobalExceptionHandler ] [at WebGlobalExceptionHandler.java.illegalArgumentException.81] - IllegalArgumentException 异常
+java.lang.IllegalArgumentException: 登录返回地址不安全
+	at io.github.chenyilei2016.maintain.manager.controller.AuthenticationController.safeReturnTo(AuthenticationController.java:68)
+	at io.github.chenyilei2016.maintain.manager.controller.AuthenticationController.login(AuthenticationController.java:51)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:252)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:184)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:117)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:934)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:853)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:86)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:866)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1000)
+	at org.springframework.web.servlet.FrameworkServlet.doPost(FrameworkServlet.java:903)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:649)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:874)
+	at org.springframework.test.web.servlet.TestDispatcherServlet.service(TestDispatcherServlet.java:72)
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:710)
+	at org.springframework.mock.web.MockFilterChain$ServletFilterProxy.doFilter(MockFilterChain.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:108)
+	at org.springframework.security.web.FilterChainProxy.lambda$doFilterInternal$3(FilterChainProxy.java:235)
+	at org.springframework.security.web.ObservationFilterChainDecorator$FilterObservation$SimpleFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:493)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$1(ObservationFilterChainDecorator.java:354)
+	at org.springframework.security.web.ObservationFilterChainDecorator.lambda$wrapSecured$0(ObservationFilterChainDecorator.java:86)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:132)
+	at org.springframework.security.web.access.intercept.AuthorizationFilter.doFilter(AuthorizationFilter.java:101)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:126)
+	at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:120)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.authentication.AnonymousAuthenticationFilter.doFilter(AnonymousAuthenticationFilter.java:100)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:181)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.csrf.CsrfFilter.doFilterInternal(CsrfFilter.java:135)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.header.HeaderWriterFilter.doHeadersAfter(HeaderWriterFilter.java:90)
+	at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:75)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:82)
+	at org.springframework.security.web.context.SecurityContextHolderFilter.doFilter(SecurityContextHolderFilter.java:69)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:62)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:231)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.session.DisableEncodeUrlFilter.doFilterInternal(DisableEncodeUrlFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.wrapFilter(ObservationFilterChainDecorator.java:244)
+	at org.springframework.security.web.ObservationFilterChainDecorator$AroundFilterObservation$SimpleAroundFilterObservation.lambda$wrap$0(ObservationFilterChainDecorator.java:337)
+	at org.springframework.security.web.ObservationFilterChainDecorator$ObservationFilter.doFilter(ObservationFilterChainDecorator.java:228)
+	at org.springframework.security.web.ObservationFilterChainDecorator$VirtualFilterChain.doFilter(ObservationFilterChainDecorator.java:141)
+	at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:237)
+	at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:195)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.ServletRequestPathFilter.doFilter(ServletRequestPathFilter.java:52)
+	at org.springframework.web.filter.CompositeFilter$VirtualFilterChain.doFilter(CompositeFilter.java:113)
+	at org.springframework.web.filter.CompositeFilter.doFilter(CompositeFilter.java:74)
+	at org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration$CompositeFilterChainProxy.doFilter(WebSecurityConfiguration.java:317)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:101)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:110)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:199)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at io.github.chenyilei2016.maintain.manager.security.SecurityHeadersFilter.doFilterInternal(SecurityHeadersFilter.java:40)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at org.springframework.test.web.servlet.setup.MockMvcFilterDecorator.doFilter(MockMvcFilterDecorator.java:160)
+	at org.springframework.mock.web.MockFilterChain.doFilter(MockFilterChain.java:127)
+	at org.springframework.test.web.servlet.MockMvc.perform(MockMvc.java:199)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.postJson(ConsoleAuthenticationFlowTest.java:141)
+	at io.github.chenyilei2016.maintain.manager.identity.ConsoleAuthenticationFlowTest.mockAccountsUseRealSessionUserStatusCsrfAndServerPermissions(ConsoleAuthenticationFlowTest.java:111)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:701)
+	at org.junit.platform.commons.support.ReflectionSupport.invokeMethod(ReflectionSupport.java:502)
+	at org.junit.jupiter.engine.support.MethodReflectionUtils.invoke(MethodReflectionUtils.java:45)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:61)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:124)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:163)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:148)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:123)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:105)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:99)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:66)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:47)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:39)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:104)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:98)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invokeVoid(InterceptingExecutableInvoker.java:71)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$0(TestMethodTestDescriptor.java:219)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:215)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:157)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:70)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:176)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:42)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$2(NodeTestTask.java:180)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$1(NodeTestTask.java:166)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$0(NodeTestTask.java:164)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:74)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:163)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:116)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:36)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:52)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.executeEngine(EngineExecutionOrchestrator.java:246)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.failOrExecuteEngine(EngineExecutionOrchestrator.java:218)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:179)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:108)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:66)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:157)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:65)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:125)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:114)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at org.junit.platform.launcher.core.InterceptingLauncher.lambda$execute$2(InterceptingLauncher.java:57)
+	at org.junit.platform.launcher.core.ClasspathAlignmentCheckingLauncherInterceptor.intercept(ClasspathAlignmentCheckingLauncherInterceptor.java:25)
+	at org.junit.platform.launcher.core.InterceptingLauncher.execute(InterceptingLauncher.java:56)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:58)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.apache.maven.surefire.api.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:125)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.executeWithCancellationToken(LauncherAdapter.java:68)
+	at org.apache.maven.surefire.junitplatform.LauncherAdapter.execute(LauncherAdapter.java:54)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:203)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:168)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:136)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+2026-09-01 11:40:51.074 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleDemoAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarting.54] - Starting ConsoleDemoAuthenticationFlowTest using Java 25.0.3 with PID 72436 (started by yileichen in /Users/yileichen/Desktop/ownCode/maintain-console-public/manager)
+2026-09-01 11:40:51.075 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleDemoAuthenticationFlowTest ] [at SpringApplication.java.logStartupProfileInfo.658] - The following 1 profile is active: "demo"
+2026-09-01 11:40:51.250 [ INFO  ] [main] [ o.s.c.c.s.GenericScope ] [at GenericScope.java.setSerializationId.280] - BeanFactory id=04993df1-987d-3651-8a85-d9425e597636
+2026-09-01 11:40:51.289 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.109] - HikariPool-3 - Starting...
+2026-09-01 11:40:51.290 [ INFO  ] [main] [ c.z.h.p.HikariPool ] [at HikariPool.java.checkFailFast.580] - HikariPool-3 - Added connection org.sqlite.jdbc4.JDBC4Connection@4a8d8f50
+2026-09-01 11:40:51.290 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.122] - HikariPool-3 - Start completed.
+2026-09-01 11:40:51.291 [ INFO  ] [main] [ o.f.c.FlywayExecutor ] [at Slf4jLog.java.info.41] - Database: jdbc:sqlite:/var/folders/4h/9vc12_b56cvcrybc2v7nbv9c0000gn/T/maintain-demo-auth-a0f6d612-151d-4071-8984-ec69ddec46ce.sqlite (SQLite 3.45)
+2026-09-01 11:40:51.293 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Schema history table "main"."flyway_schema_history" does not exist yet
+2026-09-01 11:40:51.293 [ INFO  ] [main] [ o.f.c.i.c.DbValidate ] [at Slf4jLog.java.info.41] - Successfully validated 7 migrations (execution time 00:00.001s)
+2026-09-01 11:40:51.293 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Creating Schema History table "main"."flyway_schema_history" ...
+2026-09-01 11:40:51.295 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Current version of schema "main": << Empty Schema >>
+2026-09-01 11:40:51.296 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "1 - baseline"
+2026-09-01 11:40:51.299 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "2 - script protocol"
+2026-09-01 11:40:51.302 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "3 - execution task"
+2026-09-01 11:40:51.304 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "4 - security and approval"
+2026-09-01 11:40:51.305 [ INFO  ] [main] [ o.f.c.i.s.DefaultSqlScriptExecutor ] [at Slf4jLog.java.info.41] - +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CASE WHEN quick_check GLOB 'CHECK*' THEN raise(ABORT,'CHECK constraint failed') WHEN quick_check GLOB 'non-* value in*' THEN raise(ABORT,'type mismatch on DEFAULT') ELSE raise(ABORT,'NOT NULL constraint failed') END |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| No rows returned                                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+2026-09-01 11:40:51.307 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "5 - resource preferences"
+2026-09-01 11:40:51.310 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "6 - shared tools"
+2026-09-01 11:40:51.313 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "7 - console users"
+2026-09-01 11:40:51.315 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Successfully applied 7 migrations to schema "main", now at version v7 (execution time 00:00.003s)
+2026-09-01 11:40:51.428 [ INFO  ] [main] [ c.b.m.e.s.MybatisPlusApplicationContextAware ] [at MybatisPlusApplicationContextAware.java.setApplicationContext.43] - Register ApplicationContext instances org.springframework.web.context.support.GenericWebApplicationContext@25e7e6d
+2026-09-01 11:40:51.457 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:51.457 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:51.458 [ INFO  ] [main] [ o.s.b.a.e.w.EndpointLinksResolver ] [at EndpointLinksResolver.java.<init>.60] - Exposing 2 endpoints beneath base path '/actuator'
+2026-09-01 11:40:51.459 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 2 ms
+2026-09-01 11:40:51.473 [ INFO  ] [main] [ i.g.c.m.m.i.ConsoleDemoAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarted.60] - Started ConsoleDemoAuthenticationFlowTest in 0.431 seconds (process running for 10.622)
+2026-09-01 11:40:51.501 [ INFO  ] [main] [ i.g.c.m.m.s.TrustedAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarting.54] - Starting TrustedAuthenticationFlowTest using Java 25.0.3 with PID 72436 (started by yileichen in /Users/yileichen/Desktop/ownCode/maintain-console-public/manager)
+2026-09-01 11:40:51.501 [ INFO  ] [main] [ i.g.c.m.m.s.TrustedAuthenticationFlowTest ] [at SpringApplication.java.logStartupProfileInfo.658] - The following 1 profile is active: "trusted-test"
+2026-09-01 11:40:51.652 [ INFO  ] [main] [ o.s.c.c.s.GenericScope ] [at GenericScope.java.setSerializationId.280] - BeanFactory id=8d3de91a-84f2-314a-9d57-2115c666854a
+2026-09-01 11:40:51.694 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.109] - HikariPool-4 - Starting...
+2026-09-01 11:40:51.695 [ INFO  ] [main] [ c.z.h.p.HikariPool ] [at HikariPool.java.checkFailFast.580] - HikariPool-4 - Added connection org.sqlite.jdbc4.JDBC4Connection@3f706310
+2026-09-01 11:40:51.695 [ INFO  ] [main] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.getConnection.122] - HikariPool-4 - Start completed.
+2026-09-01 11:40:51.695 [ INFO  ] [main] [ o.f.c.FlywayExecutor ] [at Slf4jLog.java.info.41] - Database: jdbc:sqlite:/var/folders/4h/9vc12_b56cvcrybc2v7nbv9c0000gn/T/maintain-trusted-auth-5e668722-96b0-494a-8f68-561de4c365cd.sqlite (SQLite 3.45)
+2026-09-01 11:40:51.698 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Schema history table "main"."flyway_schema_history" does not exist yet
+2026-09-01 11:40:51.698 [ INFO  ] [main] [ o.f.c.i.c.DbValidate ] [at Slf4jLog.java.info.41] - Successfully validated 7 migrations (execution time 00:00.001s)
+2026-09-01 11:40:51.698 [ INFO  ] [main] [ o.f.c.i.s.JdbcTableSchemaHistory ] [at Slf4jLog.java.info.41] - Creating Schema History table "main"."flyway_schema_history" ...
+2026-09-01 11:40:51.700 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Current version of schema "main": << Empty Schema >>
+2026-09-01 11:40:51.701 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "1 - baseline"
+2026-09-01 11:40:51.704 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "2 - script protocol"
+2026-09-01 11:40:51.707 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "3 - execution task"
+2026-09-01 11:40:51.719 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "4 - security and approval"
+2026-09-01 11:40:51.720 [ INFO  ] [main] [ o.f.c.i.s.DefaultSqlScriptExecutor ] [at Slf4jLog.java.info.41] - +-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| CASE WHEN quick_check GLOB 'CHECK*' THEN raise(ABORT,'CHECK constraint failed') WHEN quick_check GLOB 'non-* value in*' THEN raise(ABORT,'type mismatch on DEFAULT') ELSE raise(ABORT,'NOT NULL constraint failed') END |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| No rows returned                                                                                                                                                                                                        |
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+2026-09-01 11:40:51.723 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "5 - resource preferences"
+2026-09-01 11:40:51.726 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "6 - shared tools"
+2026-09-01 11:40:51.729 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Migrating schema "main" to version "7 - console users"
+2026-09-01 11:40:51.731 [ INFO  ] [main] [ o.f.c.i.c.DbMigrate ] [at Slf4jLog.java.info.41] - Successfully applied 7 migrations to schema "main", now at version v7 (execution time 00:00.005s)
+2026-09-01 11:40:51.820 [ INFO  ] [main] [ c.b.m.e.s.MybatisPlusApplicationContextAware ] [at MybatisPlusApplicationContextAware.java.setApplicationContext.43] - Register ApplicationContext instances org.springframework.web.context.support.GenericWebApplicationContext@29ee8374
+2026-09-01 11:40:51.842 [ INFO  ] [main] [ o.s.b.t.m.w.SpringBootMockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:51.842 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:51.843 [ INFO  ] [main] [ o.s.b.a.e.w.EndpointLinksResolver ] [at EndpointLinksResolver.java.<init>.60] - Exposing 2 endpoints beneath base path '/actuator'
+2026-09-01 11:40:51.845 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 3 ms
+2026-09-01 11:40:51.855 [ INFO  ] [main] [ i.g.c.m.m.s.TrustedAuthenticationFlowTest ] [at StartupInfoLogger.java.logStarted.60] - Started TrustedAuthenticationFlowTest in 0.369 seconds (process running for 11.005)
+2026-09-01 11:40:52.025 [ INFO  ] [main] [ o.s.m.w.MockServletContext ] [at MockServletContext.java.log.431] - Initializing Spring TestDispatcherServlet ''
+2026-09-01 11:40:52.025 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.523] - Initializing Servlet ''
+2026-09-01 11:40:52.025 [ INFO  ] [main] [ o.s.t.w.s.TestDispatcherServlet ] [at FrameworkServlet.java.initServletBean.545] - Completed initialization in 0 ms
+2026-09-01 11:40:52.210 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-1 - Shutdown initiated...
+2026-09-01 11:40:52.211 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-1 - Shutdown completed.
+2026-09-01 11:40:52.213 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-2 - Shutdown initiated...
+2026-09-01 11:40:52.214 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-2 - Shutdown completed.
+2026-09-01 11:40:52.216 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-3 - Shutdown initiated...
+2026-09-01 11:40:52.216 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-3 - Shutdown completed.
+2026-09-01 11:40:52.218 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.349] - HikariPool-4 - Shutdown initiated...
+2026-09-01 11:40:52.219 [ INFO  ] [SpringApplicationShutdownHook] [ c.z.h.HikariDataSource ] [at HikariDataSource.java.close.351] - HikariPool-4 - Shutdown completed.

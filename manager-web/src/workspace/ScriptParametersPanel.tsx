@@ -62,6 +62,15 @@ export default function ScriptParametersPanel({
     const panel = useRef<HTMLElement>(null);
     const executionForm = useRef<HTMLFormElement>(null);
     const isProduction = Boolean(environment?.production);
+    let permissionMessage = '';
+    let runButtonLabel = '▶ 调试当前内容';
+    if (!script.canInvoke) {
+        permissionMessage = '当前无运行权限，请联系工具负责人授予执行权限。';
+        runButtonLabel = '无运行权限';
+    } else if (!script.canEdit) {
+        permissionMessage = `当前无编辑权限：代码与参数配置只读；执行时使用已保存 v${script.version}。`;
+        runButtonLabel = '▶ 运行已保存版本';
+    }
 
     useEffect(() => {
         if (!parametersOpen || window.innerWidth >= 1000) return;
@@ -131,18 +140,21 @@ export default function ScriptParametersPanel({
             </ParameterScrollArea>
             <footer className="parameter-panel-footer">
                 {isProduction && <div className="production-warning">生产环境 · 请核对目标和操作风险，确认不是审批</div>}
+                {permissionMessage && <div className="execution-permission-note">{permissionMessage}</div>}
                 <small className="execution-context" title={script.serviceName}>
                     {environment?.name || '未选环境'} / {script.serviceName}
                     {draftChanged && <b> · 使用当前草稿</b>}
                 </small>
                 {parameterTab === 'values' ? <div className="execution-actions">
-                    <button type="button" disabled={executing} onClick={() => {
+                    <button type="button" disabled={!script.canEdit || executing}
+                            title={!script.canEdit ? '参数替换预览需要编辑权限' : undefined} onClick={() => {
                         if (executionForm.current?.reportValidity()) onPreview();
                     }}>预览替换
                     </button>
                     <button className="run-button" type="submit" form="execution-form"
-                            disabled={!script.canInvoke || !script.canEdit || executing || !environment || !instances.length}>{executing ? '执行中…'
-                        : '▶ 调试当前内容'}</button>
+                            disabled={!script.canInvoke || executing || !environment || !instances.length}>
+                        {executing ? '执行中…' : runButtonLabel}
+                    </button>
                 </div> : <button className="run-button" type="button"
                                  onClick={() => setParameterTab('values')}>完成配置，填写运行参数 →</button>}
             </footer>
