@@ -1,10 +1,28 @@
 import {describe, expect, it} from 'vitest';
-import {MAX_SCRIPT_IMPORT_SIZE, parseScriptImport, toTreeNodeSaveRequest} from './scriptImport';
+import {createScriptImportJson, MAX_SCRIPT_IMPORT_SIZE, parseScriptImport, toTreeNodeSaveRequest} from './scriptImport';
 import validImportDocument from '../../../skills/maintain-console-script-author/references/example-import-v1.json';
 
 const validImport = JSON.stringify(validImportDocument);
 
 describe('工具导入文档', () => {
+    it('把当前草稿生成可再导入的 JSON', () => {
+        const json = createScriptImportJson({
+            name: '问候工具',
+            description: '根据称呼生成问候。',
+            content: "return resultText('问候', 'Hello, ' + $${name})",
+            parameterSchema: JSON.stringify(validImportDocument.script.parameterSchema),
+            toolMetadata: {operationType: 'QUERY', riskNote: '只生成内存结果。'},
+        });
+
+        expect(parseScriptImport(json).script).toEqual({
+            name: '问候工具',
+            description: '根据称呼生成问候。',
+            content: "return resultText('问候', 'Hello, ' + $${name})",
+            parameterSchema: validImportDocument.script.parameterSchema,
+            toolMetadata: {operationType: 'QUERY', riskNote: '只生成内存结果。'},
+        });
+    });
+
     it('把合法 V1 文档映射为新的私有工具创建请求', () => {
         const document = parseScriptImport(validImport);
 

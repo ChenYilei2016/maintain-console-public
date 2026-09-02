@@ -1,7 +1,7 @@
-import {type DragEvent, useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {DirectoryNode} from './types';
 
-export const DIRECTORY_NODE_DRAG_TYPE = 'application/x-maintain-console-node';
+const POINTER_DRAG_THRESHOLD_PX = 6;
 
 interface DirectoryTreeProps {
     nodes: DirectoryNode[];
@@ -14,11 +14,11 @@ interface DirectoryTreeProps {
     onRename?: (node: DirectoryNode) => void;
     onDelete?: (node: DirectoryNode) => void;
     onMove?: (nodeId: string, parentId?: string) => void;
-    onDraggingChange?: (dragging: boolean) => void;
 }
 
 interface TreeNodeProps extends Omit<DirectoryTreeProps, 'nodes'> {
     node: DirectoryNode;
+    pointerDropTarget?: string;
 }
 
 function TreeNodeRow({
@@ -32,10 +32,9 @@ function TreeNodeRow({
                          onRename,
                          onDelete,
                          onMove,
-                         onDraggingChange
+                         pointerDropTarget,
                      }: TreeNodeProps) {
     const [expanded, setExpanded] = useState(node.level === 0);
-    const [dropActive, setDropActive] = useState(false);
     const isFolder = node.type === 'folder';
     const capabilityKnown = !isFolder && [node.canRead, node.canEdit, node.canInvoke, node.canManage]
         .some(value => typeof value === 'boolean');
@@ -49,15 +48,6 @@ function TreeNodeRow({
     const selectedParentId = selectedFolderId || undefined;
     const canMoveToSelected = movable && node.id !== selectedParentId
         && (node.parentId || undefined) !== selectedParentId;
-
-    const drop = (event: DragEvent) => {
-        if (!isFolder || !onMove) return;
-        event.preventDefault();
-        event.stopPropagation();
-        setDropActive(false);
-        const nodeId = event.dataTransfer.getData(DIRECTORY_NODE_DRAG_TYPE);
-        if (nodeId && nodeId !== node.id) onMove(nodeId, node.id);
-    };
 
     useEffect(() => {
         if (searching) setExpanded(true);
@@ -74,33 +64,10 @@ function TreeNodeRow({
     return (
         <li>
             <div
-                className={`tree-row ${selectedId === node.id || selectedFolderId === node.id ? 'selected' : ''} ${dropActive ? 'drop-target' : ''}`}
-                onDragOver={event => {
-                    if (isFolder && onMove) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        event.dataTransfer.dropEffect = 'move';
-                    }
-                }} onDragEnter={event => {
-                if (isFolder && onMove) {
-                    event.stopPropagation();
-                    setDropActive(true);
-                }
-            }}
-                onDragLeave={event => {
-                    event.stopPropagation();
-                    if (!event.currentTarget.contains(event.relatedTarget as Node)) setDropActive(false);
-                }} onDrop={drop}>
+                data-folder-id={isFolder ? node.id : undefined}
+                className={`tree-row ${selectedId === node.id || selectedFolderId === node.id ? 'selected' : ''} ${pointerDropTarget === node.id ? 'drop-target' : ''}`}>
                 <button className="tree-label" type="button" onClick={activate} disabled={!isFolder && !canOpen}
-                        draggable={movable} onDragStart={event => {
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData(DIRECTORY_NODE_DRAG_TYPE, node.id);
-                    onDraggingChange?.(true);
-                }} onDragEnd={() => {
-                    setDropActive(false);
-                    onDraggingChange?.(false);
-                }}
-                        title={`${capabilityKnown ? `${node.name} · ${capabilityTitle}` : node.name}${movable ? ' · 可拖拽移动' : ''}`}>
+                        title={capabilityKnown ? `${node.name} · ${capabilityTitle}` : node.name}>
           <span className={`tree-arrow ${isFolder && expanded ? 'expanded' : ''}`} aria-hidden="true">
             {isFolder ? '›' : ''}
           </span>
@@ -109,13 +76,25 @@ function TreeNodeRow({
                     {capabilityLabel && <span className={`tree-capability ${canOpen ? '' : 'locked'}`}>
                         {capabilityLabel}</span>}
                 </button>
-                {(onCreate || onRename || onDelete || onMove) && <span className="tree-actions">
+                {movable && <span className="tree-drag-handle" role="button" tabIndex={0}
+                                  data-drag-node-id={node.id}
+                                  aria-label={`拖动 ${node.name}${canMoveToSelected
+                                      ? `，或点击移动到${selectedFolderId ? '当前目录' : '根目录'}` : ''}`}
+                                  title={canMoveToSelected
+                                      ? `拖到目标目录，或点击移动到${selectedFolderId ? '当前目录' : '根目录'}`
+                                      : '拖到目标目录'}
+                                  onClick={() => {
+                                      if (canMoveToSelected) onMove?.(node.id, selectedParentId);
+                                  }} onKeyDown={event => {
+                    if (canMoveToSelected && (event.key === 'Enter' || event.key === ' ')) {
+                        event.preventDefault();
+                        onMove?.(node.id, selectedParentId);
+                    }
+                }}>⠿</span>}
+                {(onCreate || onRename || onDelete) && <span className="tree-actions">
           {onCreate && isFolder && node.canCreateChild !== false && (
               <button type="button" aria-label={`在 ${node.name} 下新建`} onClick={() => onCreate(node)}>+</button>
           )}
-                    {canMoveToSelected && <button type="button"
-                                                  aria-label={`将 ${node.name} 移动到${selectedFolderId ? '当前目录' : '根目录'}`}
-                                                  onClick={() => onMove?.(node.id, selectedParentId)}>⇢</button>}
                     {onRename && node.canRename !== false && <button type="button" aria-label={`重命名 ${node.name}`}
                                          onClick={() => onRename(node)}>✎</button>}
                     {onDelete && node.canDelete !== false &&
@@ -138,7 +117,7 @@ function TreeNodeRow({
                             onRename={onRename}
                             onDelete={onDelete}
                             onMove={onMove}
-                            onDraggingChange={onDraggingChange}
+                            pointerDropTarget={pointerDropTarget}
                         />
                     ))}
                 </ul>
@@ -147,10 +126,78 @@ function TreeNodeRow({
     );
 }
 
-export default function DirectoryTree({nodes, ...props}: DirectoryTreeProps) {
+export default function DirectoryTree({nodes, onMove, ...props}: DirectoryTreeProps) {
+    const pointerDrag = useRef<{
+        nodeId: string;
+        pointerId: number;
+        startX: number;
+        startY: number;
+        moved: boolean;
+    } | undefined>(undefined);
+    const suppressClick = useRef(false);
+    const [pointerDragging, setPointerDragging] = useState(false);
+    const [pointerDropTarget, setPointerDropTarget] = useState<string>();
+
+    const dropTargetAt = (clientX: number, clientY: number) =>
+        document.elementFromPoint(clientX, clientY)?.closest<HTMLElement>('[data-folder-id], [data-tree-root-drop]');
+
+    const finishDrag = (clientX: number, clientY: number) => {
+        const dragging = pointerDrag.current;
+        pointerDrag.current = undefined;
+        setPointerDragging(false);
+        setPointerDropTarget(undefined);
+        if (!dragging?.moved) return;
+        suppressClick.current = true;
+        window.setTimeout(() => {
+            suppressClick.current = false;
+        }, 0);
+        const target = dropTargetAt(clientX, clientY);
+        if (target?.hasAttribute('data-tree-root-drop')) onMove?.(dragging.nodeId);
+        else {
+            const parentId = target?.dataset.folderId;
+            if (parentId && parentId !== dragging.nodeId) onMove?.(dragging.nodeId, parentId);
+        }
+    };
+
     return (
-        <ul className="directory-tree">
-            {nodes.map((node) => <TreeNodeRow key={node.id} node={node} {...props} />)}
+        <ul className="directory-tree" onClickCapture={event => {
+            if (suppressClick.current && (event.target as Element).closest('[data-drag-node-id]')) {
+                suppressClick.current = false;
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }} onPointerDown={event => {
+            const handle = (event.target as Element).closest<HTMLElement>('[data-drag-node-id]');
+            const nodeId = handle?.dataset.dragNodeId;
+            if (!onMove || !handle || !nodeId || event.button !== 0) return;
+            pointerDrag.current = {
+                nodeId,
+                pointerId: event.pointerId,
+                startX: event.clientX,
+                startY: event.clientY,
+                moved: false,
+            };
+            handle.setPointerCapture?.(event.pointerId);
+        }} onPointerMove={event => {
+            const dragging = pointerDrag.current;
+            if (!dragging || dragging.pointerId !== event.pointerId) return;
+            if (!dragging.moved && Math.hypot(event.clientX - dragging.startX, event.clientY - dragging.startY)
+                >= POINTER_DRAG_THRESHOLD_PX) {
+                dragging.moved = true;
+                setPointerDragging(true);
+            }
+            if (!dragging.moved) return;
+            event.preventDefault();
+            const targetId = dropTargetAt(event.clientX, event.clientY)?.dataset.folderId;
+            setPointerDropTarget(targetId === dragging.nodeId ? undefined : targetId);
+        }} onPointerUp={event => finishDrag(event.clientX, event.clientY)} onPointerCancel={() => {
+            pointerDrag.current = undefined;
+            setPointerDragging(false);
+            setPointerDropTarget(undefined);
+        }}>
+            {nodes.map((node) => <TreeNodeRow key={node.id} node={node} onMove={onMove}
+                                              pointerDropTarget={pointerDropTarget} {...props} />)}
+            {pointerDragging && <li className="tree-root-drop" data-tree-root-drop>拖到这里移至根目录</li>}
         </ul>
     );
 }

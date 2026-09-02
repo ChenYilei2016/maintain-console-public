@@ -78,10 +78,13 @@ export default function WorkspaceToolbar({
                             onClick={() => onFavorite()}>{scriptIsFavorite ? '★ 已收藏' : '☆ 收藏'}</button>
                     <button type="button" onClick={onDetails}>说明与风险</button>
                     {script.canManage && <button type="button" onClick={() => onPermissions()}>授权</button>}
-                    <button type="button" onClick={onCopy}>复制</button>
+                    <button type="button" title="复制当前草稿的导入 JSON" onClick={onCopy}>复制 JSON</button>
                 </div>
                 <div className="toolbar-action-group" aria-label="开发辅助"><span>开发辅助</span>
-                    <button type="button" onClick={onImport}>导入 JSON</button>
+                    <button type="button" disabled={!script.canEdit}
+                            title={script.canEdit ? '导入并覆盖当前草稿' : '当前无编辑权限'}
+                            onClick={onImport}>导入 JSON
+                    </button>
                     <button type="button" onClick={() => onExample()}>示例</button>
                     {aiEnabled && <button type="button" onClick={() => onAiAssistant()}>AI</button>}</div>
             </div>}

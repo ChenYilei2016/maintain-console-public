@@ -4,12 +4,13 @@ import Modal from '../Modal';
 import {PARAMETER_TYPES} from '../parameters';
 import {navigate} from '../navigation';
 import {OPERATION_LABELS} from '../tools/toolApi';
-import {OPERATION_TYPES} from '../types';
 import type {DirectoryNode, EnvironmentOption} from '../types';
+import {OPERATION_TYPES} from '../types';
 import {
     MAX_SCRIPT_IMPORT_SIZE,
     parseScriptImport,
     SCRIPT_IMPORT_LIMITS,
+    type ScriptImportDocument,
     toTreeNodeSaveRequest
 } from './scriptImport';
 
@@ -21,6 +22,7 @@ interface Props {
     environments: EnvironmentOption[];
     onClose: () => void;
     onCreated?: (id: string) => void;
+    onApply?: (document: ScriptImportDocument) => void;
 }
 
 interface FolderOption {
@@ -42,7 +44,9 @@ export default function ScriptImportDialog({
                                                environments,
                                                onClose,
                                                onCreated = id => navigate(`/workspace/${id}`),
+                                               onApply,
                                            }: Props) {
+    const replacingCurrentDraft = Boolean(onApply);
     const [raw, setRaw] = useState('');
     const [name, setName] = useState('');
     const [services, setServices] = useState(initialServices);
@@ -67,16 +71,17 @@ export default function ScriptImportDialog({
     }, [raw]);
 
     useEffect(() => {
-        if (initialServices.length) return;
+        if (replacingCurrentDraft || initialServices.length) return;
         api.listServices().then(items => {
             setServices(items);
             setServiceName(current => current || items[0] || '');
         }).catch(failure => setError(failure instanceof Error ? failure.message : '应用服务加载失败'));
-    }, [initialServices.length]);
+    }, [initialServices.length, replacingCurrentDraft]);
     useEffect(() => {
         if (parsed.document) setName(parsed.document.script.name);
     }, [parsed.document]);
     useEffect(() => {
+        if (replacingCurrentDraft) return;
         if (!serviceName) {
             setFolders([]);
             return;
@@ -93,19 +98,28 @@ export default function ScriptImportDialog({
         return () => {
             active = false;
         };
-    }, [serviceName]);
+    }, [serviceName, replacingCurrentDraft]);
 
     const document = parsed.document;
     const parameters = document?.script.parameterSchema.parameters || [];
     const requiredCount = parameters.filter(item => item.required).length;
     const sensitiveCount = parameters.filter(item => item.sensitive).length;
-    const canCreate = Boolean(document && name.trim() && serviceName && allowedEnvironments.length && !saving);
+    const canSubmit = Boolean(document && (replacingCurrentDraft
+        || name.trim() && serviceName && allowedEnvironments.length) && !saving);
 
-    return <Modal title="导入工具 JSON" wide onClose={onClose} footer={<>
-        <span className="import-safety-summary">创建为你的私有工具，不会执行工具，也不会导入任何授权。</span>
+    return <Modal title={replacingCurrentDraft ? '导入 JSON 到当前草稿' : '导入工具 JSON'} wide onClose={onClose}
+                  footer={<>
+        <span className="import-safety-summary">{replacingCurrentDraft
+            ? '会替换当前脚本名称、说明、代码、参数和风险配置；不会自动保存或执行。'
+            : '创建为你的私有工具，不会执行工具，也不会导入任何授权。'}</span>
         <button type="button" onClick={onClose}>取消</button>
-        <button className="primary" type="button" disabled={!canCreate} onClick={async () => {
-            if (!document || !canCreate) return;
+                      <button className="primary" type="button" disabled={!canSubmit} onClick={async () => {
+                          if (!document || !canSubmit) return;
+                          if (onApply) {
+                              onApply(document);
+                              onClose();
+                              return;
+                          }
             setSaving(true);
             setError('');
             try {
@@ -121,7 +135,7 @@ export default function ScriptImportDialog({
             } finally {
                 setSaving(false);
             }
-        }}>{saving ? '创建中…' : '创建为私有工具并打开'}</button>
+                      }}>{saving ? '创建中…' : replacingCurrentDraft ? '覆盖当前草稿' : '创建为私有工具并打开'}</button>
     </>}>
         <div className={`script-import-dialog ${document ? 'has-preview' : ''}`}>
             <section className="script-import-source">
@@ -147,7 +161,9 @@ export default function ScriptImportDialog({
                             setError('无法读取所选文件');
                         }
                     }}/></label>
-                {!raw.trim() && <p className="empty-hint">导入文档只包含可移植工具内容；应用、目录、环境和授权由当前工作台决定。</p>}
+                {!raw.trim() && <p className="empty-hint">{replacingCurrentDraft
+                    ? '导入后先在当前草稿中检查变更；保存前不影响共享脚本。'
+                    : '导入文档只包含可移植工具内容；应用、目录、环境和授权由当前工作台决定。'}</p>}
                 {parsed.error && <p className="safety-note" role="alert">{parsed.error}</p>}
             </section>
 
@@ -162,7 +178,7 @@ export default function ScriptImportDialog({
                     : document.script.toolMetadata.riskNote &&
                     <p className="safety-note">风险与影响：{document.script.toolMetadata.riskNote}</p>}
 
-                <div className="script-import-targets">
+                {!replacingCurrentDraft && <div className="script-import-targets">
                     <label><span>工具名称</span><input maxLength={SCRIPT_IMPORT_LIMITS.name} value={name}
                                                        onChange={event => setName(event.target.value)}/></label>
                     <label><span>所属应用</span><select value={serviceName} onChange={event => {
@@ -175,16 +191,17 @@ export default function ScriptImportDialog({
                         <option value="">根目录</option>
                         {folders.map(folder => <option value={folder.id} key={folder.id}>{folder.label}</option>)}
                     </select></label>
-                </div>
+                </div>}
 
-                <fieldset className="script-import-environments"><legend>允许环境</legend>
+                {!replacingCurrentDraft && <fieldset className="script-import-environments">
+                    <legend>允许环境</legend>
                     {environments.map(item => <label key={item.value}><input type="checkbox"
                                                                             checked={allowedEnvironments.includes(item.value)}
                                                                             onChange={event => setAllowedEnvironments(current => event.target.checked
                                                                                 ? [...current, item.value]
                                                                                 : current.filter(value => value !== item.value))}/>
                         <span>{item.name}{item.production ? ' · 生产' : ''}</span></label>)}
-                </fieldset>
+                </fieldset>}
 
                 <section className="script-import-parameters"><header><h4>参数配置</h4>
                     <span>{parameters.length} 个参数 · {requiredCount} 个必填 · {sensitiveCount} 个敏感</span></header>

@@ -19,7 +19,7 @@ import {OPERATION_LABELS} from '../tools/toolApi';
 import {TOOL_TEMPLATES} from './templates';
 import {useScriptDraft} from './useScriptDraft';
 import WorkspaceToolbar from './WorkspaceToolbar';
-import WorkspaceResources from './WorkspaceResources';
+import WorkspaceResources, {WorkspaceServiceSelector} from './WorkspaceResources';
 import type {ParameterTab} from './ScriptParametersPanel';
 import ScriptParametersPanel from './ScriptParametersPanel';
 import type {ExecutionTarget} from './ExecutionTargetSettings';
@@ -31,6 +31,7 @@ import '../tools/tools.css';
 import {navigate} from '../navigation';
 import ExecutionConfirmation from './ExecutionConfirmation';
 import ScriptImportDialog from './ScriptImportDialog';
+import {createScriptImportJson} from './scriptImport';
 
 const CodeEditor = lazy(() => import('../CodeEditor'));
 const SavedScriptRunner = lazy(() => import('./SavedScriptRunner'));
@@ -73,12 +74,17 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
     const [favorite, setFavorite] = useState(false);
     const [resourceRevision, setResourceRevision] = useState(0);
     const [notice, setNotice] = useState('');
+    const [resourceService, setResourceService] = useState('');
+    const [resourceServices, setResourceServices] = useState<string[]>([]);
     const [exampleTemplate, setExampleTemplate] = useState<keyof typeof TOOL_TEMPLATES>('table');
     const environments = login.availableEnvironments.filter(item => tool?.allowedEnvironments == null || tool.allowedEnvironments.includes(item.value));
     const selectedEnvironment = environments.find(item => item.value === environment);
     useEffect(() => {
         if (tool && !environments.some(item => item.value === environment)) setEnvironment(environments[0]?.value || '');
     }, [tool, environments, environment]);
+    useEffect(() => {
+        if (tool?.serviceName) setResourceService(tool.serviceName);
+    }, [tool?.serviceName]);
     useEffect(() => {
         if (!tool) return;
         api.getResourceOverview(tool.serviceName).then(result => setFavorite(result.favorites.some(item => item.id === id))).catch(() => setFavorite(false));
@@ -227,15 +233,21 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                         onClick={() => setResourcesOpen(!resourcesOpen)}>☰
                 </button>
                 <a className="app-name" href="/workspace">脚本工作台</a>
-                <span className="workspace-service">{tool.serviceName}</span>
+                <div className="context-selectors">
+                    <WorkspaceServiceSelector value={resourceService || tool.serviceName}
+                                              services={resourceServices} onChange={setResourceService}/>
+                </div>
                 <div className="app-header-actions"><small>{login.employeeName} · 运行已保存 v{tool.version}</small>
                 </div>
             </header>
             {resourcesOpen && <button className="resource-backdrop" aria-label="关闭资源栏"
                                       onClick={() => setResourcesOpen(false)}/>}
-            <aside className="workbench-sidebar"><WorkspaceResources serviceName={tool.serviceName} scriptId={id}
+            <aside className="workbench-sidebar"><WorkspaceResources serviceName={resourceService || tool.serviceName}
+                                                                     scriptId={id}
                                                                      environment="" environments={login.availableEnvironments}
                                                                      revision={resourceRevision}
+                                                                     onServiceChange={setResourceService}
+                                                                     onServicesChange={setResourceServices}
                                                                      onScriptSelect={selectScript}/></aside>
             <section className="workbench-main saved-runner-workspace">
                 <Suspense fallback={<div className="app-loading">正在加载运行表单…</div>}>
@@ -257,9 +269,11 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
             <button className="icon-button" aria-label={resourcesOpen ? '收起资源栏' : '展开资源栏'}
                     onClick={() => setResourcesOpen(!resourcesOpen)}>☰
             </button>
-            <a className="app-name" href="/workspace">脚本工作台</a><span
-            className="workspace-service">{tool.serviceName}</span>
-            <div className="context-selectors"><label><span>调试环境</span><select aria-label="调试环境"
+            <a className="app-name" href="/workspace">脚本工作台</a>
+            <div className="context-selectors">
+                <WorkspaceServiceSelector value={resourceService || tool.serviceName}
+                                          services={resourceServices} onChange={setResourceService}/>
+                <label><span>调试环境</span><select aria-label="调试环境"
                                                                                    value={environment}
                                                                                    disabled={execution.running}
                                                                                    onChange={event => setEnvironment(event.target.value)}>
@@ -280,11 +294,14 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
         </header>
         {resourcesOpen &&
             <button className="resource-backdrop" aria-label="关闭资源栏" onClick={() => setResourcesOpen(false)}/>}
-        <aside className="workbench-sidebar" id="resource-sidebar"><WorkspaceResources serviceName={tool.serviceName}
+        <aside className="workbench-sidebar" id="resource-sidebar"><WorkspaceResources
+            serviceName={resourceService || tool.serviceName}
                                                                                        scriptId={id}
                                                                                        environment={environment}
                                                                                        environments={login.availableEnvironments}
                                                                                        revision={resourceRevision}
+            onServiceChange={setResourceService}
+            onServicesChange={setResourceServices}
                                                                                        onScriptSelect={selectScript}/>
         </aside>
         <section className="workbench-main">
@@ -312,21 +329,18 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                               onDetails={() => setDialog('details')}
                               onImport={() => setDialog('import')}
                               onCopy={async () => {
-                                  if (!window.confirm('复制当前保存版本为自己的私有工具？不会继承授权或未保存草稿。')) return;
                                   try {
-                                      const copied = await api.saveTreeNode({
-                                          nodeType: 'script',
-                                          nodeName: tool.name + ' - 副本',
-                                          serviceName: tool.serviceName,
-                                          content: tool.content,
-                                          parameterSchema: tool.parameterSchema,
-                                          description: tool.description,
-                                          toolMetadata: tool.toolMetadata,
-                                          allowedEnvironments: environment ? [environment] : []
-                                      });
-                                      navigate(`/workspace/${copied}`);
+                                      if (!navigator.clipboard) throw new Error('当前浏览器不支持写入剪贴板');
+                                      await navigator.clipboard.writeText(createScriptImportJson({
+                                          name: draft.name,
+                                          description: draft.description,
+                                          content: draft.content,
+                                          parameterSchema: draft.schema,
+                                          toolMetadata: draft.metadata,
+                                      }));
+                                      setNotice('已复制当前草稿的工具 JSON，可直接粘贴到导入入口');
                                   } catch (failure) {
-                                      setNotice(failure instanceof Error ? failure.message : '复制失败');
+                                      setNotice(failure instanceof Error ? `复制 JSON 失败：${failure.message}` : '复制 JSON 失败');
                                   }
                               }}/>
             {(notice || editor.error) && <div className="workspace-notice" role="status">{editor.error || notice}
@@ -423,10 +437,21 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                                                     defaultParentId={tool.parentId}
                                                     defaultEnvironment={environment}
                                                     environments={login.availableEnvironments}
+                                                    onApply={document => {
+                                                        editor.update({
+                                                            name: document.script.name,
+                                                            description: document.script.description,
+                                                            content: document.script.content,
+                                                            schema: JSON.stringify(document.script.parameterSchema, null, 2),
+                                                            metadata: document.script.toolMetadata,
+                                                        });
+                                                        setNotice('已覆盖当前草稿，尚未保存或执行');
+                                                    }}
                                                     onClose={() => setDialog(undefined)}/>}
-        {dialog === 'details' && <Modal title="用途与风险说明" onClose={() => setDialog(undefined)} footer={<button
+        {dialog === 'details' && <Modal title="用途与风险说明" wide onClose={() => setDialog(undefined)} footer={<button
             onClick={() => setDialog(undefined)}>返回工作台，稍后保存</button>}>
-            <div className="form-stack"><label><span>脚本用途</span><textarea disabled={!tool.canEdit} rows={3}
+            <div className="tool-details-form"><label
+                className="tool-details-description"><span>脚本用途</span><textarea disabled={!tool.canEdit} rows={3}
                                                                               value={draft.description}
                                                                               onChange={event => editor.update({description: event.target.value})}/></label>
                 <label><span>操作类型（不是只读保证）</span><select disabled={!tool.canEdit}
@@ -439,14 +464,15 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                                                                   })}>
                     {Object.entries(OPERATION_LABELS).map(([value, label]) => <option value={value}
                                                                                       key={value}>{label}</option>)}</select></label>
-                <label><span>使用示例</span><textarea disabled={!tool.canEdit} value={draft.metadata.usageExample || ''}
+                <label><span>使用示例</span><textarea rows={4} disabled={!tool.canEdit}
+                                                      value={draft.metadata.usageExample || ''}
                                                       onChange={event => editor.update({
                                                           metadata: {
                                                               ...draft.metadata,
                                                               usageExample: event.target.value
                                                           }
                                                       })}/></label>
-                <label><span>风险与影响范围</span><textarea disabled={!tool.canEdit}
+                <label><span>风险与影响范围</span><textarea rows={4} disabled={!tool.canEdit}
                                                             value={draft.metadata.riskNote || ''}
                                                             onChange={event => editor.update({
                                                                 metadata: {

@@ -71,6 +71,13 @@
     font-size: 12px;
 }
 
+.workbench-header .workspace-service-selector select {
+    border-color: #c9d3ff;
+    background: #f2f5ff;
+    color: #344fc0;
+    font-weight: 700;
+}
+
 .workbench-header .environment-access-hint {
     border: 0;
     background: transparent;
@@ -244,6 +251,63 @@
     border: 1px solid #d7dfeb;
     border-radius: 7px;
     padding: 8px;
+}
+
+.tool-details-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.tool-details-form label {
+    display: grid;
+    min-width: 0;
+    gap: 7px;
+}
+
+.tool-details-form label > span {
+    color: #566276;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.tool-details-form select,
+.tool-details-form textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #dce2eb;
+    border-radius: 7px;
+    background: #fff;
+    padding: 9px 11px;
+    color: #2c384e;
+    outline: none;
+    font-size: 12px;
+}
+
+.tool-details-form select {
+    height: 40px;
+    padding-block: 0;
+}
+
+.tool-details-form textarea {
+    resize: vertical;
+}
+
+.tool-details-form select:focus,
+.tool-details-form textarea:focus {
+    border-color: #7187ef;
+}
+
+.tool-details-form .tool-details-description,
+.tool-details-form > p {
+    grid-column: 1 / -1;
+}
+
+.tool-details-form > p {
+    margin: 0;
+    color: #8b95a6;
+    font-size: 11px;
+    line-height: 1.7;
 }
 
 .workbench-panels {
@@ -831,9 +895,15 @@
 }
 
 @media (max-width: 780px) {
+    .tool-details-form,
     .script-import-dialog.has-preview,
     .script-import-targets {
         grid-template-columns: 1fr;
+    }
+
+    .tool-details-form .tool-details-description,
+    .tool-details-form > p {
+        grid-column: 1;
     }
 
     .script-import-preview {
@@ -921,10 +991,6 @@
         display: block;
         border: 0;
         background: rgb(15 23 42 / 28%);
-    }
-
-    .workbench .workspace-service {
-        display: none;
     }
 }
 

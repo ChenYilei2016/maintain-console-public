@@ -11,6 +11,7 @@ import {canOpenScriptEditor, ScriptPermissionFallback} from './ScriptWorkspace';
 import ExecutionConfirmation from './ExecutionConfirmation';
 import ScriptImportDialog from './ScriptImportDialog';
 import {TOOL_TEMPLATES} from './templates';
+import {WorkspaceServiceSelector} from './WorkspaceResources';
 
 const noop = () => undefined;
 const parameters: ComponentProps<typeof ScriptParametersPanel> = {
@@ -132,6 +133,7 @@ describe('工作区模块契约', () => {
             expect(html).toContain(label);
         }
         expect(html).toContain('导入 JSON');
+        expect(html).toContain('复制 JSON');
         expect(html).not.toContain('<details');
     });
 
@@ -160,7 +162,18 @@ describe('工作区模块契约', () => {
                                                                   onImport={noop} onDelete={noop}/>);
         expect(html).toContain('tree-row selected');
         expect(html).toContain('搜索目录树');
-        expect(html).toContain('导入');
+        expect(html).toContain('导入新工具');
+        expect(html).not.toContain('资源应用服务');
+    });
+
+    it('服务选择作为顶部一级上下文', () => {
+        const html = renderToStaticMarkup(<WorkspaceServiceSelector value="order-service"
+                                                                    services={['order-service', 'user-service']}
+                                                                    onChange={noop}/>);
+
+        expect(html).toContain('应用服务');
+        expect(html).toContain('aria-label="脚本服务"');
+        expect(html).toContain('user-service');
     });
 
     it('目录树同时展示文件夹和脚本名称，不用 public/private 标记冒充 ACL', () => {
@@ -212,7 +225,7 @@ describe('工作区模块契约', () => {
         expect(html).toContain('在 末级目录 下新建');
     });
 
-    it('只有可管理的目录节点提供原生拖拽入口', () => {
+    it('只有可管理的目录节点提供明确的拖拽把手', () => {
         const html = renderToStaticMarkup(<DirectoryTree searching={false} selectedFolderId="destination"
                                                          onSelect={noop} onMove={noop} nodes={[{
             id: 'movable', name: '可移动脚本', type: 'script', serviceName: 'sample', canRename: true
@@ -220,10 +233,11 @@ describe('工作区模块契约', () => {
             id: 'locked', name: '不可移动脚本', type: 'script', serviceName: 'sample', canRename: false
         }]}/>);
 
-        expect(html).toContain('draggable="true"');
-        expect(html).toContain('可拖拽移动');
-        expect(html).toContain('draggable="false"');
-        expect(html).toContain('将 可移动脚本 移动到当前目录');
+        expect(html.match(/class="tree-drag-handle"/g)).toHaveLength(1);
+        expect(html).toContain('<span class="tree-drag-handle" role="button" tabindex="0" data-drag-node-id="movable"');
+        expect(html).toContain('拖动 可移动脚本');
+        expect(html).toContain('或点击移动到当前目录');
+        expect(html).not.toContain('⇢');
     });
 
     it('结果始终可见，放大后仍展示同一份结果', () => {

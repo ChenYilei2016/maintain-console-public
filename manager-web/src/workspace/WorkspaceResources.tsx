@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {api} from '../api';
 import Modal from '../Modal';
-import {OPERATION_TYPES} from '../types';
 import type {DirectoryNode, EnvironmentOption, ScriptResourceOverview} from '../types';
+import {OPERATION_TYPES} from '../types';
 import ScriptResourceExplorer from './ScriptResourceExplorer';
 import ScriptImportDialog from './ScriptImportDialog';
 import {TOOL_TEMPLATES} from './templates';
@@ -13,6 +13,20 @@ type ResourceDialog = {
     nodeType: DirectoryNode['type']; expectedVersion?: number; forceDelete: boolean
 };
 
+export function WorkspaceServiceSelector({value, services, onChange}: {
+    value: string;
+    services: string[];
+    onChange: (serviceName: string) => void;
+}) {
+    const options = value && !services.includes(value) ? [value, ...services] : services;
+    return <label className="workspace-service-selector"><span>应用服务</span>
+        <select aria-label="脚本服务" value={value} onChange={event => onChange(event.target.value)}>
+            {!options.length && <option value="">加载服务…</option>}
+            {options.map(item => <option key={item}>{item}</option>)}
+        </select>
+    </label>;
+}
+
 /** 资源的请求、筛选及变更状态集中在资源 Module，不由编辑页面代管。 */
 export default function WorkspaceResources({
                                                serviceName,
@@ -20,13 +34,16 @@ export default function WorkspaceResources({
                                                environment,
                                                environments,
                                                revision,
-                                               onScriptSelect
+                                               onScriptSelect,
+                                               onServiceChange,
+                                               onServicesChange,
                                            }: {
     serviceName: string; scriptId?: string; environment: string; environments: EnvironmentOption[]; revision: number;
     onScriptSelect?: (id: string) => void;
+    onServiceChange: (serviceName: string) => void;
+    onServicesChange: (services: string[]) => void;
 }) {
-    const [services, setServices] = useState<string[]>([]);
-    const [activeService, setActiveService] = useState(serviceName);
+    const [services, setServices] = useState<string[]>(serviceName ? [serviceName] : []);
     const [tree, setTree] = useState<DirectoryNode[]>([]);
     const [overview, setOverview] = useState<ScriptResourceOverview>({favorites: [], recent: []});
     const [selectedFolderId, setSelectedFolderId] = useState('');
@@ -38,11 +55,13 @@ export default function WorkspaceResources({
     useEffect(() => {
         api.listServices().then(items => {
             setServices(items);
-            setActiveService(current => current || items[0] || '');
+            onServicesChange(items);
+            if (!serviceName) onServiceChange(items[0] || '');
         }).catch(failure => setError(failure.message));
     }, []);
     useEffect(() => {
-        if (serviceName) setActiveService(serviceName);
+        setSelectedFolderId('');
+        setError('');
     }, [serviceName]);
     const selectedFolder = useMemo(() => {
         const find = (nodes: DirectoryNode[]): DirectoryNode | undefined => {
@@ -55,11 +74,11 @@ export default function WorkspaceResources({
         return selectedFolderId ? find(tree) : undefined;
     }, [selectedFolderId, tree]);
     const refresh = useCallback(async () => {
-        if (!activeService) return;
+        if (!serviceName) return;
         setLoading(true);
         setError('');
         try {
-            const [nodes, shortcuts] = await Promise.all([api.getDirectoryTree(activeService), api.getResourceOverview(activeService)]);
+            const [nodes, shortcuts] = await Promise.all([api.getDirectoryTree(serviceName), api.getResourceOverview(serviceName)]);
             setTree(nodes);
             setOverview(shortcuts);
         } catch (failure) {
@@ -67,18 +86,14 @@ export default function WorkspaceResources({
         } finally {
             setLoading(false);
         }
-    }, [activeService]);
+    }, [serviceName]);
     useEffect(() => {
         void refresh();
     }, [refresh, revision]);
     return <>
-        <ScriptResourceExplorer serviceName={activeService} services={services} tree={tree} overview={overview}
+        <ScriptResourceExplorer serviceName={serviceName} tree={tree} overview={overview}
                                 loading={loading} selectedId={scriptId} selectedFolder={selectedFolder}
-                                onServiceChange={nextService => {
-                                    setActiveService(nextService);
-                                    setSelectedFolderId('');
-                                    setError('');
-                                }} onFolderSelect={folder => setSelectedFolderId(folder?.id || '')}
+                                onFolderSelect={folder => setSelectedFolderId(folder?.id || '')}
                                 onSelect={id => onScriptSelect ? onScriptSelect(id) : navigate(`/workspace/${id}`)}
                                 onCreate={parent => setDialog({
                                     kind: 'create',
@@ -123,7 +138,7 @@ export default function WorkspaceResources({
             }
         }}/>
         {error && <p className="resource-error" role="alert">{error}</p>}
-        {importOpen && <ScriptImportDialog defaultServiceName={activeService}
+        {importOpen && <ScriptImportDialog defaultServiceName={serviceName}
                                            defaultParentId={selectedFolder?.id}
                                            defaultEnvironment={environment}
                                            initialServices={services}
@@ -148,7 +163,7 @@ export default function WorkspaceResources({
                                    const id = await api.saveTreeNode({
                                        nodeType: dialog.nodeType,
                                        nodeName: dialog.name.trim(),
-                                       serviceName: activeService,
+                                       serviceName,
                                        nodeId: dialog.kind === 'rename' ? dialog.node!.id : undefined,
                                        parentId: dialog.kind === 'create' ? dialog.node?.id : undefined,
                                        expectedVersion: dialog.expectedVersion,
@@ -175,7 +190,7 @@ export default function WorkspaceResources({
                         <input type="checkbox" checked={dialog.forceDelete}
                                onChange={event => setDialog({...dialog, forceDelete: event.target.checked})}/>包含目录内的资源（仍逐项校验管理权限）</label>}</> :
                     <div className="form-stack">
-                        {dialog.kind === 'create' && <p className="resource-create-location">创建位置：{activeService}
+                        {dialog.kind === 'create' && <p className="resource-create-location">创建位置：{serviceName}
                             {dialog.node ? ` / ${dialog.node.name}` : ' / 根目录'}</p>}
                         {dialog.kind === 'create' && <label><span>类型</span><select value={dialog.nodeType}
                                                                                      onChange={event => setDialog({

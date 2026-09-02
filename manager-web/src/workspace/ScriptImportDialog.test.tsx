@@ -59,6 +59,26 @@ afterEach(async () => {
 });
 
 describe('工具导入面板流程', () => {
+    it('编辑区导入只覆盖当前草稿，不创建新工具', async () => {
+        const apply = vi.fn();
+        const close = vi.fn();
+        const save = vi.spyOn(api, 'saveTreeNode');
+        await renderDialog({onApply: apply, onClose: close});
+
+        await fillJson(validImport);
+        expect(container.textContent).toContain('会替换当前脚本名称、说明、代码、参数和风险配置');
+        expect(container.textContent).not.toContain('所属应用');
+        expect(container.textContent).not.toContain('允许环境');
+        await act(async () => button('覆盖当前草稿').dispatchEvent(new MouseEvent('click', {bubbles: true})));
+
+        expect(apply).toHaveBeenCalledWith(expect.objectContaining({
+            script: expect.objectContaining({name: '生成问候明细'}),
+        }));
+        expect(save).not.toHaveBeenCalled();
+        expect(api.getDirectoryTree).not.toHaveBeenCalled();
+        expect(close).toHaveBeenCalledOnce();
+    });
+
     it('从粘贴预览走既有创建接口并打开新工具', async () => {
         const save = vi.spyOn(api, 'saveTreeNode').mockResolvedValue('created-tool');
         const open = vi.fn();

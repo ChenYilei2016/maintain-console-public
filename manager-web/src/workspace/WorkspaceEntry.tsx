@@ -1,11 +1,13 @@
 import {useState} from 'react';
 import type {LoginInfo} from '../types';
-import WorkspaceResources from './WorkspaceResources';
+import WorkspaceResources, {WorkspaceServiceSelector} from './WorkspaceResources';
 import './workspace.css';
 
 /** `/workspace` 仍是脚本工作台，只是不强造一个与控制台割裂的首页。 */
 export default function WorkspaceEntry({login}: { login: LoginInfo }) {
     const [resourcesOpen, setResourcesOpen] = useState(true);
+    const [serviceName, setServiceName] = useState('');
+    const [services, setServices] = useState<string[]>([]);
 
     return <main className={'workbench workspace-entry ' + (resourcesOpen ? '' : 'resources-collapsed')}>
         <header className="workbench-header">
@@ -13,14 +15,18 @@ export default function WorkspaceEntry({login}: { login: LoginInfo }) {
                     onClick={() => setResourcesOpen(!resourcesOpen)}>☰
             </button>
             <span className="app-name">脚本工作台</span>
+            <div className="context-selectors">
+                <WorkspaceServiceSelector value={serviceName} services={services} onChange={setServiceName}/>
+            </div>
             <div className="app-header-actions"><small>{login.employeeName}</small></div>
         </header>
         {resourcesOpen && <button className="resource-backdrop" aria-label="关闭资源栏"
                                   onClick={() => setResourcesOpen(false)}/>}
-        <aside className="workbench-sidebar"><WorkspaceResources serviceName=""
+        <aside className="workbench-sidebar"><WorkspaceResources serviceName={serviceName}
                                                                  environment={login.availableEnvironments[0]?.value || ''}
                                                                  environments={login.availableEnvironments}
-                                                                 revision={0}/></aside>
+                                                                 revision={0} onServiceChange={setServiceName}
+                                                                 onServicesChange={setServices}/></aside>
         <section className="workbench-main">
             <div className="welcome-card workspace-empty-console">
                 <span className="empty-console-icon" aria-hidden="true">⌘</span>

@@ -912,6 +912,7 @@ textarea:focus-visible {
 }
 
 .tree-scroll {
+    position: relative;
     min-height: 0;
     flex: 1;
     overflow: auto;
@@ -927,7 +928,11 @@ textarea:focus-visible {
 }
 
 .tree-root-drop {
-    margin-top: 8px;
+    position: absolute;
+    z-index: 2;
+    bottom: 0;
+    right: 3px;
+    left: 0;
     border: 1px dashed #6680ff;
     border-radius: 7px;
     background: #202b3f;
@@ -976,14 +981,6 @@ textarea:focus-visible {
     color: #fff;
 }
 
-.tree-label[draggable="true"] {
-    cursor: grab;
-}
-
-.tree-label[draggable="true"]:active {
-    cursor: grabbing;
-}
-
 .tree-label {
     display: flex;
     min-width: 0;
@@ -996,6 +993,32 @@ textarea:focus-visible {
     padding: 0 5px;
     color: inherit;
     text-align: left;
+}
+
+.tree-drag-handle {
+    display: grid;
+    width: 26px;
+    height: 28px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: #718098;
+    cursor: grab;
+    font-size: 16px;
+    touch-action: none;
+    user-select: none;
+}
+
+.tree-drag-handle:hover,
+.tree-drag-handle:focus-visible {
+    background: #2c3a53;
+    color: #fff;
+}
+
+.tree-drag-handle:active {
+    cursor: grabbing;
 }
 
 .tree-name {

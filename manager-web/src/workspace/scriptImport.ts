@@ -1,6 +1,6 @@
 import {parameterSchemaIssues, parseParameterSchema} from '../parameters';
-import {OPERATION_TYPES} from '../types';
 import type {OperationType, ParameterSchema, ToolMetadata, TreeNodeSaveRequest} from '../types';
+import {OPERATION_TYPES} from '../types';
 
 export const SCRIPT_IMPORT_FORMAT = 'maintain-console.script-import' as const;
 export const SCRIPT_IMPORT_VERSION = 1 as const;
@@ -30,6 +30,14 @@ export interface ScriptImportCreateOptions {
     serviceName: string;
     parentId?: string;
     allowedEnvironments: string[];
+}
+
+export interface ScriptImportSource {
+    name: string;
+    description?: string;
+    content: string;
+    parameterSchema?: string;
+    toolMetadata?: ToolMetadata;
 }
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -133,6 +141,21 @@ export function parseScriptImport(json: string): ScriptImportDocument {
             },
         },
     };
+}
+
+export function createScriptImportJson(source: ScriptImportSource): string {
+    const document = parseScriptImport(JSON.stringify({
+        format: SCRIPT_IMPORT_FORMAT,
+        version: SCRIPT_IMPORT_VERSION,
+        script: {
+            name: source.name,
+            description: source.description?.trim() || source.name,
+            content: source.content,
+            parameterSchema: parseParameterSchema(source.parameterSchema) || {version: 1, parameters: []},
+            toolMetadata: source.toolMetadata || {operationType: OPERATION_TYPES.UNSPECIFIED},
+        },
+    }));
+    return JSON.stringify(document, null, 2);
 }
 
 export function toTreeNodeSaveRequest(document: ScriptImportDocument,
