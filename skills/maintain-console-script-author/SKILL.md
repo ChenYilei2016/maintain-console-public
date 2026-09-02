@@ -14,7 +14,10 @@ Produce a runnable, reviewable tool import document rather than disconnected Gro
 3. If a required Bean name, method signature, arguments, return structure, or query/change semantic cannot be verified from the user's input or repository, ask only for those missing facts. Do not emit an import document yet.
 4. Choose the smallest parameter set that makes the tool reusable. Use `$${name}` as a standalone Groovy expression and declare exactly the same names in `parameterSchema.parameters`.
 5. Classify the tool as `QUERY`, `OPERATION`, or `UNSPECIFIED`. An `OPERATION` needs a concrete risk and impact note; use `UNSPECIFIED` only when the operation cannot be classified from confirmed facts.
-6. Prefer structured results that match the operator's decision: text for explanation, metric for summary, table for rows, chart for trends, and file only for an actual download.
+6. Prefer structured results that match the operator's decision: text for explanation, metric for summary, table for
+   rows, chart for trends, and file only for an actual download. Return one result helper directly; use `result(...)`
+   only to combine multiple blocks. An existing `result(...)` envelope is already complete and receives no second
+   envelope.
 7. Validate the completed document against every invariant in the contract. Completion means the JSON is importable without manual field repair.
 
 ## Output

@@ -10,8 +10,11 @@ public class GroovyScriptEngineTest {
 
     @Test
     public void returnsBoundedLogsWithCurrentResult() {
-        String result = String.valueOf(engine.execute("_log.info('value {}', 42); println('printed'); return result(resultText('answer', 'ok'))", new Object(), 4096, false));
-        org.junit.Assert.assertTrue(new groovy.json.JsonSlurper().parseText(result).toString().contains("本次过程日志"));
+        String result = String.valueOf(engine.execute("_log.info('value {}', 42); println('printed'); return resultText('answer', 'ok')", new Object(), 4096, false));
+        java.util.Map<?, ?> payload = (java.util.Map<?, ?>) new groovy.json.JsonSlurper().parseText(result);
+        java.util.List<?> blocks = (java.util.List<?>) payload.get("blocks");
+        assertEquals("text", ((java.util.Map<?, ?>) blocks.get(0)).get("type"));
+        assertEquals("log", ((java.util.Map<?, ?>) blocks.get(1)).get("type"));
         org.junit.Assert.assertTrue(result.contains("value 42"));
         org.junit.Assert.assertTrue(result.contains("printed"));
         String bounded = String.valueOf(engine.execute("_log.info('x' * 100000); return 1", new Object(), 4096, false));
@@ -31,5 +34,15 @@ public class GroovyScriptEngineTest {
         } catch (SecurityException expected) {
             // expected
         }
+    }
+
+    @Test
+    public void normalizesSingleBlockWithoutRepeatingExistingEnvelope() {
+        String expected = "{\"protocolVersion\":1,\"blocks\":[{\"type\":\"text\",\"title\":\"greeting\",\"data\":\"Hello\"}]}";
+
+        assertEquals(expected, engine.execute(
+                "return resultText('greeting', 'Hello')", new Object(), 4096, false));
+        assertEquals(expected, engine.execute(
+                "return result(resultText('greeting', 'Hello'))", new Object(), 4096, false));
     }
 }

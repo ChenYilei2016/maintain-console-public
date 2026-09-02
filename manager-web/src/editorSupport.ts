@@ -11,19 +11,19 @@ export const SCRIPT_SNIPPETS = [
     {label: '日志', template: "_log.info('${message}')", completion: 'logInfo', detail: '输出运行日志'},
     {
         label: '文本结果',
-        template: "return result(resultText('${title}', ${value}))",
+        template: "return resultText('${title}', ${value})",
         completion: 'textResult',
         detail: '返回文本区块'
     },
     {
         label: '表格结果',
-        template: "return result(resultTable('${title}', ['${column}'], [[${value}]]))",
+        template: "return resultTable('${title}', ['${column}'], [[${value}]])",
         completion: 'tableResult',
         detail: '返回表格区块'
     },
     {
         label: '指标结果',
-        template: "return result(resultMetric('${title}', [${name}: ${value}]))",
+        template: "return resultMetric('${title}', [${name}: ${value}])",
         completion: 'metricResult',
         detail: '返回一组关键指标'
     },

@@ -10,7 +10,7 @@
 
 ## 结构化结果
 
-- `result(blocks...)`：组合一个或多个结果区块。
+- `result(blocks...)`：组合多个结果区块；单个结果块直接返回对应 helper。
 - `resultText(title, value)`：说明文字或单值结果。
 - `resultMetric(title, map)`：少量关键指标。
 - `resultTable(title, columns, rows)`：结构化明细，最多 1000 行。
@@ -19,3 +19,7 @@
 - `toJson(value)`：将对象转换为 JSON 字符串。
 
 普通字符串和普通 JSON 可以兼容显示，但新工具优先返回能表达操作者决策的结构化结果。完整结果协议上限为 2 MiB。
+
+单结果写法：`return resultText('说明', value)`。多结果写法：
+`return result(resultMetric('摘要', metrics), resultTable('明细', columns, rows))`。
+执行器会把单个 helper 结果归一化为完整协议；已经返回 `result(...)` 时不会重复包装。

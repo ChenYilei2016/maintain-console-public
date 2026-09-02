@@ -6,7 +6,7 @@ export const TOOL_TEMPLATES = {
             'def name = $${name}', 'def count = $${count}',
             "_log.info('开始生成示例表格')",
             "def rows = (1..count).collect { index -> [index, 'Hello, ' + name] }",
-            "return result(resultTable('问候示例', ['序号', '内容'], rows))",
+            "return resultTable('问候示例', ['序号', '内容'], rows)",
         ].join('\n'),
         schema: JSON.stringify({
             version: 1, parameters: [
@@ -57,7 +57,7 @@ export const TOOL_TEMPLATES = {
     },
     empty: {
         name: '空白脚本', description: '填写这个脚本的用途、输入要求和风险。',
-        content: "// _caller 来自可信登录身份；业务数据范围仍需由业务能力校验\nreturn result(resultText('结果', 'Hello, Maintain Console'))",
+        content: "// _caller 来自可信登录身份；业务数据范围仍需由业务能力校验\nreturn resultText('结果', 'Hello, Maintain Console')",
         schema: JSON.stringify({version: 1, parameters: []}, null, 2),
     },
 } as const;

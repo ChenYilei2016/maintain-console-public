@@ -6,10 +6,7 @@ import org.slf4j.event.Level;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 本次脚本日志只进入有界结果，不输出到未脱敏的应用日志。
@@ -65,8 +62,6 @@ public final class ScriptExecutionLog extends Writer {
     }
 
     public synchronized Object withResult(Object result) {
-        if (content.length() == 0 && !truncated) return result;
-        List<Object> blocks = new ArrayList<>();
         Object parsed = result;
         if (result instanceof String) {
             try {
@@ -75,9 +70,27 @@ public final class ScriptExecutionLog extends Writer {
                 parsed = result;
             }
         }
-        if (parsed instanceof Map && Integer.valueOf(1).equals(((Map<?, ?>) parsed).get("protocolVersion"))
-                && ((Map<?, ?>) parsed).get("blocks") instanceof List) {
+        boolean protocolResult = parsed instanceof Map
+                && Integer.valueOf(1).equals(((Map<?, ?>) parsed).get("protocolVersion"))
+                && ((Map<?, ?>) parsed).get("blocks") instanceof List;
+        boolean singleBlock = parsed instanceof Map
+                && ((Map<?, ?>) parsed).get("type") instanceof CharSequence
+                && ((Map<?, ?>) parsed).containsKey("title")
+                && ((Map<?, ?>) parsed).containsKey("data");
+        boolean hasLogs = content.length() > 0 || truncated;
+        if (!hasLogs) {
+            if (protocolResult) {
+                return result instanceof String ? result
+                        : toProtocolJson((List<?>) ((Map<?, ?>) parsed).get("blocks"));
+            }
+            return singleBlock ? toProtocolJson(Collections.singletonList(parsed)) : result;
+        }
+
+        List<Object> blocks = new ArrayList<>();
+        if (protocolResult) {
             blocks.addAll((List<?>) ((Map<?, ?>) parsed).get("blocks"));
+        } else if (singleBlock) {
+            blocks.add(parsed);
         } else {
             Map<String, Object> value = new LinkedHashMap<>();
             value.put("type", result instanceof String ? "text" : "json");
@@ -89,6 +102,10 @@ public final class ScriptExecutionLog extends Writer {
         log.put("title", "本次过程日志");
         log.put("data", content.toString() + (truncated ? "\n...日志已截断" : ""));
         blocks.add(log);
+        return toProtocolJson(blocks);
+    }
+
+    private static String toProtocolJson(List<?> blocks) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("protocolVersion", 1);
         payload.put("blocks", blocks);

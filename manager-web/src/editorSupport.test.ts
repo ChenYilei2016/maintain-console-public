@@ -1,7 +1,7 @@
 import {CompletionContext} from '@codemirror/autocomplete';
 import {EditorState} from '@codemirror/state';
 import {describe, expect, it} from 'vitest';
-import {scriptCompletions, scriptDiagnostics} from './editorSupport';
+import {SCRIPT_SNIPPETS, scriptCompletions, scriptDiagnostics} from './editorSupport';
 
 describe('脚本编辑辅助', () => {
     it('补全完整参数引用，不留下重复的大括号', () => {
@@ -35,5 +35,13 @@ describe('脚本编辑辅助', () => {
         });
         expect(completion?.from).toBe(source.lastIndexOf('.') + 1);
         expect(completion?.options[0].apply).toBe('find()');
+    });
+
+    it('单结果片段直接返回结果块，不添加多余协议包装', () => {
+        expect(SCRIPT_SNIPPETS.filter(item => item.label.endsWith('结果')).map(item => item.template)).toEqual([
+            "return resultText('${title}', ${value})",
+            "return resultTable('${title}', ['${column}'], [[${value}]])",
+            "return resultMetric('${title}', [${name}: ${value}])",
+        ]);
     });
 });

@@ -378,6 +378,9 @@ ID 会增加 `registryId` 前缀，缓存和执行记录继续使用明确环境
 
 ## 结构化结果
 
+单个结果块直接返回 helper，例如 `return resultText('说明', value)`；多个结果块才使用 `result(...)` 组合。
+执行器会自动把单结果块归一化为完整协议，已经返回完整 `result(...)` 时不会重复包装。
+
 ```groovy
 return result(
     resultMetric('执行指标', [success: 12, failed: 1]),
@@ -394,11 +397,11 @@ return result(
 小文件可直接下载，解码后上限 1 MiB：
 
 ```groovy
-return result(resultFileContent(
+return resultFileContent(
     '导出结果', 'report.csv',
     'orderId,status\nA-100,SUCCESS'.getBytes('UTF-8'),
     'text/csv'
-))
+)
 ```
 
 表格最多 1000 行，图表每组最多 1000 个点，完整协议最多 2 MiB。未知 block 会安全降级，不渲染任意 HTML，也不执行脚本返回的前端代码。普通字符串和普通

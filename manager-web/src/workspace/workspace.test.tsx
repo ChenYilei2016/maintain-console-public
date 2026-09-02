@@ -10,6 +10,7 @@ import type {ComponentProps} from 'react';
 import {canOpenScriptEditor, ScriptPermissionFallback} from './ScriptWorkspace';
 import ExecutionConfirmation from './ExecutionConfirmation';
 import ScriptImportDialog from './ScriptImportDialog';
+import {TOOL_TEMPLATES} from './templates';
 
 const noop = () => undefined;
 const parameters: ComponentProps<typeof ScriptParametersPanel> = {
@@ -266,5 +267,12 @@ describe('工作区模块契约', () => {
         expect(html).toContain('创建为私有工具并打开');
         expect(html).toContain('不会执行工具');
         expect(html).toContain('不会导入任何授权');
+    });
+
+    it('单结果示例直接返回结果块，多结果示例只包装一次', () => {
+        expect(TOOL_TEMPLATES.table.content).toContain("return resultTable('");
+        expect(TOOL_TEMPLATES.table.content).not.toContain('return result(resultTable(');
+        expect(TOOL_TEMPLATES.empty.content).toContain("return resultText('");
+        expect(TOOL_TEMPLATES.dashboard.content.match(/return result\(/g)).toHaveLength(1);
     });
 });
