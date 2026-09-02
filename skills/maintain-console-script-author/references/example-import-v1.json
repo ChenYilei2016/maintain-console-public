@@ -1,0 +1,26 @@
+{
+  "format": "maintain-console.script-import",
+  "version": 1,
+  "script": {
+    "name": "生成问候明细",
+    "description": "根据称呼生成结构化文本结果。",
+    "content": "def name = $${name}\nreturn resultText('问候', 'Hello, ' + name)",
+    "parameterSchema": {
+      "version": 1,
+      "parameters": [
+        {
+          "name": "name",
+          "label": "称呼",
+          "type": "STRING",
+          "required": true,
+          "description": "需要问候的名称"
+        }
+      ]
+    },
+    "toolMetadata": {
+      "operationType": "QUERY",
+      "riskNote": "只生成内存结果。",
+      "usageExample": "输入称呼后查看文本结果。"
+    }
+  }
+}

@@ -19,6 +19,7 @@ export default function WorkspaceEntry({login}: { login: LoginInfo }) {
                                   onClick={() => setResourcesOpen(false)}/>}
         <aside className="workbench-sidebar"><WorkspaceResources serviceName=""
                                                                  environment={login.availableEnvironments[0]?.value || ''}
+                                                                 environments={login.availableEnvironments}
                                                                  revision={0}/></aside>
         <section className="workbench-main">
             <div className="welcome-card workspace-empty-console">

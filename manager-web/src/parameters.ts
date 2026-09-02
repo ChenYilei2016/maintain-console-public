@@ -6,6 +6,19 @@ export const PARAMETER_TYPES: Record<ParameterType, string> = {
     JSON: 'JSON', MULTILINE: '多行文本', DATETIME: '日期时间', SERVICE_INSTANCE: '服务实例',
 };
 
+const ISO_LOCAL_DATE_TIME = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,9})?)?$/;
+
+function isIsoLocalDateTime(value: string) {
+    const match = ISO_LOCAL_DATE_TIME.exec(value);
+    if (!match) return false;
+    const [year, month, day, hour, minute, second] = match.slice(1, 7).map(Number);
+    const date = new Date(0);
+    date.setUTCFullYear(year, month - 1, day);
+    date.setUTCHours(hour, minute, second || 0, 0);
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+        && date.getUTCHours() === hour && date.getUTCMinutes() === minute && date.getUTCSeconds() === (second || 0);
+}
+
 export function parameterValueText(value: unknown): string {
     return value == null ? '' : typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
 }
@@ -60,6 +73,9 @@ export function parseParameterSchema(json?: string): ParameterSchema | undefined
                 } catch {
                     throw new Error(`参数 ${parameter.name} 的默认值不是合法 JSON`);
                 }
+            }
+            if (parameter.type === 'DATETIME' && !isIsoLocalDateTime(defaultValue)) {
+                throw new Error(`参数 ${parameter.name} 的默认值必须是 ISO-8601 本地日期时间`);
             }
         }
         names.add(parameter.name);

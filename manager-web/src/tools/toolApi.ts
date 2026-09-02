@@ -1,5 +1,6 @@
 import {fetchJson, post, unwrap} from '../api';
-import type {ApiResponse, ParameterDefinition, ServiceInstance, ToolMetadata} from '../types';
+import {OPERATION_TYPES} from '../types';
+import type {ApiResponse, OperationType, ParameterDefinition, ServiceInstance, ToolMetadata} from '../types';
 
 export interface ToolSummary {
     id: string;
@@ -41,7 +42,11 @@ export const CATALOG_VIEWS = {
     RECENT: '最近使用'
 } as const;
 export type CatalogView = keyof typeof CATALOG_VIEWS;
-export const OPERATION_LABELS = {UNSPECIFIED: '未标记类型', QUERY: '查询类', OPERATION: '操作类'} as const;
+export const OPERATION_LABELS: Record<OperationType, string> = {
+    [OPERATION_TYPES.UNSPECIFIED]: '未标记类型',
+    [OPERATION_TYPES.QUERY]: '查询类',
+    [OPERATION_TYPES.OPERATION]: '操作类',
+};
 
 export interface ToolPage {
     items: ToolSummary[];

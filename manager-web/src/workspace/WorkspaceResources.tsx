@@ -1,8 +1,10 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {api} from '../api';
 import Modal from '../Modal';
-import type {DirectoryNode, ScriptResourceOverview} from '../types';
+import {OPERATION_TYPES} from '../types';
+import type {DirectoryNode, EnvironmentOption, ScriptResourceOverview} from '../types';
 import ScriptResourceExplorer from './ScriptResourceExplorer';
+import ScriptImportDialog from './ScriptImportDialog';
 import {TOOL_TEMPLATES} from './templates';
 import {navigate} from '../navigation';
 
@@ -16,10 +18,11 @@ export default function WorkspaceResources({
                                                serviceName,
                                                scriptId,
                                                environment,
+                                               environments,
                                                revision,
                                                onScriptSelect
                                            }: {
-    serviceName: string; scriptId?: string; environment: string; revision: number;
+    serviceName: string; scriptId?: string; environment: string; environments: EnvironmentOption[]; revision: number;
     onScriptSelect?: (id: string) => void;
 }) {
     const [services, setServices] = useState<string[]>([]);
@@ -31,6 +34,7 @@ export default function WorkspaceResources({
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [importOpen, setImportOpen] = useState(false);
     useEffect(() => {
         api.listServices().then(items => {
             setServices(items);
@@ -83,6 +87,7 @@ export default function WorkspaceResources({
                                     nodeType: 'script',
                                     forceDelete: false
                                 })}
+                                onImport={() => setImportOpen(true)}
                                 onRename={async node => {
                                     try {
                                         const detail = node.type === 'script' ? await api.getScriptDetail(node.id) : undefined;
@@ -118,6 +123,12 @@ export default function WorkspaceResources({
             }
         }}/>
         {error && <p className="resource-error" role="alert">{error}</p>}
+        {importOpen && <ScriptImportDialog defaultServiceName={activeService}
+                                           defaultParentId={selectedFolder?.id}
+                                           defaultEnvironment={environment}
+                                           initialServices={services}
+                                           environments={environments}
+                                           onClose={() => setImportOpen(false)}/>}
         {dialog &&
             <Modal title={dialog.kind === 'create' ? '新建资源' : dialog.kind === 'rename' ? '重命名资源' : '删除资源'}
                    onClose={() => setDialog(undefined)}
@@ -146,7 +157,7 @@ export default function WorkspaceResources({
                                            parameterSchema: template.schema,
                                            description: template.description,
                                            allowedEnvironments: environment ? [environment] : [],
-                                           toolMetadata: {operationType: 'QUERY' as const}
+                                           toolMetadata: {operationType: OPERATION_TYPES.QUERY}
                                        } : {}),
                                    });
                                    if (dialog.nodeType === 'script') navigate(`/workspace/${id}`);

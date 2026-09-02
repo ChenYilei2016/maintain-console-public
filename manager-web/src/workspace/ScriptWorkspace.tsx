@@ -30,10 +30,11 @@ import './workspace.css';
 import '../tools/tools.css';
 import {navigate} from '../navigation';
 import ExecutionConfirmation from './ExecutionConfirmation';
+import ScriptImportDialog from './ScriptImportDialog';
 
 const CodeEditor = lazy(() => import('../CodeEditor'));
 const SavedScriptRunner = lazy(() => import('./SavedScriptRunner'));
-type Dialog = 'execute' | 'details' | 'grants' | 'history' | 'versions' | 'example' | 'ai' | undefined;
+type Dialog = 'execute' | 'details' | 'grants' | 'history' | 'versions' | 'example' | 'ai' | 'import' | undefined;
 
 export const canOpenScriptEditor = (script: Pick<ScriptDetail, 'canRead' | 'canEdit'>) => script.canRead || script.canEdit;
 
@@ -233,7 +234,8 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
             {resourcesOpen && <button className="resource-backdrop" aria-label="关闭资源栏"
                                       onClick={() => setResourcesOpen(false)}/>}
             <aside className="workbench-sidebar"><WorkspaceResources serviceName={tool.serviceName} scriptId={id}
-                                                                     environment="" revision={resourceRevision}
+                                                                     environment="" environments={login.availableEnvironments}
+                                                                     revision={resourceRevision}
                                                                      onScriptSelect={selectScript}/></aside>
             <section className="workbench-main saved-runner-workspace">
                 <Suspense fallback={<div className="app-loading">正在加载运行表单…</div>}>
@@ -281,6 +283,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
         <aside className="workbench-sidebar" id="resource-sidebar"><WorkspaceResources serviceName={tool.serviceName}
                                                                                        scriptId={id}
                                                                                        environment={environment}
+                                                                                       environments={login.availableEnvironments}
                                                                                        revision={resourceRevision}
                                                                                        onScriptSelect={selectScript}/>
         </aside>
@@ -307,6 +310,7 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                               onPermissions={openGrants}
                               onExample={() => setDialog('example')} onAiAssistant={() => setDialog('ai')}
                               onDetails={() => setDialog('details')}
+                              onImport={() => setDialog('import')}
                               onCopy={async () => {
                                   if (!window.confirm('复制当前保存版本为自己的私有工具？不会继承授权或未保存草稿。')) return;
                                   try {
@@ -415,6 +419,11 @@ export default function ScriptWorkspace({id, login}: { id: string; login: LoginI
                               onApplyScript={content => editor.update({content})}
                               onApplyParameterSchema={schema => editor.update({schema})} onNotice={setNotice}
                               onClose={() => setDialog(undefined)}/>}
+        {dialog === 'import' && <ScriptImportDialog defaultServiceName={tool.serviceName}
+                                                    defaultParentId={tool.parentId}
+                                                    defaultEnvironment={environment}
+                                                    environments={login.availableEnvironments}
+                                                    onClose={() => setDialog(undefined)}/>}
         {dialog === 'details' && <Modal title="用途与风险说明" onClose={() => setDialog(undefined)} footer={<button
             onClick={() => setDialog(undefined)}>返回工作台，稍后保存</button>}>
             <div className="form-stack"><label><span>脚本用途</span><textarea disabled={!tool.canEdit} rows={3}

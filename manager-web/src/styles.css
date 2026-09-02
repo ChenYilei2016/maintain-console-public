@@ -823,6 +823,12 @@ textarea:focus-visible {
     color: #fff;
 }
 
+.explorer-heading-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 5px;
+}
+
 .search-input {
     width: 100%;
     height: 38px;

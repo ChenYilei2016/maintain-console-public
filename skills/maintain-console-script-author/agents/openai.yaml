@@ -1,0 +1,4 @@
+interface:
+  display_name: "Maintain Console 工具生成"
+  short_description: "生成可直接导入 Maintain Console 的工具 JSON"
+  default_prompt: "使用 $maintain-console-script-author，根据我的运维目标生成可直接导入的工具 JSON。"

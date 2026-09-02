@@ -15,6 +15,7 @@ interface Props {
     onServiceChange?: (serviceName: string) => void;
     onFolderSelect?: (folder?: DirectoryNode) => void;
     onCreate?: (parent?: DirectoryNode) => void;
+    onImport?: () => void;
     onRename: (node: DirectoryNode) => void;
     onDelete: (node: DirectoryNode) => void;
     onMove?: (nodeId: string, parentId?: string) => void;
@@ -33,6 +34,7 @@ export default function ScriptResourceExplorer({
                                                    onServiceChange,
                                                    onFolderSelect,
                                                    onCreate,
+                                                   onImport,
                                                    onRename,
                                                    onDelete,
                                                    onMove,
@@ -76,9 +78,12 @@ export default function ScriptResourceExplorer({
                                                                      onChange={event => onServiceChange(event.target.value)}>
                     {services.map(item => <option key={item}>{item}</option>)}</select>
                 : <strong>{serviceName || '未选择服务'}</strong>}</label>
-            {onCreate && <button type="button" disabled={!serviceName}
-                                 title={selectedFolder ? `在 ${selectedFolder.name} 下新建` : '在根目录新建'}
-                                 onClick={() => onCreate(selectedFolder)}>+ 新建</button>}
+            <div className="explorer-heading-actions">
+                {onCreate && <button type="button" disabled={!serviceName}
+                                     title={selectedFolder ? `在 ${selectedFolder.name} 下新建` : '在根目录新建'}
+                                     onClick={() => onCreate(selectedFolder)}>+ 新建</button>}
+                {onImport && <button type="button" disabled={!serviceName} onClick={onImport}>导入</button>}
+            </div>
         </div>
         {selectedFolder && <div className="resource-create-context">当前位置：{selectedFolder.name}
             <button type="button" onClick={() => onFolderSelect?.()}>切回根目录</button>

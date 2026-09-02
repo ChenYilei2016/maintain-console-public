@@ -218,7 +218,12 @@ export interface ParameterDefinition {
     sensitive?: boolean;
 }
 
-export type OperationType = 'UNSPECIFIED' | 'QUERY' | 'OPERATION';
+export const OPERATION_TYPES = {
+    UNSPECIFIED: 'UNSPECIFIED',
+    QUERY: 'QUERY',
+    OPERATION: 'OPERATION',
+} as const;
+export type OperationType = typeof OPERATION_TYPES[keyof typeof OPERATION_TYPES];
 
 export interface ToolMetadata {
     operationType: OperationType;

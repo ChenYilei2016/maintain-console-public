@@ -19,6 +19,7 @@ interface Props {
     onAiAssistant: () => void;
     onDetails: () => void;
     onCopy: () => void;
+    onImport: () => void;
 }
 
 export default function WorkspaceToolbar({
@@ -40,6 +41,7 @@ export default function WorkspaceToolbar({
                                              onAiAssistant,
                                              onDetails,
                                              onCopy,
+                                             onImport,
                                          }: Props) {
     const accessSummary = !script ? '' : script.canEdit && script.canInvoke ? '可调试'
         : script.canInvoke ? '可运行' : script.canEdit ? '可编辑' : script.canRead ? '只读'
@@ -79,6 +81,7 @@ export default function WorkspaceToolbar({
                     <button type="button" onClick={onCopy}>复制</button>
                 </div>
                 <div className="toolbar-action-group" aria-label="开发辅助"><span>开发辅助</span>
+                    <button type="button" onClick={onImport}>导入 JSON</button>
                     <button type="button" onClick={() => onExample()}>示例</button>
                     {aiEnabled && <button type="button" onClick={() => onAiAssistant()}>AI</button>}</div>
             </div>}

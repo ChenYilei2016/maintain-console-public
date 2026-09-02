@@ -38,7 +38,15 @@ describe('类型化参数 Schema', () => {
             [{name: 'count', type: 'NUMBER', min: 1, max: 20, defaultValue: 99}],
             [{name: 'choice', type: 'ENUM', options: ['low'], defaultValue: 'unknown'}],
             [{name: 'body', type: 'JSON', defaultValue: '{'}],
+            [{name: 'startedAt', type: 'DATETIME', defaultValue: '2026-02-30T10:00'}],
         ]) expect(() => parseParameterSchema(JSON.stringify({version: 1, parameters}))).toThrow();
+    });
+
+    it('接受合法的 ISO 本地日期时间默认值', () => {
+        expect(() => parseParameterSchema(JSON.stringify({
+            version: 1,
+            parameters: [{name: 'startedAt', type: 'DATETIME', defaultValue: '2026-09-02T10:30:15.123'}]
+        }))).not.toThrow();
     });
 
     it('对象默认值与历史参数按 JSON 展示而非 object Object', () => {

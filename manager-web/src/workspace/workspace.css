@@ -609,6 +609,245 @@
     font-size: 12px;
 }
 
+.script-import-dialog {
+    display: grid;
+    gap: 18px;
+}
+
+.script-import-dialog.has-preview {
+    grid-template-columns: minmax(250px, .72fr) minmax(0, 1.28fr);
+    align-items: start;
+}
+
+.script-import-source,
+.script-import-preview {
+    display: grid;
+    min-width: 0;
+    gap: 12px;
+}
+
+.script-import-source label,
+.script-import-targets label {
+    display: grid;
+    gap: 6px;
+    color: #566276;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.script-import-source textarea,
+.script-import-targets input,
+.script-import-targets select {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid #d6deea;
+    border-radius: 8px;
+    background: #fff;
+    padding: 9px 10px;
+    color: #2f3d53;
+    font: inherit;
+    outline: none;
+}
+
+.script-import-source textarea {
+    resize: vertical;
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.script-import-source textarea:focus,
+.script-import-targets input:focus,
+.script-import-targets select:focus {
+    border-color: #6680ef;
+    box-shadow: 0 0 0 3px rgb(79 111 255 / 12%);
+}
+
+.script-import-file {
+    border-radius: 8px;
+    background: #f4f6fa;
+    padding: 10px;
+}
+
+.script-import-file input {
+    width: 100%;
+    color: #65738a;
+    font-size: 11px;
+}
+
+.script-import-preview {
+    border-left: 1px solid #e4e8ef;
+    padding-left: 18px;
+}
+
+.script-import-preview > header,
+.script-import-parameters > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.script-import-preview h3,
+.script-import-preview h4,
+.script-import-preview p {
+    margin: 0;
+}
+
+.script-import-preview h3 {
+    margin-top: 3px;
+    color: #202b3f;
+    font-size: 17px;
+}
+
+.script-import-preview h4 {
+    color: #344158;
+    font-size: 12px;
+}
+
+.script-import-preview > p,
+.script-import-usage p {
+    color: #66748a;
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.script-import-preview .import-query-note {
+    border-left: 3px solid #5a73dc;
+    background: #eef2ff;
+    padding: 8px 10px;
+    color: #5365aa;
+}
+
+.script-import-targets {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(140px, .8fr) minmax(140px, .8fr);
+    gap: 10px;
+}
+
+.script-import-environments {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin: 0;
+    border: 1px solid #e1e6ee;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.script-import-environments legend {
+    padding: 0 5px;
+    color: #65738a;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.script-import-environments label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #4f5e75;
+    font-size: 11px;
+}
+
+.script-import-parameters,
+.script-import-usage {
+    display: grid;
+    gap: 9px;
+    border-radius: 9px;
+    background: #f7f9fc;
+    padding: 12px;
+}
+
+.script-import-parameters header > span {
+    color: #7f8ba0;
+    font-size: 10px;
+}
+
+.script-import-parameters ul {
+    display: grid;
+    max-height: 190px;
+    margin: 0;
+    padding: 0;
+    gap: 6px;
+    overflow: auto;
+    list-style: none;
+}
+
+.script-import-parameters li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px 8px;
+    border-top: 1px solid #e5e9f0;
+    padding-top: 7px;
+    color: #778398;
+    font-size: 10px;
+}
+
+.script-import-parameters li strong {
+    color: #36445b;
+    font-size: 11px;
+}
+
+.script-import-parameters li code,
+.script-import-parameters li b {
+    border-radius: 4px;
+    background: #e9edf6;
+    padding: 2px 5px;
+    color: #53627b;
+    font-size: 9px;
+}
+
+.script-import-parameters li small {
+    width: 100%;
+    color: #7c899c;
+    line-height: 1.5;
+}
+
+.script-import-preview details {
+    color: #66748a;
+    font-size: 11px;
+}
+
+.script-import-preview summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.script-import-preview details .preview-code {
+    max-height: 210px;
+    overflow: auto;
+}
+
+.import-safety-summary {
+    margin-right: auto;
+    color: #68758a;
+    font-size: 10px;
+}
+
+.script-import-dialog > .safety-note {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 780px) {
+    .script-import-dialog.has-preview,
+    .script-import-targets {
+        grid-template-columns: 1fr;
+    }
+
+    .script-import-preview {
+        border-top: 1px solid #e4e8ef;
+        border-left: 0;
+        padding-top: 16px;
+        padding-left: 0;
+    }
+
+    .import-safety-summary {
+        width: 100%;
+    }
+}
+
 .execution-confirmation {
     display: grid;
     gap: 12px;

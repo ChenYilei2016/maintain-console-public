@@ -9,6 +9,7 @@ import {scrollEdges} from './ParameterScrollArea';
 import type {ComponentProps} from 'react';
 import {canOpenScriptEditor, ScriptPermissionFallback} from './ScriptWorkspace';
 import ExecutionConfirmation from './ExecutionConfirmation';
+import ScriptImportDialog from './ScriptImportDialog';
 
 const noop = () => undefined;
 const parameters: ComponentProps<typeof ScriptParametersPanel> = {
@@ -124,10 +125,12 @@ describe('工作区模块契约', () => {
                                                             onNameChange={noop} onParametersToggle={noop} onSave={noop}
                                                             onHistory={noop} onRevisions={noop}
                                                             onFavorite={noop} onPermissions={noop} onExample={noop}
-                                                            onAiAssistant={noop} onDetails={noop} onCopy={noop}/>);
+                                                            onAiAssistant={noop} onDetails={noop} onCopy={noop}
+                                                            onImport={noop}/>);
         for (const label of ['主要操作', '回溯', '脚本设置', '开发辅助', '收藏', '版本', '授权', '示例', 'AI']) {
             expect(html).toContain(label);
         }
+        expect(html).toContain('导入 JSON');
         expect(html).not.toContain('<details');
     });
 
@@ -153,9 +156,10 @@ describe('工作区模块契约', () => {
                                                                   overview={{favorites: [], recent: []}} loading={false}
                                                                   selectedId={parameters.script.id}
                                                                   onSelect={noop} onCreate={noop} onRename={noop}
-                                                                  onDelete={noop}/>);
+                                                                  onImport={noop} onDelete={noop}/>);
         expect(html).toContain('tree-row selected');
         expect(html).toContain('搜索目录树');
+        expect(html).toContain('导入');
     });
 
     it('目录树同时展示文件夹和脚本名称，不用 public/private 标记冒充 ACL', () => {
@@ -243,5 +247,24 @@ describe('工作区模块契约', () => {
         expect(html).toContain('取消执行');
         expect(html).toContain('确认并调试');
         expect(html).toContain('可能修改订单状态');
+    });
+
+    it('导入面板在一个界面完成输入、目标选择与安全确认', () => {
+        const html = renderToStaticMarkup(<ScriptImportDialog defaultServiceName="sample"
+                                                               defaultEnvironment="test"
+                                                               initialServices={['sample']}
+                                                               environments={[{
+                                                                   value: 'test',
+                                                                   name: '测试',
+                                                                   icon: '',
+                                                                   production: false
+                                                               }]}
+                                                               onClose={noop}/>);
+
+        expect(html).toContain('粘贴工具导入 JSON');
+        expect(html).toContain('type="file"');
+        expect(html).toContain('创建为私有工具并打开');
+        expect(html).toContain('不会执行工具');
+        expect(html).toContain('不会导入任何授权');
     });
 });
